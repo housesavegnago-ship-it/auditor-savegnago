@@ -3,71 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor Savegnago V17 - Diagnóstico Preciso</title>
+    <title>Auditor Savegnago V18 - Estável</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; background-color: #f8fafc; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; background-color: #f8fafc; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
         .drop-zone:hover { border-color: #3b82f6; background-color: #eff6ff; }
         .scroll-area { overflow-y: auto; height: 100%; }
         
-        /* Badges */
-        .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; }
-        .badge-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-        .badge-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        
-        /* Texto de Conclusão */
-        .correction-note { font-size: 11px; color: #b91c1c; background-color: #fef2f2; padding: 4px 8px; border-radius: 4px; border-left: 3px solid #ef4444; margin-top: 4px; display: block; }
+        .correction-note { font-size: 11px; color: #b91c1c; background-color: #fef2f2; padding: 6px; border-radius: 4px; border-left: 3px solid #ef4444; margin-top: 4px; display: block; line-height: 1.4; }
         .correction-ok { font-size: 11px; color: #15803d; background-color: #f0fdf4; padding: 4px 8px; border-radius: 4px; border-left: 3px solid #22c55e; margin-top: 4px; display: block; }
     </style>
 </head>
 <body class="text-slate-800">
 
-    <header class="bg-blue-900 text-white p-4 h-16 flex justify-between items-center shrink-0 shadow-lg z-10">
+    <header class="bg-indigo-900 text-white p-4 h-16 flex justify-between items-center shrink-0 shadow-lg z-10">
         <div class="flex items-center gap-3">
-            <div class="bg-white/10 p-2 rounded"><i class="fa-solid fa-file-contract"></i></div>
+            <div class="bg-white/10 p-2 rounded"><i class="fa-solid fa-bug-slash"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor Diagnóstico</h1>
-                <p class="text-xs text-blue-200">Validação Detalhada de Preços</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V18</h1>
+                <p class="text-xs text-indigo-200">Versão Estável</p>
             </div>
         </div>
-        <button onclick="window.location.reload()" class="bg-blue-700 hover:bg-blue-600 px-4 py-1.5 rounded text-sm transition font-medium"><i class="fa-solid fa-rotate-right mr-2"></i>Nova Análise</button>
+        <button onclick="window.location.reload()" class="bg-indigo-700 hover:bg-indigo-600 px-4 py-1.5 rounded text-sm transition font-medium"><i class="fa-solid fa-rotate-right mr-2"></i>Resetar</button>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         
         <div class="w-[35%] bg-white border-r border-gray-200 flex flex-col z-20 shadow-xl p-4 gap-4">
             <div class="flex flex-col h-1/2">
-                <label class="font-bold text-gray-700 mb-2 text-sm flex justify-between">
-                    <span>1. Lista de Texto (Gabarito)</span>
-                </label>
-                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Cole a lista aqui..."></textarea>
+                <label class="font-bold text-gray-700 mb-2 text-sm">1. Lista de Texto</label>
+                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Cole a lista aqui..."></textarea>
             </div>
 
             <div class="flex flex-col h-1/2">
-                <label class="font-bold text-gray-700 mb-2 text-sm">2. Imagens (Arraste aqui)</label>
+                <label class="font-bold text-gray-700 mb-2 text-sm">2. Imagens</label>
                 <div id="dropZone" class="drop-zone h-full p-4 text-center group">
-                    <i class="fa-solid fa-images text-3xl text-gray-300 group-hover:text-blue-400 mb-2 transition-colors"></i>
-                    <p class="text-xs text-gray-500 font-medium">Arraste os prints ou imagens</p>
-                    <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 group-hover:text-blue-400 mb-2 transition-colors"></i>
+                    <p class="text-xs text-gray-500 font-medium">Clique para Selecionar<br>ou Arraste aqui</p>
+                    <input type="file" id="fileInput" multiple accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
                 </div>
+                <div id="fileCount" class="text-center text-xs text-green-600 font-bold mt-2 hidden"></div>
             </div>
 
-            <button id="startBtn" onclick="processFiles()" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-md disabled:opacity-50 transition flex justify-center items-center gap-2">
-                <i class="fa-solid fa-check-double"></i> Analisar Erros
+            <button id="startBtn" onclick="processFiles()" class="bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold shadow-md disabled:opacity-50 transition flex justify-center items-center gap-2">
+                <i class="fa-solid fa-check-double"></i> Iniciar Conferência
             </button>
         </div>
 
         <div class="w-[65%] bg-slate-50 flex flex-col relative overflow-hidden">
             <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
-                <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-                <div id="loadingText" class="text-blue-800 font-bold animate-pulse">Lendo Imagens...</div>
+                <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                <div id="loadingText" class="text-indigo-800 font-bold animate-pulse">Processando...</div>
             </div>
 
             <div class="p-4 bg-white border-b border-gray-200 font-bold text-gray-700 shadow-sm flex justify-between">
-                <span><i class="fa-solid fa-clipboard-list mr-2 text-blue-600"></i>Relatório de Correção</span>
+                <span><i class="fa-solid fa-list-check mr-2 text-indigo-600"></i>Relatório Detalhado</span>
             </div>
             
             <div class="scroll-area p-6">
@@ -75,19 +68,19 @@
                     <table class="w-full text-sm text-left border-collapse">
                         <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-bold border-b border-gray-200">
                             <tr>
-                                <th class="p-3 w-[40%]">Produto</th>
-                                <th class="p-3 text-center w-[20%]">Preços Esperados</th>
-                                <th class="p-3 w-[40%]">Conclusão / Correção Necessária</th>
+                                <th class="p-3 w-[30%]">Produto</th>
+                                <th class="p-3 text-center w-[20%]">Preço Lista</th>
+                                <th class="p-3 w-[50%]">Diagnóstico</th>
                             </tr>
                         </thead>
                         <tbody id="resultTable" class="divide-y divide-gray-100">
-                            <tr><td colspan="3" class="p-8 text-center text-gray-400 italic">Aguardando análise...</td></tr>
+                            <tr><td colspan="3" class="p-8 text-center text-gray-400 italic">Os resultados aparecerão aqui.</td></tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div id="debugArea" class="mt-8 hidden">
-                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-3 border-b pb-1">Preços lidos nas imagens (Debug)</h3>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-3 border-b pb-1">Debug (O que foi lido)</h3>
                     <div id="debugGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
                 </div>
             </div>
@@ -97,28 +90,25 @@
     <canvas id="processCanvas" class="hidden"></canvas>
 
     <script>
-        // CONFIG E DRAG & DROP
-        const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
+        const fileCount = document.getElementById('fileCount');
         let uploadedFiles = [];
 
-        dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, pd, false));
-        function pd(e) { e.preventDefault(); e.stopPropagation(); }
-        dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
-
-        function handleFiles(files) {
-            uploadedFiles = [...files];
-            dropZone.innerHTML = `<i class="fa-solid fa-check text-2xl text-green-500 mb-1"></i><p class="text-xs font-bold text-green-700">${files.length} imagens</p>`;
-        }
+        // INPUT EVENT
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                uploadedFiles = [...e.target.files];
+                fileCount.innerText = `${uploadedFiles.length} arquivos selecionados`;
+                fileCount.classList.remove('hidden');
+            }
+        });
 
         const cleanPrice = s => parseFloat(s.replace(/[^0-9,]/g,'').replace(',','.'));
         const fmtMoney = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 
         async function processFiles() {
             const listTxt = document.getElementById('listInput').value;
-            if(!listTxt || uploadedFiles.length === 0) return alert("Faltam dados.");
+            if(!listTxt || uploadedFiles.length === 0) return alert("Falta lista ou imagem!");
 
             // UI
             document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -132,14 +122,8 @@
             listTxt.split('\n').forEach(line => {
                 const mainM = line.match(/(.+) – R\$ ([\d,.]+)/i);
                 const isDetail = line.trim().startsWith('(');
-                
                 if(mainM && !isDetail) {
-                    products.push({
-                        name: mainM[1].trim(),
-                        base: cleanPrice(mainM[2]),
-                        extra: null,
-                        extraType: null
-                    });
+                    products.push({ name: mainM[1].trim(), base: cleanPrice(mainM[2]), extra: null, extraType: null });
                 } else if(isDetail && products.length > 0) {
                     const priceM = line.match(/R\$ ([\d,.]+)/);
                     if(priceM) {
@@ -150,8 +134,8 @@
                 }
             });
 
-            // 2. OCR LOCAL
-            let allPricesFound = []; 
+            // 2. OCR
+            let allPricesFound = [];
             const worker = await Tesseract.createWorker('por');
             const loadingText = document.getElementById('loadingText');
 
@@ -160,7 +144,6 @@
                 loadingText.innerText = `Lendo imagem ${i+1}/${uploadedFiles.length}...`;
                 const imgUrl = URL.createObjectURL(file);
                 const prices = await runOCR(worker, imgUrl);
-                
                 prices.forEach(p => allPricesFound.push(p));
 
                 // Debug Visual
@@ -173,60 +156,42 @@
             }
             await worker.terminate();
 
-            // 3. DIAGNÓSTICO DETALHADO
+            // 3. DIAGNOSTICO
             const tbody = document.getElementById('resultTable');
-            
             products.forEach(p => {
-                // Verificação Base
                 const baseFound = allPricesFound.includes(p.base);
-                
-                // Verificação Extra
                 let extraFound = false;
                 if(p.extra) extraFound = allPricesFound.includes(p.extra);
 
-                // Montar HTML da Conclusão
-                let conclusionHtml = "";
-                let hasError = false;
+                let msgHtml = "";
+                let isError = false;
 
-                // Análise do Preço Base
-                if (baseFound) {
-                    // Base OK
+                if(!baseFound) {
+                    isError = true;
+                    msgHtml += `<div><i class="fa-solid fa-circle-xmark mr-1"></i> <b>Preço Base Errado</b>. Esperado: ${fmtMoney(p.base)} (Não achado).</div>`;
+                }
+
+                if(p.extra && !extraFound) {
+                    isError = true;
+                    msgHtml += `<div><i class="fa-solid fa-circle-xmark mr-1"></i> <b>Preço ${p.extraType} Errado</b>. Esperado: ${fmtMoney(p.extra)} (Não achado).</div>`;
+                }
+
+                if(!isError) {
+                    msgHtml = `<span class="correction-ok"><i class="fa-solid fa-check-circle mr-1"></i> Tudo correto!</span>`;
                 } else {
-                    hasError = true;
-                    conclusionHtml += `<div class="mb-1"><i class="fa-solid fa-xmark mr-1"></i> Preço Base incorreto (Correto: <b>${fmtMoney(p.base)}</b>)</div>`;
+                    msgHtml = `<div class="correction-note">${msgHtml}</div>`;
                 }
 
-                // Análise do Preço Extra
-                if (p.extra) {
-                    if (extraFound) {
-                        // Extra OK
-                    } else {
-                        hasError = true;
-                        conclusionHtml += `<div><i class="fa-solid fa-xmark mr-1"></i> Preço ${p.extraType} incorreto (Correto: <b>${fmtMoney(p.extra)}</b>)</div>`;
-                    }
-                }
-
-                // Status Final da Linha
-                let finalStatus = "";
-                if (!hasError) {
-                    finalStatus = `<span class="correction-ok"><i class="fa-solid fa-check mr-1"></i> Tudo correto!</span>`;
-                } else {
-                    finalStatus = `<div class="correction-note font-bold text-red-700">${conclusionHtml}</div>`;
-                }
-
-                // Exibir Preços Esperados
-                const extraPriceDisplay = p.extra ? `<div class="text-[10px] text-gray-500">${p.extraType}: <b>${fmtMoney(p.extra)}</b></div>` : '';
-
+                const extraTxt = p.extra ? `<div class="text-[10px] text-gray-500">${p.extraType}: ${fmtMoney(p.extra)}</div>` : '';
+                
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 border-b border-gray-50 align-top">
                         <td class="p-3 font-medium text-gray-700 text-xs">${p.name}</td>
                         <td class="p-3 text-center text-xs">
-                            <div class="font-bold text-gray-800">Base: ${fmtMoney(p.base)}</div>
-                            ${extraPriceDisplay}
+                            <div class="font-bold text-gray-800">${fmtMoney(p.base)}</div>
+                            ${extraTxt}
                         </td>
-                        <td class="p-3 text-xs">
-                            ${finalStatus}
-                        </td>
+                        <td class="p-3 text-xs">${msgHtml}</td>
                     </tr>
                 `;
             });
@@ -241,8 +206,6 @@
             const ctx = canvas.getContext('2d');
             canvas.width = img.width; canvas.height = img.height;
             ctx.drawImage(img,0,0);
-            
-            // Filtro de Contraste Simples
             const d = ctx.getImageData(0,0,canvas.width,canvas.height);
             for(let i=0; i<d.data.length; i+=4) {
                 const avg = (d.data[i] + d.data[i+1] + d.data[i+2]) / 3;
@@ -250,7 +213,6 @@
                 d.data[i] = d.data[i+1] = d.data[i+2] = v;
             }
             ctx.putImageData(d,0,0);
-            
             const ret = await worker.recognize(canvas.toDataURL());
             return (ret.data.text.match(/\d{1,3}[.,]\d{2}\b/g) || []).map(cleanPrice);
         }
