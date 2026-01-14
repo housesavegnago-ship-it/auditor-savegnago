@@ -3,89 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor Visual - Savegnago (Drag & Drop)</title>
+    <title>Auditor Diagnóstico - Savegnago V16</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .glass { background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; background-color: #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
-        .drop-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; background-color: #f8fafc; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
         .scroll-area { overflow-y: auto; height: 100%; }
-        .badge-ok { background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:11px; display:inline-flex; align-items:center; gap:4px; }
-        .badge-err { background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:11px; display:inline-flex; align-items:center; gap:4px; }
+        
+        /* Status Badges */
+        .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; }
+        .badge-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .badge-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .badge-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        
+        .action-text { font-size: 11px; font-weight: 600; display: block; margin-top: 2px; }
+        .text-err { color: #dc2626; }
+        .text-warn { color: #d97706; }
     </style>
 </head>
 <body class="text-slate-800">
 
-    <header class="bg-blue-900 text-white p-4 h-16 flex justify-between items-center shrink-0 z-10 shadow-md">
+    <header class="bg-indigo-900 text-white p-4 h-16 flex justify-between items-center shrink-0 shadow-lg z-10">
         <div class="flex items-center gap-3">
-            <div class="bg-white/20 p-2 rounded"><i class="fa-solid fa-robot"></i></div>
+            <div class="bg-white/10 p-2 rounded"><i class="fa-solid fa-stethoscope"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor Visual Automático</h1>
-                <p class="text-xs text-blue-200">Comparador de Preços (OCR Local)</p>
+                <h1 class="font-bold text-lg leading-none">Auditor Diagnóstico</h1>
+                <p class="text-xs text-indigo-200">Identificador de Erros e Divergências</p>
             </div>
         </div>
-        <button onclick="window.location.reload()" class="bg-blue-700 hover:bg-blue-600 px-3 py-1.5 rounded text-sm transition"><i class="fa-solid fa-rotate-right mr-2"></i>Nova Análise</button>
+        <button onclick="window.location.reload()" class="bg-indigo-700 hover:bg-indigo-600 px-4 py-1.5 rounded text-sm transition font-medium"><i class="fa-solid fa-rotate-right mr-2"></i>Nova Análise</button>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         
-        <div class="w-[30%] bg-white border-r border-gray-200 flex flex-col p-4 gap-4 z-20 shadow-lg">
-            
-            <div class="flex flex-col h-1/2">
-                <label class="font-bold text-gray-700 mb-2 flex justify-between">
-                    <span>1. Cole a Lista de Texto</span>
-                    <span class="text-xs bg-blue-50 text-blue-600 px-2 rounded border border-blue-100">O Gabarito</span>
-                </label>
-                <textarea id="listInput" class="flex-1 p-3 border rounded bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Arroz - R$ 20,90..."></textarea>
-            </div>
-
-            <div class="flex flex-col h-1/2">
-                <label class="font-bold text-gray-700 mb-2">2. Arraste as Imagens Aqui</label>
-                <div id="dropZone" class="drop-zone h-full text-center p-4">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
-                    <p class="text-sm text-gray-500 font-medium">Solte as imagens das ofertas aqui</p>
-                    <p class="text-[10px] text-gray-400 mt-1">(Prints ou arquivos salvos)</p>
-                    <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+        <div class="w-[30%] bg-white border-r border-gray-200 flex flex-col z-20 shadow-xl">
+            <div class="p-4 flex flex-col h-full gap-4">
+                <div class="flex flex-col h-1/2">
+                    <label class="font-bold text-gray-700 mb-2 text-sm flex justify-between">
+                        <span>1. Lista de Texto</span>
+                        <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded border border-indigo-100 uppercase font-bold">Gabarito</span>
+                    </label>
+                    <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Arroz - R$ 20,90..."></textarea>
                 </div>
-            </div>
 
-            <button id="startBtn" onclick="processFiles()" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                <i class="fa-solid fa-magnifying-glass-chart mr-2"></i> Analisar Divergências
-            </button>
+                <div class="flex flex-col h-1/2">
+                    <label class="font-bold text-gray-700 mb-2 text-sm">2. Imagens (Arraste aqui)</label>
+                    <div id="dropZone" class="drop-zone h-full p-4 text-center group">
+                        <i class="fa-solid fa-images text-3xl text-gray-300 group-hover:text-indigo-400 mb-2 transition-colors"></i>
+                        <p class="text-xs text-gray-500 font-medium">Solte as imagens ou prints</p>
+                        <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                    </div>
+                </div>
+
+                <button id="startBtn" onclick="processFiles()" class="bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-bold shadow-md disabled:opacity-50 transition flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass-chart"></i> Gerar Diagnóstico
+                </button>
+            </div>
         </div>
 
-        <div class="w-[70%] bg-slate-50 flex flex-col relative">
+        <div class="w-[70%] bg-slate-50 flex flex-col relative overflow-hidden">
+            <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
+                <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                <div id="loadingText" class="text-indigo-800 font-bold animate-pulse">Iniciando scanner...</div>
+            </div>
+
+            <div class="p-4 bg-white border-b border-gray-200 font-bold text-gray-700 flex justify-between items-center shadow-sm">
+                <span><i class="fa-solid fa-clipboard-list mr-2 text-indigo-600"></i>Relatório de Correção</span>
+            </div>
             
-            <div class="flex-1 flex flex-col overflow-hidden">
-                <div class="p-4 bg-white border-b border-gray-200 font-bold text-gray-700 flex justify-between items-center shadow-sm">
-                    <span><i class="fa-solid fa-list-check mr-2 text-blue-600"></i>Relatório de Divergências</span>
-                    <div id="statusTag" class="hidden bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-bold animate-pulse">
-                        <i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Analisando imagens...
-                    </div>
-                </div>
+            <div class="scroll-area p-6 space-y-8">
                 
-                <div class="scroll-area p-6">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                     <table class="w-full text-sm text-left border-collapse">
-                        <thead class="bg-gray-100 text-gray-500 uppercase text-xs font-bold">
+                        <thead class="bg-gray-50 text-gray-500 uppercase text-xs font-bold border-b border-gray-200">
                             <tr>
-                                <th class="p-3 border-b border-gray-200 rounded-tl-lg">Produto (Lista)</th>
-                                <th class="p-3 border-b border-gray-200 text-center">Preço Lista</th>
-                                <th class="p-3 border-b border-gray-200 text-center rounded-tr-lg">Status Visual</th>
+                                <th class="p-3 w-1/3">Produto (Lista)</th>
+                                <th class="p-3 text-center w-1/6">Preços Esperados</th>
+                                <th class="p-3 text-center w-1/6">Status</th>
+                                <th class="p-3 w-1/3">Conclusão / Ação</th>
                             </tr>
                         </thead>
-                        <tbody id="resultTable" class="bg-white divide-y divide-gray-100">
-                            <tr><td colspan="3" class="p-8 text-center text-gray-400 italic">Os resultados aparecerão aqui após a análise.</td></tr>
+                        <tbody id="resultTable" class="divide-y divide-gray-100">
+                            <tr><td colspan="4" class="p-8 text-center text-gray-400 italic">Aguardando análise...</td></tr>
                         </tbody>
                     </table>
-
-                    <div id="debugArea" class="mt-8 hidden">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase mb-3 border-b pb-1">O que o robô leu (Debug)</h3>
-                        <div id="debugGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
-                    </div>
                 </div>
+
+                <div id="leftoversPanel" class="hidden">
+                    <h3 class="text-sm font-bold text-gray-700 mb-2 flex items-center">
+                        <i class="fa-solid fa-eye text-orange-500 mr-2"></i> Pistas de Erro (Preços achados nas imagens mas não usados)
+                    </h3>
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-xs text-orange-800 grid grid-cols-1 md:grid-cols-2 gap-4" id="leftoversGrid">
+                        </div>
+                    <p class="text-[10px] text-gray-400 mt-2 italic">* Use isso para identificar se você digitou o preço errado na lista (ex: digitou 20,90 mas na imagem estava 20,99).</p>
+                </div>
+
             </div>
         </div>
     </div>
@@ -98,145 +113,193 @@
         const fileInput = document.getElementById('fileInput');
         let uploadedFiles = [];
 
-        // EVENTOS DE DRAG & DROP
+        // DRAG & DROP
         dropZone.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-        
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-        });
-        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-        
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
-        });
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
-        });
-        
-        dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files), false);
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, pd, false));
+        function pd(e) { e.preventDefault(); e.stopPropagation(); }
+        dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
 
         function handleFiles(files) {
-            uploadedFiles = [...files]; // Armazena arquivos
-            dropZone.innerHTML = `
-                <i class="fa-solid fa-images text-3xl text-blue-500 mb-2"></i>
-                <p class="text-sm text-blue-700 font-bold">${files.length} imagens carregadas</p>
-                <p class="text-[10px] text-gray-400 mt-1">Pronto para analisar</p>
-            `;
+            uploadedFiles = [...files];
+            dropZone.innerHTML = `<i class="fa-solid fa-check text-3xl text-green-500 mb-2"></i><p class="text-sm font-bold text-green-700">${files.length} imagens</p>`;
         }
 
-        // PROCESSAMENTO (OCR)
+        // LIMPEZA E PARSE
+        const cleanPrice = s => parseFloat(s.replace(/[^0-9,]/g,'').replace(',','.'));
+        const fmtMoney = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+        // MAIN PROCESS
         async function processFiles() {
             const listTxt = document.getElementById('listInput').value;
-            if(!listTxt || uploadedFiles.length === 0) return alert("Cole a lista e arraste pelo menos uma imagem.");
+            if(!listTxt || uploadedFiles.length === 0) return alert("Faltam dados (Lista ou Imagens).");
 
-            // UI Update
-            const btn = document.getElementById('startBtn');
-            btn.disabled = true;
-            document.getElementById('statusTag').classList.remove('hidden');
-            document.getElementById('debugArea').classList.remove('hidden');
-            document.getElementById('debugGrid').innerHTML = '';
-            document.getElementById('resultTable').innerHTML = '';
+            // UI
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('leftoversPanel').classList.add('hidden');
+            const resultTable = document.getElementById('resultTable');
+            resultTable.innerHTML = '';
 
-            // 1. PARSE DA LISTA
+            // 1. PARSE LISTA
             const products = [];
             listTxt.split('\n').forEach(line => {
-                const m = line.match(/(.+) – R\$ ([\d,.]+)/i);
-                if(m) products.push({ name: m[1].trim(), price: cleanPrice(m[2]) });
+                const mainM = line.match(/(.+) – R\$ ([\d,.]+)/i);
+                const isDetail = line.trim().startsWith('(');
                 
-                // Checa preço secundário (cartão)
-                const m2 = line.match(/\(.*?R\$ ([\d,.]+)\)/);
-                if(m2 && products.length > 0) {
-                     // Adiciona como um "sub-produto" para validar também
-                     products.push({ name: "(Oferta Cartão/Clube)", price: cleanPrice(m2[1]), isExtra: true });
+                if(mainM && !isDetail) {
+                    products.push({
+                        name: mainM[1].trim(),
+                        base: cleanPrice(mainM[2]),
+                        extra: null,
+                        extraType: null
+                    });
+                } else if(isDetail && products.length > 0) {
+                    const priceM = line.match(/R\$ ([\d,.]+)/);
+                    if(priceM) {
+                        const last = products[products.length-1];
+                        last.extra = cleanPrice(priceM[1]);
+                        last.extraType = line.includes('Cartão') ? 'Cartão' : 'SaveGanhe';
+                    }
                 }
             });
 
-            // 2. OCR NAS IMAGENS (LOCAL)
-            let allFoundPrices = [];
+            // 2. OCR IMAGENS
+            let allPricesFound = []; // [{val: 10.90, img: 'foto1.png'}]
             const worker = await Tesseract.createWorker('por');
+            const loadingText = document.getElementById('loadingText');
 
             for(let i=0; i<uploadedFiles.length; i++) {
                 const file = uploadedFiles[i];
-                const imgUrl = URL.createObjectURL(file);
+                loadingText.innerText = `Lendo imagem ${i+1}/${uploadedFiles.length}...`;
                 
-                // Processar imagem
+                const imgUrl = URL.createObjectURL(file);
                 const prices = await runOCR(worker, imgUrl);
-                allFoundPrices.push(...prices);
-
-                // Mostrar no Debug
-                const tags = prices.map(p => `<span class="bg-gray-700 text-white px-1 rounded text-[9px]">${fmtMoney(p)}</span>`).join(' ');
-                document.getElementById('debugGrid').innerHTML += `
-                    <div class="bg-white p-2 rounded border border-gray-200 shadow-sm">
-                        <img src="${imgUrl}" class="h-16 w-full object-contain bg-gray-50 mb-1">
-                        <div class="text-[9px] text-gray-400 truncate">${file.name}</div>
-                        <div class="flex flex-wrap gap-1 mt-1">${tags || '<span class="text-[9px] text-red-300">-</span>'}</div>
-                    </div>
-                `;
+                
+                prices.forEach(p => allPricesFound.push({ val: p, img: file.name }));
             }
-
             await worker.terminate();
 
-            // 3. COMPARAR E RENDERIZAR
-            renderResults(products, allFoundPrices);
-            
-            // Finalizar
-            btn.disabled = false;
-            document.getElementById('statusTag').classList.add('hidden');
-            document.getElementById('statusTag').innerHTML = '<i class="fa-solid fa-check mr-1"></i> Concluído';
-        }
+            // 3. ANÁLISE E DIAGNÓSTICO
+            let usedPriceIndices = new Set(); // Para saber quais preços das imagens "sobraram"
 
-        async function runOCR(worker, url) {
-            // Desenha no canvas para aumentar contraste (opcional, ajuda OCR)
-            const img = new Image();
-            img.src = url;
-            await new Promise(r => img.onload = r);
-            
-            const canvas = document.getElementById('processCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            // Simples binarização
-            const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
-            const data = idata.data;
-            for(let i=0; i<data.length; i+=4) {
-                const g = data[i]*0.3 + data[i+1]*0.59 + data[i+2]*0.11;
-                const v = g > 140 ? 255 : 0;
-                data[i]=data[i+1]=data[i+2]=v;
-            }
-            ctx.putImageData(idata, 0, 0);
-            
-            const ret = await worker.recognize(canvas.toDataURL());
-            const text = ret.data.text;
-            return (text.match(/\d{1,3}[.,]\d{2}\b/g) || []).map(cleanPrice);
-        }
+            products.forEach(p => {
+                // Busca Preço Base
+                let baseFound = false;
+                let baseImg = '';
+                
+                // Procura correspondência
+                for(let i=0; i<allPricesFound.length; i++) {
+                    if(allPricesFound[i].val === p.base) {
+                        baseFound = true;
+                        baseImg = allPricesFound[i].img;
+                        usedPriceIndices.add(i);
+                        // Tenta achar o extra na MESMA imagem se possível, ou em qualquer uma
+                        break;
+                    }
+                }
 
-        function renderResults(list, foundPrices) {
-            const tbody = document.getElementById('resultTable');
-            tbody.innerHTML = '';
-            
-            list.forEach(p => {
-                const found = foundPrices.includes(p.price);
-                const status = found 
-                    ? `<span class="badge-ok"><i class="fa-solid fa-check"></i> Encontrado</span>` 
-                    : `<span class="badge-err"><i class="fa-solid fa-triangle-exclamation"></i> Divergência</span>`;
-                
-                const nameStyle = p.isExtra ? "pl-6 text-gray-400 text-xs italic" : "font-medium text-gray-700";
-                
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 border-b border-gray-50">
-                        <td class="p-3 ${nameStyle}">${p.name}</td>
-                        <td class="p-3 text-center font-mono font-bold text-blue-600">${fmtMoney(p.price)}</td>
-                        <td class="p-3 text-center">${status}</td>
+                // Busca Preço Extra
+                let extraFound = false;
+                if(p.extra) {
+                    for(let i=0; i<allPricesFound.length; i++) {
+                        if(allPricesFound[i].val === p.extra) {
+                            extraFound = true;
+                            usedPriceIndices.add(i);
+                            break;
+                        }
+                    }
+                }
+
+                // GERA LINHA DA TABELA
+                let statusHtml = '';
+                let actionHtml = '';
+
+                // Cenários
+                if (baseFound) {
+                    if (!p.extra) {
+                        // Só tinha base e achou
+                        statusHtml = `<span class="badge badge-ok"><i class="fa-solid fa-check"></i> Tudo Certo</span>`;
+                        actionHtml = `<span class="text-green-700 text-xs">Preço confirmado em <b>${baseImg}</b></span>`;
+                    } else {
+                        // Tinha extra
+                        if (extraFound) {
+                            statusHtml = `<span class="badge badge-ok"><i class="fa-solid fa-check"></i> Tudo Certo</span>`;
+                            actionHtml = `<span class="text-green-700 text-xs">Base e ${p.extraType} confirmados.</span>`;
+                        } else {
+                            statusHtml = `<span class="badge badge-warn"><i class="fa-solid fa-exclamation"></i> Cartão Errado</span>`;
+                            actionHtml = `<span class="action-text text-warn">Ajustar valor ${p.extraType}.<br>Esperado: <b>${fmtMoney(p.extra)}</b> (Não achado).</span>`;
+                        }
+                    }
+                } else {
+                    statusHtml = `<span class="badge badge-err"><i class="fa-solid fa-xmark"></i> Não Encontrado</span>`;
+                    actionHtml = `<span class="action-text text-err">Produto ou Preço Base divergente.<br>Esperado: <b>${fmtMoney(p.base)}</b>.</span>`;
+                }
+
+                // Render
+                const extraPriceTxt = p.extra ? `<div class="text-[10px] text-gray-500">${p.extraType}: ${fmtMoney(p.extra)}</div>` : '';
+                resultTable.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b border-gray-50 align-top">
+                        <td class="p-3 font-medium text-gray-700">${p.name}</td>
+                        <td class="p-3 text-center">
+                            <div class="font-bold text-gray-800">${fmtMoney(p.base)}</div>
+                            ${extraPriceTxt}
+                        </td>
+                        <td class="p-3 text-center">${statusHtml}</td>
+                        <td class="p-3">${actionHtml}</td>
                     </tr>
                 `;
             });
+
+            // 4. RELATÓRIO DE SOBRAS
+            const leftovers = allPricesFound.filter((_, idx) => !usedPriceIndices.has(idx));
+            if(leftovers.length > 0) {
+                const grid = document.getElementById('leftoversGrid');
+                grid.innerHTML = '';
+                // Agrupar por imagem
+                const grouped = {};
+                leftovers.forEach(x => {
+                    if(!grouped[x.img]) grouped[x.img] = [];
+                    if(!grouped[x.img].includes(x.val)) grouped[x.img].push(x.val);
+                });
+
+                for (const [img, prices] of Object.entries(grouped)) {
+                    const pricesHtml = prices.map(p => `<span class="bg-white px-1 rounded font-bold border border-orange-200">${fmtMoney(p)}</span>`).join(' ');
+                    grid.innerHTML += `
+                        <div class="bg-white/50 p-2 rounded">
+                            <div class="font-bold text-orange-900 mb-1 truncate" title="${img}">${img}</div>
+                            <div class="flex flex-wrap gap-1">${pricesHtml}</div>
+                        </div>
+                    `;
+                }
+                document.getElementById('leftoversPanel').classList.remove('hidden');
+            }
+
+            document.getElementById('loadingOverlay').classList.add('hidden');
+            document.getElementById('startBtn').disabled = false;
         }
 
-        const cleanPrice = s => parseFloat(s.replace(/[^0-9,]/g,'').replace(',','.'));
-        const fmtMoney = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        async function runOCR(worker, url) {
+            const img = new Image(); img.src = url; await new Promise(r => img.onload = r);
+            const canvas = document.getElementById('processCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width; canvas.height = img.height;
+            ctx.drawImage(img,0,0);
+            
+            // Filtro Contraste
+            const d = ctx.getImageData(0,0,canvas.width,canvas.height);
+            for(let i=0; i<d.data.length; i+=4) {
+                const c = (d.data[i] + d.data[i+1] + d.data[i+2]) / 3;
+                const v = c > 130 ? 255 : 0;
+                d.data[i] = d.data[i+1] = d.data[i+2] = v;
+            }
+            ctx.putImageData(d,0,0);
+            
+            const ret = await worker.recognize(canvas.toDataURL());
+            return (ret.data.text.match(/\d{1,3}[.,]\d{2}\b/g) || []).map(cleanPrice);
+        }
     </script>
 </body>
 </html>
