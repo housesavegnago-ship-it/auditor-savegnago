@@ -3,191 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor Assistido Savegnago</title>
+    <title>Auditor Visual - Savegnago (Drag & Drop)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; overflow: hidden; }
-        .scroll-area { overflow-y: auto; height: calc(100vh - 180px); }
-        .product-row { transition: all 0.2s; cursor: pointer; border-left: 4px solid transparent; }
-        .product-row:hover { background-color: #f8fafc; }
-        .product-row.checked { background-color: #dcfce7; border-left-color: #166534; opacity: 0.7; }
-        .product-row.checked .status-icon { color: #166534; }
-        .img-card { transition: transform 0.2s; }
-        .img-card:hover { transform: scale(1.02); z-index: 10; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .glass { background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.2s; background-color: #f1f5f9; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .drop-zone.dragover { border-color: #3b82f6; background-color: #eff6ff; }
+        .scroll-area { overflow-y: auto; height: 100%; }
+        .badge-ok { background:#dcfce7; color:#166534; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:11px; display:inline-flex; align-items:center; gap:4px; }
+        .badge-err { background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:11px; display:inline-flex; align-items:center; gap:4px; }
     </style>
 </head>
-<body class="flex flex-col">
+<body class="text-slate-800">
 
-    <header class="bg-blue-800 text-white p-4 shadow-md flex justify-between items-center h-16 shrink-0">
+    <header class="bg-blue-900 text-white p-4 h-16 flex justify-between items-center shrink-0 z-10 shadow-md">
         <div class="flex items-center gap-3">
-            <i class="fa-solid fa-list-check text-2xl"></i>
+            <div class="bg-white/20 p-2 rounded"><i class="fa-solid fa-robot"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-tight">Auditor Assistido</h1>
-                <p class="text-xs text-blue-200">Ferramenta de Conferência Visual Rápida</p>
+                <h1 class="font-bold text-lg leading-none">Auditor Visual Automático</h1>
+                <p class="text-xs text-blue-200">Comparador de Preços (OCR Local)</p>
             </div>
         </div>
-        <div class="flex gap-2">
-            <button onclick="document.getElementById('setupModal').classList.remove('hidden')" class="bg-blue-700 hover:bg-blue-600 px-3 py-1 rounded text-sm"><i class="fa-solid fa-gear mr-1"></i> Configurar</button>
-            <button onclick="window.location.reload()" class="bg-blue-700 hover:bg-blue-600 px-3 py-1 rounded text-sm"><i class="fa-solid fa-rotate-right"></i> Reset</button>
-        </div>
+        <button onclick="window.location.reload()" class="bg-blue-700 hover:bg-blue-600 px-3 py-1.5 rounded text-sm transition"><i class="fa-solid fa-rotate-right mr-2"></i>Nova Análise</button>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         
-        <div class="w-1/3 bg-white border-r border-gray-200 flex flex-col">
-            <div class="p-3 bg-gray-50 border-b border-gray-200 font-bold text-gray-600 flex justify-between items-center">
-                <span><i class="fa-solid fa-clipboard-list mr-2"></i>Lista de Ofertas</span>
-                <span id="progressCount" class="text-xs bg-gray-200 px-2 py-1 rounded">0/0</span>
-            </div>
-            <div id="checklistArea" class="scroll-area p-2 space-y-2">
-                <div class="text-center text-gray-400 mt-10 p-4">
-                    <i class="fa-solid fa-arrow-up text-2xl mb-2"></i><br>
-                    Clique em "Configurar" para colar a lista e o HTML.
-                </div>
-            </div>
-            <div class="p-3 border-t border-gray-200 bg-gray-50">
-                <textarea id="cleanOutput" class="w-full h-20 text-[10px] p-2 border rounded font-mono text-gray-500" readonly placeholder="A lista corrigida aparecerá aqui para você copiar..."></textarea>
-                <button onclick="copyClean()" class="w-full mt-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs py-1 rounded">Copiar Lista Corrigida</button>
-            </div>
-        </div>
-
-        <div class="w-2/3 bg-slate-100 flex flex-col">
-            <div class="p-3 bg-white border-b border-gray-200 font-bold text-gray-600 shadow-sm">
-                <i class="fa-solid fa-images mr-2"></i>Imagens do E-mail
-            </div>
-            <div id="galleryArea" class="scroll-area p-6 grid grid-cols-2 md:grid-cols-3 gap-6 overflow-y-auto content-start">
-                </div>
-        </div>
-    </div>
-
-    <div id="setupModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col">
-            <div class="p-6 border-b flex justify-between items-center">
-                <h2 class="text-xl font-bold text-gray-800">Carregar Dados</h2>
-                <button onclick="document.getElementById('setupModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
+        <div class="w-[30%] bg-white border-r border-gray-200 flex flex-col p-4 gap-4 z-20 shadow-lg">
             
-            <div class="flex-1 p-6 grid grid-cols-2 gap-6 overflow-hidden">
-                <div class="flex flex-col h-full">
-                    <label class="font-bold text-gray-700 mb-2">1. Cole a Lista de Texto</label>
-                    <textarea id="rawList" class="flex-1 p-4 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-blue-500" placeholder="Arroz - R$ 10,90..."></textarea>
-                </div>
-                <div class="flex flex-col h-full">
-                    <label class="font-bold text-gray-700 mb-2">2. Cole o HTML do E-mail</label>
-                    <textarea id="rawHtml" class="flex-1 p-4 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-blue-500" placeholder="<!DOCTYPE html>..."></textarea>
+            <div class="flex flex-col h-1/2">
+                <label class="font-bold text-gray-700 mb-2 flex justify-between">
+                    <span>1. Cole a Lista de Texto</span>
+                    <span class="text-xs bg-blue-50 text-blue-600 px-2 rounded border border-blue-100">O Gabarito</span>
+                </label>
+                <textarea id="listInput" class="flex-1 p-3 border rounded bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Arroz - R$ 20,90..."></textarea>
+            </div>
+
+            <div class="flex flex-col h-1/2">
+                <label class="font-bold text-gray-700 mb-2">2. Arraste as Imagens Aqui</label>
+                <div id="dropZone" class="drop-zone h-full text-center p-4">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                    <p class="text-sm text-gray-500 font-medium">Solte as imagens das ofertas aqui</p>
+                    <p class="text-[10px] text-gray-400 mt-1">(Prints ou arquivos salvos)</p>
+                    <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
                 </div>
             </div>
 
-            <div class="p-6 border-t bg-gray-50 flex justify-end">
-                <button onclick="startAudit()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold shadow-lg flex items-center gap-2">
-                    <i class="fa-solid fa-play"></i> Iniciar Conferência
-                </button>
+            <button id="startBtn" onclick="processFiles()" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-magnifying-glass-chart mr-2"></i> Analisar Divergências
+            </button>
+        </div>
+
+        <div class="w-[70%] bg-slate-50 flex flex-col relative">
+            
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <div class="p-4 bg-white border-b border-gray-200 font-bold text-gray-700 flex justify-between items-center shadow-sm">
+                    <span><i class="fa-solid fa-list-check mr-2 text-blue-600"></i>Relatório de Divergências</span>
+                    <div id="statusTag" class="hidden bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full font-bold animate-pulse">
+                        <i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Analisando imagens...
+                    </div>
+                </div>
+                
+                <div class="scroll-area p-6">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead class="bg-gray-100 text-gray-500 uppercase text-xs font-bold">
+                            <tr>
+                                <th class="p-3 border-b border-gray-200 rounded-tl-lg">Produto (Lista)</th>
+                                <th class="p-3 border-b border-gray-200 text-center">Preço Lista</th>
+                                <th class="p-3 border-b border-gray-200 text-center rounded-tr-lg">Status Visual</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultTable" class="bg-white divide-y divide-gray-100">
+                            <tr><td colspan="3" class="p-8 text-center text-gray-400 italic">Os resultados aparecerão aqui após a análise.</td></tr>
+                        </tbody>
+                    </table>
+
+                    <div id="debugArea" class="mt-8 hidden">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase mb-3 border-b pb-1">O que o robô leu (Debug)</h3>
+                        <div id="debugGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <canvas id="processCanvas" class="hidden"></canvas>
 
     <script>
-        const CORRECTIONS = {
-            'btata': 'batata', 'tomati': 'tomate', 'repolhu': 'repolho', 'cenora': 'cenoura', 
-            'melao': 'melão', 'limao': 'limão', 'mamao': 'mamão', 'pera': 'pêra', 'maca': 'maçã', 
-            'acucar': 'açúcar', 'importad': 'importado', 'brocolis': 'brócolis', 
-            'kilo': 'kg', 'kilograma': 'kg', 'nessa': 'nesta', 'promoção': 'oferta', 
-            'val': 'validade', 'venc': 'vencimento', 'sbp': 'SBP', 'off': 'OFF', 'on': 'ON', 
-            '1l': '1L', '2l': '2L', '2,5l': '2,5L', '3l': '3L', '5l': '5L', 'unidade': 'un'
-        };
+        // CONFIG
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        let uploadedFiles = [];
 
-        function cleanText(text) {
-            let corrected = text;
-            for (const [wrong, right] of Object.entries(CORRECTIONS)) {
-                const regex = new RegExp(`\\b${wrong}\\b`, 'gi');
-                corrected = corrected.replace(regex, (match) => {
-                    if(['SBP','OFF','ON','1L','2L','3L','5L','kg'].includes(right)) return right;
-                    return match[0] === match[0].toUpperCase() ? right.charAt(0).toUpperCase() + right.slice(1) : right;
-                });
-            }
-            return corrected;
+        // EVENTOS DE DRAG & DROP
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+        
+        dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files), false);
+
+        function handleFiles(files) {
+            uploadedFiles = [...files]; // Armazena arquivos
+            dropZone.innerHTML = `
+                <i class="fa-solid fa-images text-3xl text-blue-500 mb-2"></i>
+                <p class="text-sm text-blue-700 font-bold">${files.length} imagens carregadas</p>
+                <p class="text-[10px] text-gray-400 mt-1">Pronto para analisar</p>
+            `;
         }
 
-        function startAudit() {
-            const listTxt = document.getElementById('rawList').value;
-            const htmlTxt = document.getElementById('rawHtml').value;
-            
-            if(!listTxt || !htmlTxt) return alert("Preencha os dois campos!");
+        // PROCESSAMENTO (OCR)
+        async function processFiles() {
+            const listTxt = document.getElementById('listInput').value;
+            if(!listTxt || uploadedFiles.length === 0) return alert("Cole a lista e arraste pelo menos uma imagem.");
 
-            // 1. Processar Lista
-            const cleanList = cleanText(listTxt);
-            document.getElementById('cleanOutput').value = cleanList;
-            
-            const listContainer = document.getElementById('checklistArea');
-            listContainer.innerHTML = '';
-            
-            const lines = cleanList.split('\n');
-            let totalItems = 0;
+            // UI Update
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true;
+            document.getElementById('statusTag').classList.remove('hidden');
+            document.getElementById('debugArea').classList.remove('hidden');
+            document.getElementById('debugGrid').innerHTML = '';
+            document.getElementById('resultTable').innerHTML = '';
 
-            lines.forEach((line, idx) => {
-                if(!line.trim()) return;
+            // 1. PARSE DA LISTA
+            const products = [];
+            listTxt.split('\n').forEach(line => {
+                const m = line.match(/(.+) – R\$ ([\d,.]+)/i);
+                if(m) products.push({ name: m[1].trim(), price: cleanPrice(m[2]) });
                 
-                // Regex simples para identificar linha de produto
-                const isProduct = line.includes('R$');
-                const isDetail = line.trim().startsWith('(');
-                
-                let html = '';
-                if(isProduct && !isDetail) {
-                    totalItems++;
-                    html = `
-                        <div class="product-row p-3 bg-white border rounded shadow-sm flex items-start gap-3" onclick="this.classList.toggle('checked'); updateCount()">
-                            <div class="mt-1 text-gray-300 status-icon"><i class="fa-solid fa-circle-check text-xl"></i></div>
-                            <div>
-                                <div class="text-sm font-bold text-gray-800">${line}</div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    // Linha de detalhe (cartão) anexa ao anterior visualmente
-                    html = `<div class="ml-10 text-xs text-blue-600 font-mono mb-2">${line}</div>`;
+                // Checa preço secundário (cartão)
+                const m2 = line.match(/\(.*?R\$ ([\d,.]+)\)/);
+                if(m2 && products.length > 0) {
+                     // Adiciona como um "sub-produto" para validar também
+                     products.push({ name: "(Oferta Cartão/Clube)", price: cleanPrice(m2[1]), isExtra: true });
                 }
-                listContainer.innerHTML += html;
             });
-            
-            document.getElementById('progressCount').innerText = `0/${totalItems}`;
 
-            // 2. Processar Imagens
-            const gallery = document.getElementById('galleryArea');
-            gallery.innerHTML = '';
-            
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlTxt, 'text/html');
-            const imgs = Array.from(doc.querySelectorAll('img'))
-                .map(i => i.src)
-                .filter(s => s && !s.match(/pixel|icon|social|header|footer/i));
-            
-            const uniqueImgs = [...new Set(imgs)];
-            
-            uniqueImgs.forEach(src => {
-                gallery.innerHTML += `
-                    <div class="img-card bg-white p-2 rounded shadow border border-gray-200">
-                        <img src="${src}" class="w-full h-auto object-contain bg-gray-50 rounded" loading="lazy" onerror="this.src='https://placehold.co/200x200?text=Erro+Imagem'">
-                        <div class="mt-2 text-[10px] text-gray-400 truncate text-center">${src.split('/').pop()}</div>
+            // 2. OCR NAS IMAGENS (LOCAL)
+            let allFoundPrices = [];
+            const worker = await Tesseract.createWorker('por');
+
+            for(let i=0; i<uploadedFiles.length; i++) {
+                const file = uploadedFiles[i];
+                const imgUrl = URL.createObjectURL(file);
+                
+                // Processar imagem
+                const prices = await runOCR(worker, imgUrl);
+                allFoundPrices.push(...prices);
+
+                // Mostrar no Debug
+                const tags = prices.map(p => `<span class="bg-gray-700 text-white px-1 rounded text-[9px]">${fmtMoney(p)}</span>`).join(' ');
+                document.getElementById('debugGrid').innerHTML += `
+                    <div class="bg-white p-2 rounded border border-gray-200 shadow-sm">
+                        <img src="${imgUrl}" class="h-16 w-full object-contain bg-gray-50 mb-1">
+                        <div class="text-[9px] text-gray-400 truncate">${file.name}</div>
+                        <div class="flex flex-wrap gap-1 mt-1">${tags || '<span class="text-[9px] text-red-300">-</span>'}</div>
                     </div>
                 `;
+            }
+
+            await worker.terminate();
+
+            // 3. COMPARAR E RENDERIZAR
+            renderResults(products, allFoundPrices);
+            
+            // Finalizar
+            btn.disabled = false;
+            document.getElementById('statusTag').classList.add('hidden');
+            document.getElementById('statusTag').innerHTML = '<i class="fa-solid fa-check mr-1"></i> Concluído';
+        }
+
+        async function runOCR(worker, url) {
+            // Desenha no canvas para aumentar contraste (opcional, ajuda OCR)
+            const img = new Image();
+            img.src = url;
+            await new Promise(r => img.onload = r);
+            
+            const canvas = document.getElementById('processCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            
+            // Simples binarização
+            const idata = ctx.getImageData(0,0,canvas.width,canvas.height);
+            const data = idata.data;
+            for(let i=0; i<data.length; i+=4) {
+                const g = data[i]*0.3 + data[i+1]*0.59 + data[i+2]*0.11;
+                const v = g > 140 ? 255 : 0;
+                data[i]=data[i+1]=data[i+2]=v;
+            }
+            ctx.putImageData(idata, 0, 0);
+            
+            const ret = await worker.recognize(canvas.toDataURL());
+            const text = ret.data.text;
+            return (text.match(/\d{1,3}[.,]\d{2}\b/g) || []).map(cleanPrice);
+        }
+
+        function renderResults(list, foundPrices) {
+            const tbody = document.getElementById('resultTable');
+            tbody.innerHTML = '';
+            
+            list.forEach(p => {
+                const found = foundPrices.includes(p.price);
+                const status = found 
+                    ? `<span class="badge-ok"><i class="fa-solid fa-check"></i> Encontrado</span>` 
+                    : `<span class="badge-err"><i class="fa-solid fa-triangle-exclamation"></i> Divergência</span>`;
+                
+                const nameStyle = p.isExtra ? "pl-6 text-gray-400 text-xs italic" : "font-medium text-gray-700";
+                
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b border-gray-50">
+                        <td class="p-3 ${nameStyle}">${p.name}</td>
+                        <td class="p-3 text-center font-mono font-bold text-blue-600">${fmtMoney(p.price)}</td>
+                        <td class="p-3 text-center">${status}</td>
+                    </tr>
+                `;
             });
-
-            document.getElementById('setupModal').classList.add('hidden');
         }
 
-        function updateCount() {
-            const total = document.querySelectorAll('.product-row').length;
-            const checked = document.querySelectorAll('.product-row.checked').length;
-            document.getElementById('progressCount').innerText = `${checked}/${total}`;
-        }
-
-        function copyClean() {
-            const el = document.getElementById('cleanOutput');
-            el.select();
-            document.execCommand('copy');
-            alert("Lista corrigida copiada!");
-        }
+        const cleanPrice = s => parseFloat(s.replace(/[^0-9,]/g,'').replace(',','.'));
+        const fmtMoney = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
     </script>
 </body>
 </html>
