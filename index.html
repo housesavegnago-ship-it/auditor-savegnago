@@ -3,289 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor Savegnago</title>
-    
-    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
-
+    <title>Auditor Gemini Vision - Savegnago</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/dist/tesseract.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .drop-zone { border: 2px dashed #94a3b8; border-radius: 12px; transition: all 0.2s; background-color: #f1f5f9; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .drop-zone:hover { border-color: #2563eb; background-color: #eff6ff; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0fdfa; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .drop-zone { border: 2px dashed #5eead4; border-radius: 12px; transition: all 0.2s; background-color: #f0fdfa; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .drop-zone:hover { border-color: #0d9488; background-color: #ccfbf1; }
         .scroll-area { overflow-y: auto; height: 100%; }
         
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
-        .badge-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-        .badge-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .badge-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
-        .badge-manual { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
-
-        .force-btn { font-size: 10px; cursor: pointer; text-decoration: underline; margin-left: 5px; color: #64748b; }
-        .force-btn:hover { color: #0f172a; }
+        .result-card { background: white; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .result-header { padding: 10px; background: #f8fafc; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; }
+        .result-body { padding: 15px; font-size: 13px; line-height: 1.6; }
         
-        .err-box { background: #fff1f2; border-left: 3px solid #e11d48; padding: 4px 8px; font-size: 11px; margin-bottom: 2px; color: #881337; }
-        .warn-box { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 4px 8px; font-size: 11px; margin-bottom: 2px; color: #78350f; }
+        /* Formatação do Markdown do Gemini */
+        .markdown-body ul { list-style-type: disc; padding-left: 20px; }
+        .markdown-body strong { color: #0f766e; }
+        .markdown-body .erro { color: #dc2626; font-weight: bold; background: #fee2e2; padding: 0 4px; rounded: 4px; }
+        .markdown-body .ok { color: #166534; font-weight: bold; background: #dcfce7; padding: 0 4px; rounded: 4px; }
     </style>
 </head>
 <body class="text-slate-800">
 
-    <header class="bg-slate-800 text-white p-3 h-14 flex justify-between items-center shrink-0 shadow-md z-10">
+    <header class="bg-teal-900 text-white p-3 h-16 flex justify-between items-center shrink-0 shadow-lg z-10">
         <div class="flex items-center gap-3">
-            <img src="https://cdn-icons-png.flaticon.com/512/2910/2910768.png" class="w-8 h-8 bg-white rounded p-1">
+            <div class="bg-white/10 p-2 rounded"><i class="fa-solid fa-gem text-teal-200"></i></div>
             <div>
-                <h1 class="font-bold text-base leading-none">Auditor Savegnago</h1>
-                <p class="text-[10px] text-slate-400">Verificação de Ofertas & Preços</p>
+                <h1 class="font-bold text-lg leading-none">Auditor Gemini Vision</h1>
+                <p class="text-xs text-teal-200">Inteligência Artificial Google</p>
             </div>
         </div>
-        <button onclick="window.location.reload()" class="bg-slate-600 hover:bg-slate-500 px-3 py-1 rounded text-xs transition font-medium"><i class="fa-solid fa-power-off mr-1"></i>Resetar</button>
+        
+        <div class="flex items-center gap-2 bg-teal-800 p-1 rounded-lg border border-teal-700">
+            <i class="fa-solid fa-key text-teal-400 ml-2 text-xs"></i>
+            <input type="password" id="apiKeyInput" class="bg-transparent border-none text-xs text-white placeholder-teal-400 focus:ring-0 w-40" placeholder="Cole sua API Key aqui...">
+        </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
         
         <div class="w-[30%] bg-white border-r border-gray-200 flex flex-col z-20 shadow-xl p-4 gap-3">
             <div class="flex flex-col h-1/2">
-                <label class="font-bold text-gray-700 mb-1 text-xs">1. Lista de Texto</label>
-                <textarea id="listInput" class="flex-1 p-2 border rounded bg-gray-50 text-xs font-mono resize-none focus:ring-1 focus:ring-slate-500 outline-none" placeholder="Arroz - R$ 20,90..."></textarea>
+                <label class="font-bold text-gray-700 mb-1 text-xs">1. Lista de Texto (Gabarito)</label>
+                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Cole a lista correta aqui..."></textarea>
             </div>
 
             <div class="flex flex-col h-1/2">
-                <label class="font-bold text-gray-700 mb-1 text-xs">2. Imagens</label>
+                <label class="font-bold text-gray-700 mb-1 text-xs">2. Imagem (Arraste uma)</label>
                 <div id="dropZone" class="drop-zone h-full p-2 text-center group">
-                    <i id="dropIcon" class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 group-hover:text-blue-500 mb-1 transition-colors"></i>
-                    <p id="dropText" class="text-[10px] text-gray-500 font-medium">Arraste Imagens</p>
-                    <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-teal-300 group-hover:text-teal-600 mb-2 transition-colors"></i>
+                    <p class="text-xs text-gray-500 font-medium">Arraste a imagem da oferta</p>
+                    <input type="file" id="fileInput" accept="image/*" class="hidden">
                 </div>
             </div>
 
-            <button id="startBtn" onclick="processFiles()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-bold shadow-md disabled:opacity-50 transition text-sm flex justify-center items-center gap-2">
-                <i class="fa-solid fa-play"></i> Iniciar
+            <button id="startBtn" onclick="processWithGemini()" class="bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg font-bold shadow-md transition text-sm flex justify-center items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Analisar com Gemini
             </button>
         </div>
 
         <div class="w-[70%] bg-slate-50 flex flex-col relative overflow-hidden">
-            <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center text-center p-8">
-                <div id="spinner" class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-                <div id="loadingText" class="text-blue-800 font-bold text-sm mb-2">Inicializando Motor OCR...</div>
-                <div id="loadingSubText" class="text-gray-400 text-xs">(Isso pode levar alguns segundos na primeira vez)</div>
-                <button onclick="window.location.reload()" id="errorBtn" class="hidden mt-4 bg-red-600 text-white px-4 py-2 rounded text-xs font-bold shadow hover:bg-red-700">Ocorreu um erro. Recarregar Página</button>
+            <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
+                <div class="w-12 h-12 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin mb-3"></div>
+                <div class="text-teal-800 font-bold text-sm animate-pulse">Gemini está analisando...</div>
             </div>
 
             <div class="p-3 bg-white border-b border-gray-200 font-bold text-gray-700 shadow-sm flex justify-between text-sm">
-                <span><i class="fa-solid fa-clipboard-list mr-2 text-blue-600"></i>Relatório Final</span>
+                <span><i class="fa-solid fa-comment-dots mr-2 text-teal-600"></i>Análise da IA</span>
             </div>
             
-            <div class="scroll-area p-4">
-                <div class="bg-white rounded border border-gray-200 overflow-hidden shadow-sm">
-                    <table class="w-full text-sm text-left border-collapse">
-                        <thead class="bg-gray-100 text-gray-600 uppercase text-[10px] font-bold border-b border-gray-200">
-                            <tr>
-                                <th class="p-2 w-[35%]">Produto (Lista)</th>
-                                <th class="p-2 text-center w-[15%]">Preços</th>
-                                <th class="p-2 w-[50%]">Diagnóstico (Nome e Preço)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resultTable" class="divide-y divide-gray-100">
-                            <tr><td colspan="3" class="p-8 text-center text-gray-400 italic text-xs">Aguardando dados...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="debugArea" class="mt-6 hidden">
-                    <h3 class="text-[10px] font-bold text-gray-400 uppercase mb-2 border-b pb-1">Debug (Leitura Bruta)</h3>
-                    <div id="debugGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+            <div class="scroll-area p-6" id="resultsArea">
+                <div class="text-center text-gray-400 mt-20 text-sm italic">
+                    Cole a chave API, a lista e a imagem para ver a mágica.
                 </div>
             </div>
         </div>
     </div>
 
-    <canvas id="processCanvas" class="hidden"></canvas>
-
     <script>
         // CONFIG
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
-        let uploadedFiles = [];
-        let worker = null;
+        let currentFile = null;
 
         dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, pd, false));
         function pd(e) { e.preventDefault(); e.stopPropagation(); }
-        dropZone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files));
+        dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
 
-        function handleFiles(files) {
-            uploadedFiles = [...files];
-            document.getElementById('dropIcon').className = "fa-solid fa-check text-2xl text-green-500 mb-1";
-            document.getElementById('dropText').innerText = `${files.length} imagens prontas`;
-            document.getElementById('dropText').className = "text-[10px] text-green-700 font-bold";
+        function handleFile(file) {
+            if(!file) return;
+            currentFile = file;
+            dropZone.innerHTML = `
+                <div class="relative w-full h-full flex flex-col items-center justify-center overflow-hidden rounded">
+                    <img src="${URL.createObjectURL(file)}" class="absolute inset-0 w-full h-full object-cover opacity-30">
+                    <div class="relative z-10 bg-white/80 px-2 py-1 rounded">
+                        <i class="fa-solid fa-check text-teal-600 text-xl"></i>
+                        <span class="text-[10px] font-bold block">${file.name}</span>
+                    </div>
+                </div>`;
         }
 
-        const normalizeText = (text) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, "");
-
-        const cleanPrice = s => {
-            if(!s) return 0;
-            let c = s.toUpperCase().replace(/[OQD]/g, '0').replace(/[IYTl]/g, '1').replace(/[S]/g, '5').replace(/[B]/g, '8').replace(/[Z]/g, '2');
-            c = c.replace(/[^0-9,.]/g, '').replace(',', '.');
-            const match = c.match(/(\d+\.\d{2})/);
-            return match ? parseFloat(match[1]) : 0;
-        };
-        const fmtMoney = n => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-
-        // MAIN
-        async function processFiles() {
+        async function processWithGemini() {
+            const apiKey = document.getElementById('apiKeyInput').value.trim();
             const listTxt = document.getElementById('listInput').value;
-            if(!listTxt || uploadedFiles.length === 0) return alert("Falta dados (Lista ou Imagens).");
 
-            // UI Reset
-            const overlay = document.getElementById('loadingOverlay');
-            const loadingText = document.getElementById('loadingText');
-            overlay.classList.remove('hidden');
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('resultTable').innerHTML = '';
-            document.getElementById('debugGrid').innerHTML = '';
-            document.getElementById('debugArea').classList.remove('hidden');
+            if(!apiKey) return alert("Por favor, cole sua API Key do Google.");
+            if(!listTxt || !currentFile) return alert("Falta a lista ou a imagem.");
+
+            // UI
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            const resultsArea = document.getElementById('resultsArea');
 
             try {
-                if(!worker) {
-                    loadingText.innerText = "Carregando Cérebro...";
-                    worker = await Tesseract.createWorker('por');
-                }
-                
-                // 1. PARSE LISTA
-                const products = [];
-                listTxt.split('\n').forEach((line, idx) => {
-                    const mainM = line.match(/(.+) – R\$ ([\d,.]+)/i);
-                    const isDetail = line.trim().startsWith('(');
-                    if(mainM && !isDetail) {
-                        products.push({ id: `p${idx}`, name: mainM[1].trim(), base: cleanPrice(mainM[2]), extra: null, extraType: null });
-                    } else if(isDetail && products.length > 0) {
-                        const priceM = line.match(/R\$ ([\d,.]+)/);
-                        if(priceM) {
-                            const last = products[products.length-1];
-                            last.extra = cleanPrice(priceM[1]);
-                            last.extraType = line.includes('Cartão') ? 'Cartão' : 'SaveGanhe';
-                        }
-                    }
+                // 1. Converter imagem para Base64
+                const base64Image = await toBase64(currentFile);
+                const cleanBase64 = base64Image.split(',')[1];
+
+                // 2. Montar o Prompt para o Gemini
+                const prompt = `
+                    Você é um auditor de qualidade do supermercado Savegnago.
+                    
+                    SUA MISSÃO:
+                    Comparar os preços escritos nesta imagem com a LISTA GABARITO abaixo.
+                    
+                    LISTA GABARITO:
+                    """
+                    ${listTxt}
+                    """
+                    
+                    REGRAS:
+                    1. Liste APENAS os produtos que aparecem na imagem.
+                    2. Para cada produto, verifique o Nome, o Preço Base e o Preço Cartão (se houver).
+                    3. Se estiver tudo certo, marque com ✅.
+                    4. Se houver divergência, marque com ❌ e ESCREVA EM NEGRITO qual é o erro e qual seria o correto.
+                    5. Seja direto e profissional.
+                    
+                    FORMATO DE SAÍDA (Markdown):
+                    - **Produto:** [Nome na Imagem]
+                      - Base: [Valor Imagem] vs [Valor Lista] -> ✅ ou ❌
+                      - Cartão: [Valor Imagem] vs [Valor Lista] -> ✅ ou ❌ (ou "Não se aplica")
+                      - **Conclusão:** [Sua análise curta aqui]
+                `;
+
+                // 3. Chamar a API do Gemini 1.5 Flash
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inline_data: { mime_type: currentFile.type, data: cleanBase64 } }
+                            ]
+                        }]
+                    })
                 });
 
-                // 2. OCR IMAGENS
-                let imageDataBase = [];
-
-                for(let i=0; i<uploadedFiles.length; i++) {
-                    const file = uploadedFiles[i];
-                    loadingText.innerText = `Lendo imagem ${i+1}/${uploadedFiles.length}...`;
-                    const imgUrl = URL.createObjectURL(file);
-                    
-                    const result = await runOCR(worker, imgUrl);
-                    imageDataBase.push({ ...result, filename: file.name });
-
-                    // Debug
-                    const pTags = result.prices.map(p => `<span class="bg-slate-700 text-white px-1 rounded">${fmtMoney(p)}</span>`).join(' ');
-                    document.getElementById('debugGrid').innerHTML += `
-                        <div class="bg-white p-2 rounded border border-gray-200 text-[9px] break-all">
-                            <div class="font-bold text-blue-600 truncate">${file.name}</div>
-                            <div class="text-gray-400 mb-1 leading-tight h-4 overflow-hidden">${result.rawText.substring(0,30)}</div>
-                            <div class="flex flex-wrap gap-1">${pTags || '-'}</div>
-                        </div>`;
-                }
-
-                // 3. ANÁLISE
-                const tbody = document.getElementById('resultTable');
+                const data = await response.json();
                 
-                products.forEach(p => {
-                    let statusHtml = '';
-                    let errors = [];
-                    let warns = [];
-                    
-                    // Match Preço Base
-                    const candidates = imageDataBase.filter(img => img.prices.some(val => Math.abs(val - p.base) < 0.05));
-                    
-                    if (candidates.length > 0) {
-                        const matchedImage = candidates.find(img => checkNameSimilarity(p.name, img.text)) || candidates[0];
-                        
-                        if (!checkNameSimilarity(p.name, matchedImage.text)) {
-                            warns.push(`Nome não bate com imagem <b>${matchedImage.filename}</b>`);
-                        }
+                if(data.error) throw new Error(data.error.message);
 
-                        if (p.extra) {
-                            const extraFound = matchedImage.prices.some(val => Math.abs(val - p.extra) < 0.05);
-                            if (!extraFound) {
-                                errors.push(`Preço ${p.extraType} (${fmtMoney(p.extra)}) não achado.`);
-                            }
-                        }
-                    } else {
-                        errors.push(`Preço Base (${fmtMoney(p.base)}) não achado.`);
-                    }
+                const aiText = data.candidates[0].content.parts[0].text;
 
-                    if(errors.length === 0 && warns.length === 0) {
-                        statusHtml = `<span class="badge badge-ok"><i class="fa-solid fa-check"></i> Tudo OK</span>`;
-                    } else {
-                        errors.forEach(e => statusHtml += `<div class="err-box"><i class="fa-solid fa-xmark"></i> ${e}</div>`);
-                        warns.forEach(w => statusHtml += `<div class="warn-box"><i class="fa-solid fa-triangle-exclamation"></i> ${w}</div>`);
-                        statusHtml += `<div onclick="manualApprove('row-${p.id}')" class="force-btn"><i class="fa-solid fa-hand-point-right"></i> Marcar como Certo</div>`;
-                    }
-
-                    const extraTxt = p.extra ? `<div class="text-[10px] text-gray-500">${p.extraType}: ${fmtMoney(p.extra)}</div>` : '';
-                    tbody.innerHTML += `
-                        <tr id="row-${p.id}" class="hover:bg-gray-50 border-b border-gray-50 align-top">
-                            <td class="p-2 font-medium text-gray-700 text-xs">${p.name}</td>
-                            <td class="p-2 text-center text-xs">
-                                <div class="font-bold text-gray-800">${fmtMoney(p.base)}</div>
-                                ${extraTxt}
-                            </td>
-                            <td class="p-2 text-xs cell-status">${statusHtml}</td>
-                        </tr>`;
-                });
-
-                overlay.classList.add('hidden');
-                document.getElementById('startBtn').disabled = false;
+                // 4. Exibir Resultado
+                resultsArea.innerHTML = `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <span>Análise do Arquivo: ${currentFile.name}</span>
+                            <span class="bg-teal-100 text-teal-800 px-2 rounded">Gemini AI</span>
+                        </div>
+                        <div class="result-body markdown-body">
+                            ${marked.parse(aiText)}
+                        </div>
+                    </div>
+                `;
 
             } catch (err) {
+                alert("Erro ao consultar Gemini: " + err.message);
                 console.error(err);
-                document.getElementById('spinner').classList.add('hidden');
-                loadingText.innerText = "Erro ao Iniciar";
-                loadingText.classList.add('text-red-600');
-                document.getElementById('loadingSubText').innerText = "Tente recarregar a página.";
-                document.getElementById('errorBtn').classList.remove('hidden');
+            } finally {
+                document.getElementById('loadingOverlay').classList.add('hidden');
             }
         }
 
-        function checkNameSimilarity(listName, ocrText) {
-            const listTokens = normalizeText(listName).split(' ').filter(w => w.length > 3); 
-            const ocrClean = normalizeText(ocrText);
-            let matches = 0;
-            listTokens.forEach(token => { if(ocrClean.includes(token)) matches++; });
-            return matches >= 1; 
-        }
-
-        async function runOCR(worker, url) {
-            const img = new Image(); img.src = url; await new Promise(r => img.onload = r);
-            const canvas = document.getElementById('processCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width; canvas.height = img.height;
-            ctx.drawImage(img,0,0);
-            
-            const d = ctx.getImageData(0,0,canvas.width,canvas.height);
-            for(let i=0; i<d.data.length; i+=4) {
-                const v = (d.data[i]*0.3 + d.data[i+1]*0.59 + d.data[i+2]*0.11) > 130 ? 255 : 0;
-                d.data[i]=d.data[i+1]=d.data[i+2]=v;
-            }
-            ctx.putImageData(d,0,0);
-            
-            const ret = await worker.recognize(canvas.toDataURL());
-            return { 
-                text: ret.data.text,
-                rawText: ret.data.text,
-                prices: (ret.data.text.match(/\d{1,4}[.,]\d{2}\b/g) || []).map(cleanPrice)
-            };
-        }
-
-        window.manualApprove = function(rowId) {
-            const row = document.getElementById(rowId);
-            const cell = row.querySelector('.cell-status');
-            cell.innerHTML = `<span class="badge badge-manual"><i class="fa-solid fa-user-check"></i> Validado Manualmente</span>`;
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
         }
     </script>
 </body>
