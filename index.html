@@ -3,50 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V37 - IA Local (Florence-2)</title>
+    <title>Auditor V38 - Versão Final</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f5f3ff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .drop-zone { border: 2px dashed #8b5cf6; border-radius: 12px; transition: all 0.2s; background-color: #f5f3ff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .drop-zone:hover { border-color: #6d28d9; background-color: #ede9fe; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .drop-zone { border: 2px dashed #94a3b8; border-radius: 12px; transition: all 0.2s; background-color: #f1f5f9; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .drop-zone:hover { border-color: #3b82f6; background-color: #e2e8f0; }
         .scroll-area { overflow-y: auto; height: 100%; }
         
-        .result-card { background: white; border-radius: 8px; border: 1px solid #ddd6fe; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .result-header { padding: 10px; background: #f5f3ff; border-bottom: 1px solid #ddd6fe; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; }
+        .result-card { background: white; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .result-header { padding: 8px 12px; background: #e2e8f0; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; color: #334155; }
         .result-body { padding: 15px; font-size: 13px; line-height: 1.6; }
-        .markdown-body ul { list-style-type: disc; padding-left: 20px; }
-        .markdown-body strong { color: #6d28d9; }
         
-        /* Barra de Progresso do Download da IA */
-        .progress-container { width: 100%; background-color: #e2e8f0; border-radius: 4px; height: 6px; margin-top: 5px; overflow: hidden; }
-        .progress-bar { height: 100%; background-color: #8b5cf6; width: 0%; transition: width 0.3s; }
+        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
+        .badge-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .badge-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        
+        .err-item { background: #fff1f2; border-left: 4px solid #f43f5e; padding: 8px; margin-bottom: 6px; border-radius: 2px; }
+        .force-btn { font-size: 10px; cursor: pointer; text-decoration: underline; color: #64748b; display: inline-block; margin-top: 4px; }
+        .force-btn:hover { color: #0f172a; }
+        .scan-text { font-family: monospace; font-size: 10px; color: #94a3b8; margin-top: 8px; border-top: 1px dashed #e2e8f0; padding-top: 4px; word-break: break-all; }
+        .file-tag { font-family: monospace; background: #cbd5e1; padding: 2px 6px; rounded: 4px; font-size: 10px; color: #475569; }
     </style>
 </head>
 <body class="text-slate-800">
 
-    <header class="bg-violet-900 text-white p-3 h-16 flex justify-between items-center shrink-0 shadow-lg z-10">
+    <header class="bg-slate-900 text-white p-3 h-14 flex justify-between items-center shrink-0 shadow-md z-10">
         <div class="flex items-center gap-3">
             <img src="https://cdn-icons-png.flaticon.com/512/2910/2910768.png" class="w-8 h-8 bg-white rounded p-1">
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V37</h1>
-                <p class="text-xs text-violet-200">Neural Local (Florence-2)</p>
+                <h1 class="font-bold text-base leading-none">Auditor V38</h1>
+                <p class="text-[10px] text-slate-400">Motor Local Estável</p>
             </div>
         </div>
-        
-        <div class="bg-violet-800 p-2 rounded-lg border border-violet-700 shadow-inner flex items-center gap-2">
-             <div id="aiStatus" class="flex flex-col w-40">
-                 <span class="text-[10px] text-violet-200" id="statusText">IA não carregada</span>
-                 <div class="progress-container hidden" id="progressContainer">
-                     <div class="progress-bar" id="progressBar"></div>
-                 </div>
-             </div>
-             <button id="loadAiBtn" onclick="loadAI()" class="bg-violet-500 hover:bg-violet-400 text-white text-[10px] font-bold px-3 py-1.5 rounded transition shadow">
-                <i class="fa-solid fa-download mr-1"></i> BAIXAR CÉREBRO (300MB)
-             </button>
+        <div class="bg-blue-900/50 px-3 py-1 rounded border border-blue-800 text-xs text-blue-200">
+            <i class="fa-solid fa-shield-halved mr-1"></i> Modo Seguro
         </div>
     </header>
 
@@ -57,106 +52,50 @@
                     <span>1. Lista Gabarito</span>
                     <button onclick="document.getElementById('listInput').value = ''" class="text-[10px] text-red-500 hover:text-red-700 font-bold uppercase"><i class="fa-solid fa-trash-can mr-1"></i>Limpar</button>
                 </label>
-                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-violet-500 outline-none" placeholder="Ex: Arroz - R$ 20,90..."></textarea>
+                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-slate-500 outline-none" placeholder="Arroz - R$ 20,90..."></textarea>
             </div>
 
             <div class="flex flex-col h-1/2">
                 <label class="font-bold text-gray-700 mb-1 text-xs">2. Imagens</label>
                 <div id="dropZone" class="drop-zone h-full p-2 text-center group relative">
                     <div id="dropContent">
-                        <i class="fa-solid fa-brain text-3xl text-violet-300 group-hover:text-violet-600 mb-2 transition-colors"></i>
-                        <p class="text-xs text-gray-500 font-medium">Arraste Imagens</p>
+                        <i class="fa-solid fa-images text-3xl text-slate-400 group-hover:text-slate-600 mb-2 transition-colors"></i>
+                        <p class="text-xs text-gray-500 font-medium">Arraste Múltiplas Imagens</p>
                     </div>
                     <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
                 </div>
             </div>
 
-            <button id="startBtn" onclick="processQueue()" class="w-full bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-lg font-bold shadow-md transition text-xs flex justify-center items-center gap-2" disabled>
-                <i class="fa-solid fa-spinner fa-spin mr-1 hidden" id="btnSpinner"></i>
-                <span id="btnText">Aguardando Download da IA...</span>
+            <button id="startBtn" onclick="processQueue()" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-bold shadow-md transition text-xs flex justify-center items-center gap-2">
+                <i class="fa-solid fa-play"></i> Iniciar Conferência
             </button>
         </div>
 
         <div class="w-[70%] bg-slate-50 flex flex-col relative overflow-hidden">
+            <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center">
+                <div class="w-12 h-12 border-4 border-slate-300 border-t-slate-800 rounded-full animate-spin mb-3"></div>
+                <div id="loadingText" class="text-slate-800 font-bold text-sm animate-pulse">Carregando...</div>
+                <div class="text-[10px] text-gray-400 mt-2">Processamento Local (Anti-Bloqueio)</div>
+            </div>
+
             <div class="p-3 bg-white border-b border-gray-200 font-bold text-gray-700 shadow-sm flex justify-between text-sm">
-                <span>Relatório Neural</span>
-                <span class="text-[10px] bg-violet-100 text-violet-800 px-2 rounded">Modelo: Florence-2-base</span>
+                <span>Resultados da Auditoria</span>
             </div>
             
             <div class="scroll-area p-6" id="resultsArea">
                 <div class="text-center text-gray-400 mt-20 text-sm italic">
-                    <i class="fa-solid fa-arrow-up mr-2"></i> Clique em "BAIXAR CÉREBRO" lá em cima primeiro.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Adicione a lista e as imagens para começar.
                 </div>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        // Importando Transformers.js direto do CDN
-        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1';
+    <canvas id="processCanvas" class="hidden"></canvas>
 
-        // Configurações para forçar execução local
-        env.allowLocalModels = false; 
-        env.useBrowserCache = true;
-
-        let generator = null;
+    <script>
         let fileQueue = [];
+        let tesseractWorker = null;
 
-        // Expondo funções para o HTML global
-        window.loadAI = loadAI;
-        window.processQueue = processQueue;
-
-        // UI Elements
-        const statusText = document.getElementById('statusText');
-        const progressBar = document.getElementById('progressBar');
-        const progressContainer = document.getElementById('progressContainer');
-        const loadBtn = document.getElementById('loadAiBtn');
-        const startBtn = document.getElementById('startBtn');
-        const btnText = document.getElementById('btnText');
-
-        async function loadAI() {
-            loadBtn.disabled = true;
-            loadBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> BAIXANDO...`;
-            progressContainer.classList.remove('hidden');
-            statusText.innerText = "Iniciando download...";
-
-            try {
-                // Carrega o modelo Florence-2 (Ótimo para OCR e Legendas)
-                // 'Xenova/florence-2-base' é o modelo
-                generator = await pipeline('image-to-text', 'Xenova/florence-2-base', {
-                    progress_callback: (data) => {
-                        if (data.status === 'progress') {
-                            const percent = Math.round(data.progress || 0);
-                            progressBar.style.width = `${percent}%`;
-                            statusText.innerText = `Baixando ${data.file} (${percent}%)`;
-                        } else if (data.status === 'done') {
-                            statusText.innerText = "Carregando arquivos...";
-                        }
-                    }
-                });
-
-                statusText.innerText = "IA Pronta para uso!";
-                statusText.className = "text-[10px] text-green-300 font-bold";
-                progressContainer.classList.add('hidden');
-                loadBtn.innerHTML = `<i class="fa-solid fa-check"></i> INSTALADO`;
-                loadBtn.className = "bg-green-600 text-white text-[10px] font-bold px-3 py-1.5 rounded cursor-default";
-                
-                startBtn.disabled = false;
-                startBtn.className = "w-full bg-violet-600 hover:bg-violet-700 text-white py-3 rounded-lg font-bold shadow-md transition text-xs flex justify-center items-center gap-2";
-                btnText.innerText = "Analisar com Florence-2";
-                
-            } catch (err) {
-                console.error(err);
-                statusText.innerText = "Falha no Download";
-                statusText.className = "text-[10px] text-red-300 font-bold";
-                loadBtn.innerHTML = "TENTAR NOVAMENTE";
-                loadBtn.className = "bg-red-600 hover:bg-red-500 text-white text-[10px] font-bold px-3 py-1.5 rounded";
-                loadBtn.disabled = false;
-                alert("Erro: O Firewall da empresa bloqueou o download do HuggingFace.\n\nVolte para a versão V36 (Tesseract).");
-            }
-        }
-
-        // --- DRAG & DROP ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const dropContent = document.getElementById('dropContent');
@@ -167,59 +106,129 @@
 
         function handleFiles(files) {
             fileQueue = Array.from(files);
-            dropContent.innerHTML = `<div class="font-bold text-violet-800">${fileQueue.length} arquivo(s)</div>`;
+            dropContent.innerHTML = `
+                <div class="bg-white w-full h-full flex flex-col items-center justify-center rounded">
+                    <i class="fa-solid fa-layer-group text-blue-600 text-2xl mb-1"></i>
+                    <span class="text-xs font-bold text-slate-700">${fileQueue.length} arquivo(s)</span>
+                </div>`;
         }
 
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
         async function processQueue() {
-            if (!generator) return alert("Você precisa clicar em 'BAIXAR CÉREBRO' primeiro!");
             const listTxt = document.getElementById('listInput').value;
             if(!listTxt) return alert("Falta a lista gabarito!");
             if(fileQueue.length === 0) return alert("Sem imagens!");
 
+            const overlay = document.getElementById('loadingOverlay');
             const resArea = document.getElementById('resultsArea');
-            if(resArea.innerText.includes('Clique em')) resArea.innerHTML = '';
+            if(resArea.innerText.includes('Adicione a lista')) resArea.innerHTML = '';
             
-            startBtn.disabled = true;
-            document.getElementById('btnSpinner').classList.remove('hidden');
-            btnText.innerText = "Processando...";
+            overlay.classList.remove('hidden');
 
-            for(let i=0; i<fileQueue.length; i++) {
-                const file = fileQueue[i];
+            // --- INICIALIZAÇÃO ROBUSTA DO TESSERACT ---
+            if(!tesseractWorker) {
+                document.getElementById('loadingText').innerText = "Carregando Motor OCR...";
                 try {
-                    await analyzeWithFlorence(file, listTxt, resArea);
-                } catch (err) {
-                    resArea.innerHTML = `<div class="bg-red-100 p-3 mb-2 text-red-800 text-xs">Erro em ${file.name}: ${err.message}</div>` + resArea.innerHTML;
+                    tesseractWorker = await Tesseract.createWorker('por');
+                    await tesseractWorker.setParameters({
+                        tessedit_char_whitelist: '0123456789$.,RABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÇçÃãÁáÀàÉéÊêÍíÓóÔôÚú%:-/() '
+                    });
+                } catch(e) {
+                    console.warn("Falha PT-BR, tentando fallback ENG...");
+                    try {
+                        tesseractWorker = await Tesseract.createWorker('eng');
+                    } catch(errFatal) {
+                        alert("Erro fatal: OCR bloqueado. Tente em outra rede.");
+                        overlay.classList.add('hidden');
+                        return;
+                    }
                 }
             }
 
-            startBtn.disabled = false;
-            document.getElementById('btnSpinner').classList.add('hidden');
-            btnText.innerText = "Analisar Novamente";
+            for(let i=0; i<fileQueue.length; i++) {
+                const file = fileQueue[i];
+                document.getElementById('loadingText').innerText = `Lendo ${i+1}/${fileQueue.length}...`;
+                
+                try {
+                    await analyzeLocal(file, listTxt, resArea);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+            overlay.classList.add('hidden');
             fileQueue = [];
-            dropContent.innerHTML = "Concluído!";
+            dropContent.innerHTML = `<i class="fa-solid fa-check text-green-500 text-2xl"></i><div class="text-xs font-bold text-green-700">Concluído!</div>`;
         }
 
-        async function analyzeWithFlorence(file, listTxt, container) {
-            const url = URL.createObjectURL(file);
+        async function analyzeLocal(file, listTxt, container, forceHighContrast = false) {
+            const imgUrl = URL.createObjectURL(file);
+            const img = new Image(); 
+            img.src = imgUrl; 
             
-            // Florence-2 prompt para OCR é '<OCR>'
-            // Ele retorna o texto bruto lido
-            const output = await generator(url, { text: '<OCR>', max_new_tokens: 1024 });
-            const rawText = output[0].generated_text || "";
+            await new Promise(r => img.onload = r);
+            
+            const cvs = document.getElementById('processCanvas');
+            const ctx = cvs.getContext('2d');
+            
+            // --- TRUQUE DE ALTA RESOLUÇÃO ---
+            let width = img.width;
+            let height = img.height;
+            const minSize = 1500; 
 
-            // Limpeza e Comparação (Lógica Híbrida)
-            // Extrai preços
+            if (width < minSize && height < minSize) {
+                const scale = minSize / Math.min(width, height);
+                width *= scale;
+                height *= scale;
+            }
+
+            cvs.width = width; 
+            cvs.height = height;
+            
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // --- FILTRO DE ALTO CONTRASTE (BINARIZAÇÃO) ---
+            const d = ctx.getImageData(0,0,width,height);
+            // Se for releitura forçada, usa filtro mais agressivo
+            const threshold = forceHighContrast ? 100 : 160; 
+            
+            for(let i=0; i<d.data.length; i+=4) {
+                const brilho = (d.data[i]+d.data[i+1]+d.data[i+2])/3;
+                const v = brilho > threshold ? 255 : 0;
+                d.data[i]=d.data[i+1]=d.data[i+2]=v;
+            }
+            ctx.putImageData(d,0,0);
+
+            // --- PAUSA TÉCNICA OBRIGATÓRIA (CRUCIAL) ---
+            await wait(300); 
+            
+            // 2. OCR (Leitura)
+            const ret = await tesseractWorker.recognize(cvs.toDataURL());
+            const rawText = ret.data.text;
+            
+            // 3. EXTRAÇÃO DE PREÇOS
             const foundPrices = [];
             const matches = rawText.match(/[\dOQS]{1,4}[.,][\dOQS]{2}\b/g) || [];
             
             matches.forEach(s => {
                 let c = s.toUpperCase().replace(/[OQ]/g,'0').replace(/[S]/g,'5');
                 let val = parseFloat(c.replace(/[^0-9,]/g,'').replace(',','.'));
-                if (val >= 2020 && val <= 2030) return; // Filtro ano
-                foundPrices.push(val);
+                
+                // Filtro de Datas
+                if (val >= 2020 && val <= 2030) return; 
+                const decimalPart = Math.round((val % 1) * 100);
+                if (val < 32 && decimalPart >= 1 && decimalPart <= 12) {
+                    if(!rawText.includes('$' + s) && !rawText.includes('R ' + s)) {
+                        // É data provável
+                    } else {
+                        foundPrices.push(val);
+                    }
+                } else {
+                    foundPrices.push(val);
+                }
             });
 
-            // Comparação com Lista
+            // 4. COMPARAÇÃO
             const products = parseList(listTxt);
             let errorsHtml = '';
             let isPerfect = true;
@@ -231,40 +240,85 @@
 
                 if(!(baseFound && extraFound)) {
                     isPerfect = false;
+                    const errId = `err-${idx}-${Date.now()}`;
                     let msg = '';
                     if(!baseFound) msg += `<div class="font-bold text-red-700">Base R$ ${fmtMoney(p.base)} não encontrado</div>`;
                     if(!extraFound) msg += `<div class="font-bold text-red-700">Cartão R$ ${fmtMoney(p.extra)} não encontrado</div>`;
 
                     errorsHtml += `
-                        <div class="mb-2 border-b pb-2 last:border-0 border-gray-100">
-                            <div class="font-bold text-slate-800 text-xs">${p.name}</div>
+                        <div id="${errId}" class="err-item">
+                            <div class="font-bold text-slate-800 text-xs mb-1">${p.name}</div>
                             ${msg}
+                            <span onclick="approveManually('${errId}')" class="force-btn"><i class="fa-solid fa-check"></i> Ignorar Erro</span>
                         </div>`;
                 }
             });
 
-            const div = document.createElement('div');
-            div.className = 'result-card animate-fade-in';
+            // Se for uma releitura, substitui o card existente. Se for nova, cria um.
+            let div;
+            if(document.getElementById(`card-${file.name}`)) {
+                div = document.getElementById(`card-${file.name}`);
+                div.innerHTML = ''; // Limpa conteúdo antigo
+            } else {
+                div = document.createElement('div');
+                div.id = `card-${file.name}`;
+                div.className = 'result-card animate-fade-in';
+            }
             
             let statusBadge = isPerfect 
-                ? `<span class="bg-green-100 text-green-800 px-2 py-0.5 rounded text-[10px] font-bold">APROVADO</span>` 
-                : `<span class="bg-red-100 text-red-800 px-2 py-0.5 rounded text-[10px] font-bold">DIVERGÊNCIA</span>`;
+                ? `<span class="badge badge-ok">APROVADO</span>` 
+                : `<span class="badge badge-err">VERIFICAR</span>`;
 
             let bodyContent = isPerfect 
-                ? `<div class="text-green-700 font-bold text-center py-2">Tudo Certo!</div>`
+                ? `<div class="text-green-700 font-bold text-center py-2"><i class="fa-solid fa-check-circle text-2xl mb-1 block"></i>Preços Corretos</div>`
                 : `<div class="p-2">${errorsHtml}</div>`;
+
+            // Adiciona botão de Releitura se tiver erro
+            let retryBtn = '';
+            if(!isPerfect) {
+                // Guarda o arquivo no objeto window para poder ser re-acessado
+                window.fileCache = window.fileCache || {};
+                window.fileCache[file.name] = file;
+                retryBtn = `<button onclick="retryImage('${file.name}')" class="text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded ml-2 border"><i class="fa-solid fa-rotate-right"></i> Tentar Releitura</button>`;
+            }
+
+            let debugText = `Valores: ${foundPrices.join(' | ')}`;
+            if(rawText.length < 5) debugText = "⚠️ ERRO DE LEITURA: Imagem ilegível.";
 
             div.innerHTML = `
                 <div class="result-header">
-                    <span>${file.name}</span>
-                    ${statusBadge}
+                    <span class="file-tag"><i class="fa-solid fa-file mr-1"></i>${file.name}</span>
+                    <div class="flex items-center">
+                        ${retryBtn}
+                        <span class="ml-2">${statusBadge}</span>
+                    </div>
                 </div>
-                <div class="result-body">
-                    ${bodyContent}
-                    <div class="mt-2 pt-2 border-t border-gray-100 text-[10px] text-gray-400 font-mono break-all">OCR Neural: ${foundPrices.join(' | ')}</div>
+                <div class="result-body">${bodyContent}
+                    <div class="scan-text">${debugText}</div>
                 </div>
             `;
-            container.prepend(div);
+            
+            if(!document.getElementById(`card-${file.name}`)) {
+                container.prepend(div);
+            }
+        }
+
+        window.retryImage = async function(fileName) {
+            const file = window.fileCache[fileName];
+            if(!file) return alert("Arquivo perdido. Recarregue a página.");
+            
+            const card = document.getElementById(`card-${fileName}`);
+            card.style.opacity = '0.5';
+            
+            const listTxt = document.getElementById('listInput').value;
+            // Tenta releitura com filtro agressivo
+            await analyzeLocal(file, listTxt, null, true);
+            
+            card.style.opacity = '1';
+        }
+
+        window.approveManually = function(id) {
+            document.getElementById(id).innerHTML = `<div class="text-blue-600 text-xs font-bold text-center py-2"><i class="fa-solid fa-user-check"></i> Validado</div>`;
         }
 
         const fmtMoney = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
