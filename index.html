@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V31 - Híbrido</title>
+    <title>Auditor V32 - Tira Teima</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -15,17 +15,11 @@
         .drop-zone { border: 2px dashed #94a3b8; border-radius: 12px; transition: all 0.2s; background-color: #f1f5f9; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .drop-zone:hover { border-color: #2563eb; background-color: #eff6ff; }
         .scroll-area { overflow-y: auto; height: 100%; }
-        
-        /* Cards de Resultado */
         .result-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .result-header { padding: 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; }
         .result-body { padding: 15px; font-size: 13px; line-height: 1.6; }
-        
-        /* Markdown */
         .markdown-body ul { list-style-type: disc; padding-left: 20px; }
         .markdown-body strong { color: #0f766e; }
-
-        /* Badges do Modo Offline */
         .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
         .badge-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
         .badge-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
@@ -38,18 +32,14 @@
         <div class="flex items-center gap-3">
             <img src="https://cdn-icons-png.flaticon.com/512/2910/2910768.png" class="w-8 h-8 bg-white rounded p-1">
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V31</h1>
-                <p class="text-xs text-gray-400">Sistema Híbrido</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V32</h1>
+                <p class="text-xs text-gray-400">Diagnóstico Detalhado</p>
             </div>
         </div>
         
         <div class="flex bg-slate-700 p-1 rounded-lg">
-            <button id="modeAiBtn" onclick="setMode('ai')" class="px-4 py-1.5 rounded text-xs font-bold transition flex items-center gap-2 bg-teal-600 text-white">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> IA (Gemini)
-            </button>
-            <button id="modeLocalBtn" onclick="setMode('local')" class="px-4 py-1.5 rounded text-xs font-bold transition flex items-center gap-2 text-gray-300 hover:text-white">
-                <i class="fa-solid fa-microchip"></i> Offline (Local)
-            </button>
+            <button id="modeAiBtn" onclick="setMode('ai')" class="px-4 py-1.5 rounded text-xs font-bold transition flex items-center gap-2 bg-teal-600 text-white"><i class="fa-solid fa-wand-magic-sparkles"></i> IA</button>
+            <button id="modeLocalBtn" onclick="setMode('local')" class="px-4 py-1.5 rounded text-xs font-bold transition flex items-center gap-2 text-gray-300 hover:text-white"><i class="fa-solid fa-microchip"></i> Offline</button>
         </div>
 
         <div id="keyArea" class="flex items-center gap-2 bg-slate-900 p-1.5 rounded border border-slate-600">
@@ -108,12 +98,10 @@
     <canvas id="processCanvas" class="hidden"></canvas>
 
     <script>
-        // --- ESTADO GLOBAL ---
-        let currentMode = 'ai'; // 'ai' ou 'local'
+        let currentMode = 'ai';
         let fileQueue = [];
         let tesseractWorker = null;
 
-        // --- GESTÃO DE MODO ---
         function setMode(mode) {
             currentMode = mode;
             const btnAi = document.getElementById('modeAiBtn');
@@ -139,16 +127,11 @@
             }
         }
 
-        // --- GESTÃO DE CHAVE ---
         const inputField = document.getElementById('apiKeyInput');
-        window.onload = () => { 
-            if(localStorage.getItem('gemini_key')) inputField.value = localStorage.getItem('gemini_key'); 
-            setMode('ai'); // Começa com IA por padrão
-        };
+        window.onload = () => { if(localStorage.getItem('gemini_key')) inputField.value = localStorage.getItem('gemini_key'); setMode('ai'); };
         function saveKey() { localStorage.setItem('gemini_key', inputField.value.trim()); alert("Chave salva!"); }
         function getKey() { return localStorage.getItem('gemini_key') || inputField.value.trim(); }
 
-        // --- DRAG & DROP ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const dropContent = document.getElementById('dropContent');
@@ -162,7 +145,6 @@
             dropContent.innerHTML = `<div class="font-bold text-slate-600">${fileQueue.length} arquivo(s)</div>`;
         }
 
-        // --- CONTROLADOR PRINCIPAL ---
         async function processQueue() {
             const listTxt = document.getElementById('listInput').value;
             if(!listTxt) return alert("Falta a lista gabarito!");
@@ -176,7 +158,6 @@
             if(currentMode === 'ai') document.getElementById('offlineHint').classList.remove('hidden');
             else document.getElementById('offlineHint').classList.add('hidden');
 
-            // SE MODO LOCAL, INICIA TESSERACT
             if(currentMode === 'local' && !tesseractWorker) {
                 document.getElementById('loadingText').innerText = "Carregando motor Local...";
                 tesseractWorker = await Tesseract.createWorker('por');
@@ -185,21 +166,20 @@
             for(let i=0; i<fileQueue.length; i++) {
                 const file = fileQueue[i];
                 document.getElementById('loadingText').innerText = `Analisando ${i+1}/${fileQueue.length}...`;
-                
                 try {
                     if(currentMode === 'ai') {
                         await analyzeAI(file, listTxt, resArea);
-                        await new Promise(r => setTimeout(r, 2000)); // Delay p/ Google
+                        await new Promise(r => setTimeout(r, 2000));
                     } else {
                         await analyzeLocal(file, listTxt, resArea);
                     }
                 } catch (err) {
-                    // SE FALHAR IA, SUGERE MUDAR
                     const errorMsg = `
                         <div class="bg-red-50 p-3 rounded border border-red-200 mb-4">
                             <div class="font-bold text-red-800 text-xs">❌ Erro em ${file.name}</div>
-                            <div class="text-[10px] text-red-600 mb-2">${err.message}</div>
-                            ${currentMode === 'ai' ? `<button onclick="setMode('local'); processQueue()" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px]">Tentar no Modo Offline</button>` : ''}
+                            <div class="text-[10px] text-red-600 mb-2 font-mono break-all">${err.message}</div>
+                            ${err.hint ? `<div class="bg-yellow-100 text-yellow-800 text-[10px] p-1 rounded font-bold">💡 Dica: ${err.hint}</div>` : ''}
+                            ${currentMode === 'ai' ? `<button onclick="setMode('local'); processQueue()" class="bg-blue-600 text-white px-2 py-1 rounded text-[10px] mt-2">Mudar para Modo Offline</button>` : ''}
                         </div>`;
                     resArea.innerHTML = errorMsg + resArea.innerHTML;
                 }
@@ -209,10 +189,9 @@
             dropContent.innerHTML = "Concluído!";
         }
 
-        // --- MOTOR 1: IA (GEMINI) ---
         async function analyzeAI(file, listTxt, container) {
             const key = getKey();
-            if(!key) throw new Error("Chave API não configurada.");
+            if(!key) throw { message: "Chave API não configurada no topo.", hint: "Cole a chave e clique em Salvar." };
             
             const b64 = await resizeImage(file);
             const prompt = `AUDITORIA. LISTA:\n${listTxt}\nCompare a imagem com a lista. Saída Markdown curta. Se errar, explique.`;
@@ -222,25 +201,28 @@
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: "image/jpeg", data: b64 } }] }] })
             });
 
-            if(!resp.ok) throw new Error("Erro Google: " + await resp.text());
+            if(!resp.ok) {
+                const errTxt = await resp.text();
+                let hint = "Erro desconhecido.";
+                if(errTxt.includes("API_KEY_INVALID")) hint = "A chave está errada ou foi deletada.";
+                if(errTxt.includes("BILLING")) hint = "A conta Google precisa de um cartão cadastrado (mesmo sendo grátis).";
+                if(errTxt.includes("PERMISSION_DENIED")) hint = "A API Generative Language não está ativada no Google Cloud.";
+                throw { message: errTxt, hint: hint };
+            }
+
             const json = await resp.json();
             const text = json.candidates[0].content.parts[0].text;
-            
             createResultCard(file.name, marked.parse(text), container, 'Gemini');
         }
 
-        // --- MOTOR 2: LOCAL (TESSERACT) ---
         async function analyzeLocal(file, listTxt, container) {
             const imgUrl = URL.createObjectURL(file);
-            
-            // 1. OCR
             const img = new Image(); img.src = imgUrl; await new Promise(r => img.onload = r);
             const cvs = document.getElementById('processCanvas');
             const ctx = cvs.getContext('2d');
             cvs.width = img.width; cvs.height = img.height;
             ctx.drawImage(img,0,0);
             
-            // Filtro simples
             const d = ctx.getImageData(0,0,cvs.width,cvs.height);
             for(let i=0; i<d.data.length; i+=4) {
                 const v = (d.data[i]+d.data[i+1]+d.data[i+2])/3 > 140 ? 255 : 0;
@@ -251,7 +233,6 @@
             const ret = await tesseractWorker.recognize(cvs.toDataURL());
             const foundPrices = (ret.data.text.match(/\d{1,4}[.,]\d{2}\b/g) || []).map(cleanPrice);
             
-            // 2. COMPARAÇÃO
             let html = `<ul class="text-xs space-y-2">`;
             const products = parseList(listTxt);
             let errors = 0;
@@ -261,7 +242,7 @@
                 let extraOK = true;
                 if(p.extra) extraOK = foundPrices.some(v => Math.abs(v - p.extra) < 0.05);
 
-                if(baseOK && extraOK) return; // Não mostra os certos pra não poluir, ou mostra resumo
+                if(baseOK && extraOK) return; 
 
                 errors++;
                 html += `<li><strong>${p.name}</strong>`;
@@ -271,15 +252,14 @@
             });
             html += `</ul>`;
             
-            if(errors === 0) html = `<div class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> Todos os preços da lista encontrados na imagem.</div>`;
-            else html = `<div class="mb-2 text-red-600 font-bold">Divergências Encontradas:</div>` + html;
+            if(errors === 0) html = `<div class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> Tudo certo na leitura local.</div>`;
+            else html = `<div class="mb-2 text-red-600 font-bold">Divergências:</div>` + html;
             
             html += `<div class="mt-2 pt-2 border-t text-[10px] text-gray-400">Leitura crua: ${foundPrices.join(', ')}</div>`;
 
             createResultCard(file.name, html, container, 'Modo Local');
         }
 
-        // --- UTILS ---
         function createResultCard(title, content, container, source) {
             const div = document.createElement('div');
             div.className = 'result-card animate-fade-in';
