@@ -3,129 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste Google Vision (V40)</title>
+    <title>Auditor V41 - Cloud Vision Pro</title>
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0fdf4; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .drop-zone { border: 2px dashed #4ade80; border-radius: 12px; transition: all 0.2s; background-color: #f0fdf4; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .drop-zone:hover { border-color: #16a34a; background-color: #dcfce7; }
+        .scroll-area { overflow-y: auto; height: 100%; }
+        
+        .result-card { background: white; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .result-header { padding: 8px 12px; background: #dcfce7; border-bottom: 1px solid #bbf7d0; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; color: #166534; }
+        .result-body { padding: 15px; font-size: 13px; line-height: 1.6; }
+        
+        .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
+        .badge-ok { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .badge-err { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        
+        .err-item { background: #fff1f2; border-left: 4px solid #f43f5e; padding: 8px; margin-bottom: 6px; border-radius: 2px; }
+        .scan-text { font-family: monospace; font-size: 10px; color: #94a3b8; margin-top: 8px; border-top: 1px dashed #e2e8f0; padding-top: 4px; word-break: break-all; }
+        .file-tag { font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbf7d0; font-size: 10px; color: #166534; }
+    </style>
 </head>
-<body class="bg-slate-900 text-white flex flex-col items-center justify-center h-screen p-4">
+<body class="text-slate-800">
 
-    <div class="max-w-md w-full bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-2xl">
-        <div class="flex items-center gap-3 mb-6">
-            <div class="bg-blue-600 p-2 rounded"><i class="fa-solid fa-eye text-2xl"></i></div>
+    <header class="bg-green-900 text-white p-3 h-14 flex justify-between items-center shrink-0 shadow-md z-10">
+        <div class="flex items-center gap-3">
+            <img src="https://cdn-icons-png.flaticon.com/512/2910/2910768.png" class="w-8 h-8 bg-white rounded p-1">
             <div>
-                <h1 class="font-bold text-xl">Google Cloud Vision</h1>
-                <p class="text-xs text-slate-400">Teste de Bloqueio Corporativo</p>
+                <h1 class="font-bold text-base leading-none">Auditor V41</h1>
+                <p class="text-[10px] text-green-200">Google Cloud Vision (Enterprise)</p>
             </div>
         </div>
+        
+        <div class="flex items-center gap-2 bg-green-800 p-1 rounded border border-green-700">
+             <i class="fa-solid fa-key text-green-300 ml-2 text-xs"></i>
+             <input type="password" id="apiKeyInput" class="bg-transparent border-none text-xs text-white w-24 placeholder-green-400/50 focus:ring-0" placeholder="API Key Vision...">
+             <button onclick="saveKey()" class="bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded transition">SALVAR</button>
+        </div>
+    </header>
 
-        <div class="mb-4">
-            <label class="text-xs font-bold text-slate-400 uppercase">Sua API Key</label>
-            <input type="password" id="apiKey" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-sm mt-1 focus:border-blue-500 outline-none" placeholder="Cole a chave AIza...">
-            <p class="text-[10px] text-slate-500 mt-1">Certifique-se que a "Cloud Vision API" está ativada no console.</p>
+    <div class="flex flex-1 overflow-hidden">
+        <div class="w-[30%] bg-white border-r border-gray-200 flex flex-col z-20 shadow-xl p-4 gap-3">
+            <div class="flex flex-col h-1/2">
+                <label class="font-bold text-gray-700 mb-1 text-xs flex justify-between">
+                    <span>1. Lista Gabarito</span>
+                    <button onclick="document.getElementById('listInput').value = ''" class="text-[10px] text-red-500 hover:text-red-700 font-bold uppercase"><i class="fa-solid fa-trash-can mr-1"></i>Limpar</button>
+                </label>
+                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-green-500 outline-none" placeholder="Ex: Arroz - R$ 20,90..."></textarea>
+            </div>
+
+            <div class="flex flex-col h-1/2">
+                <label class="font-bold text-gray-700 mb-1 text-xs">2. Imagens</label>
+                <div id="dropZone" class="drop-zone h-full p-2 text-center group relative">
+                    <div id="dropContent">
+                        <i class="fa-solid fa-images text-3xl text-green-300 group-hover:text-green-600 mb-2 transition-colors"></i>
+                        <p class="text-xs text-gray-500 font-medium">Arraste os Encartes</p>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
+                </div>
+            </div>
+
+            <button id="startBtn" onclick="processQueue()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-bold shadow-md transition text-xs flex justify-center items-center gap-2">
+                <i class="fa-solid fa-robot"></i> Analisar com Google Vision
+            </button>
         </div>
 
-        <div class="border-2 border-dashed border-slate-600 rounded-lg p-6 text-center cursor-pointer hover:bg-slate-750 transition mb-4" id="dropZone">
-            <i class="fa-solid fa-image text-3xl text-slate-500 mb-2"></i>
-            <p class="text-xs text-slate-300">Clique para selecionar uma imagem</p>
-            <input type="file" id="fileInput" class="hidden" accept="image/*">
+        <div class="w-[70%] bg-slate-50 flex flex-col relative overflow-hidden">
+            <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center">
+                <div class="w-12 h-12 border-4 border-green-300 border-t-green-800 rounded-full animate-spin mb-3"></div>
+                <div id="loadingText" class="text-green-900 font-bold text-sm animate-pulse">Enviando para Google Cloud...</div>
+            </div>
+
+            <div class="p-3 bg-white border-b border-gray-200 font-bold text-gray-700 shadow-sm flex justify-between text-sm">
+                <span>Relatório de Auditoria</span>
+            </div>
+            
+            <div class="scroll-area p-6" id="resultsArea">
+                <div class="text-center text-gray-400 mt-20 text-sm italic">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Configure a lista e as imagens para começar.
+                </div>
+            </div>
         </div>
-
-        <button onclick="testVision()" id="btnTest" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded transition">
-            TESTAR CONEXÃO
-        </button>
-
-        <div id="resultArea" class="mt-4 p-3 rounded text-xs font-mono hidden"></div>
     </div>
 
     <script>
+        // CONFIG
+        const inputField = document.getElementById('apiKeyInput');
+        window.onload = () => { if(localStorage.getItem('vision_key')) inputField.value = localStorage.getItem('vision_key'); };
+        function saveKey() { localStorage.setItem('vision_key', inputField.value.trim()); alert("Chave Vision Salva!"); }
+        function getKey() { return localStorage.getItem('vision_key') || inputField.value.trim(); }
+
+        let fileQueue = [];
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
-        let currentFile = null;
-
-        // Auto-load chave
-        if(localStorage.getItem('vision_key')) document.getElementById('apiKey').value = localStorage.getItem('vision_key');
-
+        const dropContent = document.getElementById('dropContent');
+        
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => {
-            currentFile = e.target.files[0];
-            dropZone.innerHTML = `<span class="text-green-400 font-bold">${currentFile.name}</span>`;
-            dropZone.classList.add('border-green-500');
-        };
+        fileInput.onchange = (e) => handleFiles(e.target.files);
+        dropZone.ondragover = (e) => { e.preventDefault(); };
+        dropZone.ondrop = (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); };
+
+        function handleFiles(files) {
+            fileQueue = Array.from(files);
+            dropContent.innerHTML = `
+                <div class="bg-white w-full h-full flex flex-col items-center justify-center rounded border border-green-200">
+                    <i class="fa-solid fa-layer-group text-green-600 text-2xl mb-1"></i>
+                    <span class="text-xs font-bold text-slate-700">${fileQueue.length} arquivo(s)</span>
+                </div>`;
+        }
+
+        async function processQueue() {
+            const key = getKey();
+            const listTxt = document.getElementById('listInput').value;
+            
+            if(!key) return alert("Falta a API Key do Google Vision!");
+            if(!listTxt) return alert("Falta a lista gabarito!");
+            if(fileQueue.length === 0) return alert("Sem imagens!");
+
+            const overlay = document.getElementById('loadingOverlay');
+            const resArea = document.getElementById('resultsArea');
+            if(resArea.innerText.includes('Configure')) resArea.innerHTML = '';
+            
+            overlay.classList.remove('hidden');
+
+            for(let i=0; i<fileQueue.length; i++) {
+                const file = fileQueue[i];
+                document.getElementById('loadingText').innerText = `Analisando ${i+1}/${fileQueue.length} (Google Cloud)...`;
+                
+                try {
+                    await analyzeWithVision(key, file, listTxt, resArea);
+                } catch (err) {
+                    resArea.innerHTML = `<div class="bg-red-100 p-3 mb-2 text-red-800 text-xs rounded border border-red-200">
+                        <strong>Erro em ${file.name}:</strong> ${err.message}
+                    </div>` + resArea.innerHTML;
+                }
+            }
+            overlay.classList.add('hidden');
+            fileQueue = [];
+            dropContent.innerHTML = `<i class="fa-solid fa-check text-green-600 text-2xl"></i><div class="text-xs font-bold text-green-700">Concluído!</div>`;
+        }
 
         function toBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]); // Remove header
+                reader.onload = () => resolve(reader.result.split(',')[1]);
                 reader.onerror = error => reject(error);
             });
         }
 
-        async function testVision() {
-            const key = document.getElementById('apiKey').value.trim();
-            if(!key) return alert("Cole a chave API.");
-            if(!currentFile) return alert("Selecione uma imagem.");
-            
-            localStorage.setItem('vision_key', key);
-            
-            const resultArea = document.getElementById('resultArea');
-            const btn = document.getElementById('btnTest');
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Testando...';
-            resultArea.className = "mt-4 p-3 rounded text-xs font-mono bg-yellow-900/50 text-yellow-200 block";
-            resultArea.innerText = "Enviando requisição para vision.googleapis.com...";
+        async function analyzeWithVision(key, file, listTxt, container) {
+            const base64 = await toBase64(file);
+            const url = `https://vision.googleapis.com/v1/images:annotate?key=${key}`;
 
-            try {
-                const base64 = await toBase64(currentFile);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    requests: [{
+                        image: { content: base64 },
+                        features: [{ type: "TEXT_DETECTION" }]
+                    }]
+                })
+            });
+
+            const data = await response.json();
+            if(data.error) throw new Error(data.error.message);
+            
+            // O texto completo vem no índice 0
+            const rawText = data.responses[0]?.fullTextAnnotation?.text || "";
+
+            // --- LÓGICA DE EXTRAÇÃO E COMPARAÇÃO ---
+            
+            // 1. Limpa o texto e extrai preços
+            const foundPrices = [];
+            // Regex que pega R$ XX,XX ou apenas XX,XX
+            // Substitui 'O' por '0' por segurança, embora o Vision raramente erre isso
+            const matches = rawText.match(/[\dOQS]{1,4}[.,][\dOQS]{2}\b/g) || [];
+            
+            matches.forEach(s => {
+                let c = s.toUpperCase().replace(/[OQ]/g,'0').replace(/[S]/g,'5');
+                let val = parseFloat(c.replace(/[^0-9,]/g,'').replace(',','.'));
                 
-                // Endpoint oficial do Vision (Infraestrutura)
-                const url = `https://vision.googleapis.com/v1/images:annotate?key=${key}`;
+                // Filtro: Ignora anos (2025, 2026) se não tiver R$ colado
+                if (val >= 2020 && val <= 2030 && !rawText.includes('$' + s)) return;
                 
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        requests: [{
-                            image: { content: base64 },
-                            features: [{ type: "TEXT_DETECTION" }]
-                        }]
-                    })
-                });
+                foundPrices.push(val);
+            });
 
-                const data = await response.json();
+            // 2. Compara com a lista
+            const products = parseList(listTxt);
+            let errorsHtml = '';
+            let isPerfect = true;
 
-                if(!response.ok) {
-                    throw new Error(data.error?.message || "Erro desconhecido");
+            products.forEach((p, idx) => {
+                const baseFound = foundPrices.some(v => Math.abs(v - p.base) < 0.05);
+                let extraFound = true; 
+                if(p.extra) extraFound = foundPrices.some(v => Math.abs(v - p.extra) < 0.05);
+
+                if(!(baseFound && extraFound)) {
+                    isPerfect = false;
+                    let msg = '';
+                    if(!baseFound) msg += `<div class="font-bold text-red-700">Base R$ ${fmtMoney(p.base)} não encontrado</div>`;
+                    if(!extraFound) msg += `<div class="font-bold text-red-700">Cartão R$ ${fmtMoney(p.extra)} não encontrado</div>`;
+
+                    errorsHtml += `
+                        <div class="err-item">
+                            <div class="font-bold text-slate-800 text-xs mb-1">${p.name}</div>
+                            ${msg}
+                        </div>`;
                 }
+            });
 
-                // Se chegou aqui, funcionou!
-                const fullText = data.responses[0].fullTextAnnotation?.text || "Sem texto detectado";
-                
-                resultArea.className = "mt-4 p-3 rounded text-xs font-mono bg-green-900/50 text-green-200 block";
-                resultArea.innerHTML = `
-                    <div class="font-bold mb-2"><i class="fa-solid fa-check-circle"></i> SUCESSO! A EMPRESA NÃO BLOQUEIA O VISION.</div>
-                    <div class="h-24 overflow-y-auto border border-green-800 p-2 rounded bg-black/30">
-                        ${fullText.replace(/\n/g, '<br>')}
-                    </div>
-                `;
+            const div = document.createElement('div');
+            div.className = 'result-card animate-fade-in';
+            
+            let statusBadge = isPerfect 
+                ? `<span class="badge badge-ok">APROVADO</span>` 
+                : `<span class="badge badge-err">VERIFICAR</span>`;
 
-            } catch (err) {
-                resultArea.className = "mt-4 p-3 rounded text-xs font-mono bg-red-900/50 text-red-200 block";
-                resultArea.innerHTML = `
-                    <div class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation"></i> FALHA</div>
-                    <div>${err.message}</div>
-                    <div class="mt-2 text-[10px] text-gray-400">
-                        Dicas:<br>
-                        1. A API "Cloud Vision API" está ativada no console?<br>
-                        2. O Billing (cartão) está ativo?<br>
-                        3. Se o erro for "Failed to fetch", é bloqueio de Firewall.
-                    </div>
-                `;
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "TESTAR CONEXÃO";
-            }
+            let bodyContent = isPerfect 
+                ? `<div class="text-green-700 font-bold text-center py-2"><i class="fa-solid fa-check-circle text-2xl mb-1 block"></i>Preços Corretos</div>`
+                : `<div class="p-2">${errorsHtml}</div>`;
+
+            // Debug: Mostra o que o Google Vision leu (tratado)
+            let debugText = `Leitura Google: ${foundPrices.join(' | ')}`;
+            if(foundPrices.length === 0) debugText = "⚠️ Nenhum preço identificado. Verifique se a imagem está nítida.";
+
+            div.innerHTML = `
+                <div class="result-header">
+                    <span class="file-tag"><i class="fa-solid fa-file mr-1"></i>${file.name}</span>
+                    ${statusBadge}
+                </div>
+                <div class="result-body">${bodyContent}
+                    <div class="scan-text">${debugText}</div>
+                </div>
+            `;
+            container.prepend(div);
+        }
+
+        const fmtMoney = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        function parseList(txt) {
+            const arr = [];
+            const cleanP = s => parseFloat(s.replace(/[^0-9,]/g,'').replace(',','.'));
+            txt.split('\n').forEach(l => {
+                const m = l.match(/(.+) – R\$ ([\d,.]+)/i);
+                if(m && !l.trim().startsWith('(')) arr.push({name:m[1].trim(), base:cleanP(m[2]), extra:null});
+                else if(l.trim().startsWith('(') && arr.length) {
+                    const pm = l.match(/R\$ ([\d,.]+)/);
+                    if(pm) arr[arr.length-1].extra = cleanP(pm[1]);
+                }
+            });
+            return arr;
         }
     </script>
 </body>
