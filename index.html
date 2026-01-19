@@ -3,56 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V46 - Tolerância Zero</title>
+    <title>Auditor V47 - Detetive de Preços</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Layout */
-        .header { background: #1e293b; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 20; }
+        .header { background: #0f172a; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 20; }
         
-        .drop-zone { border: 2px dashed #94a3b8; border-radius: 8px; background: #f8fafc; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .drop-zone:hover { border-color: #ef4444; background: #fef2f2; }
+        .drop-zone { border: 2px dashed #94a3b8; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .drop-zone:hover { border-color: #ef4444; background: #fee2e2; }
 
-        /* Cards */
-        .result-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card-header { padding: 10px 15px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-        .card-body { padding: 0; } /* Padding removido para tabela full width */
-
-        /* Tabelas */
+        .result-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-header { padding: 10px 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        
         .audit-table { width: 100%; text-align: left; font-size: 13px; border-collapse: collapse; }
-        .audit-table th { background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding: 10px 15px; text-transform: uppercase; font-size: 11px; }
-        .audit-table td { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-        .audit-table tr:last-child td { border-bottom: none; }
-
-        /* Estilos de Preço */
-        .price-expected { font-family: monospace; font-weight: bold; font-size: 14px; color: #334155; }
+        .audit-table th { background: #f1f5f9; color: #64748b; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding: 8px 12px; }
+        .audit-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         
-        .status-ok { color: #16a34a; font-weight: bold; display: flex; align-items: center; gap: 6px; }
-        .status-err { color: #dc2626; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+        .price-tag { font-family: monospace; font-weight: bold; font-size: 14px; }
+        .price-correct { color: #166534; background: #dcfce7; padding: 2px 6px; border-radius: 4px; }
+        .price-wrong { color: #991b1b; background: #fee2e2; padding: 2px 6px; border-radius: 4px; text-decoration: line-through; }
+        
+        .status-ok { color: #16a34a; font-weight: bold; font-size: 11px; display: flex; align-items: center; gap: 4px; }
+        .status-err { color: #dc2626; font-weight: bold; font-size: 11px; display: flex; align-items: center; gap: 4px; }
 
-        .divergence-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 4px; padding: 6px; margin-top: 6px; }
-        .divergence-label { font-size: 10px; color: #991b1b; font-weight: bold; text-transform: uppercase; }
-        .divergence-val { font-family: monospace; font-weight: bold; color: #b91c1c; font-size: 13px; }
-
-        /* Badges Gerais */
-        .badge { font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
-        .bg-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-        .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .bg-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .suggestion-box { margin-top: 4px; font-size: 11px; color: #b91c1c; font-weight: bold; display: flex; align-items: center; gap: 4px; }
     </style>
 </head>
 <body class="text-slate-800">
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-red-600 p-1.5 rounded text-white"><i class="fa-solid fa-gavel"></i></div>
+            <div class="bg-red-600 p-1.5 rounded text-white"><i class="fa-solid fa-magnifying-glass-dollar"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V46</h1>
-                <p class="text-[10px] text-slate-400">Auditoria Rigorosa (Vision)</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V47</h1>
+                <p class="text-[10px] text-slate-400">Detetive de Divergências</p>
             </div>
         </div>
         <div class="flex gap-2">
@@ -65,48 +53,40 @@
         <div class="w-[35%] bg-white border-r border-slate-200 flex flex-col p-4 gap-4 shadow-xl z-10">
             <div class="flex-1 flex flex-col">
                 <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
-                    1. LISTA GABARITO (A Lei)
-                    <span class="text-blue-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                    1. LISTA GABARITO
+                    <span class="text-blue-600 cursor-pointer" onclick="document.getElementById('listInput').value = ''">Limpar</span>
                 </label>
-                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="1 - Cerveja Skol&#10;R$ 4,99&#10;&#10;5 - Feijão..."></textarea>
-                <p class="text-[10px] text-slate-400 mt-1">* Se o preço não estiver EXATAMENTE igual na imagem, será marcado como erro.</p>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="12 - Cerveja Skol&#10;R$ 4,99&#10;&#10;15 - Feijão..."></textarea>
             </div>
             
             <div class="h-32">
                 <div id="dropZone" class="drop-zone">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-300 mb-2"></i>
-                    <div class="text-xs font-bold text-slate-500">ARRASTE OS ENCARTES</div>
-                    <div class="text-[10px] text-slate-400">Nome: P1.jpg, P5.png...</div>
+                    <i class="fa-solid fa-images text-3xl text-slate-300 mb-2"></i>
+                    <div class="text-xs font-bold text-slate-500">ARRASTE IMAGENS (P12.jpg...)</div>
                     <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
                 </div>
             </div>
 
             <button onclick="processQueue()" class="bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
-                <i class="fa-solid fa-check-double"></i> CONFERIR DIVERGÊNCIAS
+                <i class="fa-solid fa-check-double"></i> COMPARAR PREÇOS
             </button>
         </div>
 
         <div class="w-[65%] bg-slate-50 relative flex flex-col">
             <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
                 <div class="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-3"></div>
-                <div class="text-sm font-bold text-red-900 animate-pulse">Auditando preços...</div>
-            </div>
-
-            <div class="p-3 border-b border-slate-200 bg-white font-bold text-xs text-slate-600 shadow-sm flex justify-between">
-                <span>RELATÓRIO DE DIVERGÊNCIAS</span>
-                <span class="text-[10px] bg-slate-100 px-2 rounded">API Google Vision</span>
+                <div class="text-sm font-bold text-red-900 animate-pulse">Auditando...</div>
             </div>
 
             <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
                 <div class="text-center mt-20 text-slate-400 text-sm italic">
-                    <i class="fa-solid fa-clipboard-list mr-2"></i> Cole a lista e arraste as imagens.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e arraste as imagens.
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // CONFIG
         const apiKeyInput = document.getElementById('apiKey');
         if(localStorage.getItem('vision_key')) apiKeyInput.value = localStorage.getItem('vision_key');
         
@@ -115,7 +95,6 @@
             alert("Chave salva!");
         }
 
-        // DRAG & DROP
         let files = [];
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
@@ -127,10 +106,9 @@
 
         function handleFiles(newFiles) {
             files = newFiles;
-            dropZone.innerHTML = `<div class="text-blue-600 font-bold text-sm"><i class="fa-solid fa-images"></i> ${files.length} Arquivos</div>`;
+            dropZone.innerHTML = `<div class="text-blue-600 font-bold text-sm">${files.length} Arquivos</div>`;
         }
 
-        // PROCESSAMENTO
         async function processQueue() {
             const key = apiKeyInput.value.trim();
             const listTxt = document.getElementById('listInput').value;
@@ -140,7 +118,7 @@
             if(files.length === 0) return alert("Faltam Imagens!");
 
             const listMap = parseList(listTxt);
-            if(Object.keys(listMap).length === 0) return alert("Lista inválida. Use o formato: '1 - Produto'.");
+            if(Object.keys(listMap).length === 0) return alert("Lista sem IDs (Ex: '12 - Produto').");
 
             document.getElementById('loading').classList.remove('hidden');
             const container = document.getElementById('resultsArea');
@@ -148,9 +126,9 @@
 
             for (const file of files) {
                 try {
-                    await auditFile(file, key, listMap, container);
+                    await analyzeFile(file, key, listMap, container);
                 } catch (err) {
-                    container.innerHTML += `<div class="p-4 bg-red-100 text-red-800 rounded mb-2 border border-red-200 text-xs">Erro em ${file.name}: ${err.message}</div>`;
+                    container.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs mb-2 rounded">Erro em ${file.name}: ${err.message}</div>`;
                 }
             }
             document.getElementById('loading').classList.add('hidden');
@@ -158,22 +136,21 @@
             dropZone.innerHTML = `<i class="fa-solid fa-check text-green-500 text-2xl"></i>`;
         }
 
-        async function auditFile(file, key, listMap, container) {
-            // 1. Acha ID (P1, P05...)
+        async function analyzeFile(file, key, listMap, container) {
             const idMatch = file.name.match(/[Pp]0*(\d+)/);
             if(!idMatch) {
-                renderIgnored(container, file.name, "Nome do arquivo sem ID (P + Número)");
+                renderCard(container, file.name, "IGNORADO", "bg-gray-200 text-gray-600", `<div class="p-3 text-xs">Sem ID no nome.</div>`);
                 return;
             }
             const id = idMatch[1];
             const target = listMap[id];
 
             if(!target) {
-                renderIgnored(container, file.name, `ID ${id} não está na lista gabarito.`);
+                renderCard(container, file.name, `ID ${id} SEM LISTA`, "bg-yellow-100 text-yellow-800", `<div class="p-3 text-xs">Item não listado.</div>`);
                 return;
             }
 
-            // 2. Extrai Texto (Vision)
+            // VISION API
             const base64 = await toBase64(file);
             const apiRes = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
                 method: 'POST',
@@ -182,132 +159,118 @@
             const data = await apiRes.json();
             if(data.error) throw new Error(data.error.message);
             
-            const rawText = data.responses[0]?.fullTextAnnotation?.text || "";
+            const fullText = data.responses[0]?.fullTextAnnotation?.text || "";
 
-            // 3. Extrai TODOS os preços da imagem
-            const imgPrices = [];
-            const matches = rawText.matchAll(/(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g);
+            // EXTRAÇÃO DE TODOS OS PREÇOS DA IMAGEM
+            let imgPrices = [];
+            const matches = fullText.matchAll(/(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g);
             for (const m of matches) {
                 const val = parseFloat(m[0].replace('.','').replace(',','.'));
-                // Ignora anos se não tiver R$
-                if(val >= 2020 && val <= 2030 && !rawText.includes('$' + m[0])) continue;
+                // Filtra anos
+                if(val >= 2020 && val <= 2030 && !fullText.includes('$' + m[0])) continue;
                 imgPrices.push(val);
             }
 
-            // 4. AUDITORIA RIGOROSA (Lista vs Imagem)
-            let rowsHtml = "";
-            let errorsCount = 0;
+            // AUDITORIA DETETIVE
+            let rows = "";
+            let errorCount = 0;
+
+            // Clona a lista de preços da imagem para ir "riscando" os que encontrar
+            let availablePrices = [...imgPrices];
 
             target.prices.forEach(req => {
-                // Procura EXATAMENTE o preço da lista na imagem (margem mínima de 0.05)
-                const found = imgPrices.find(p => Math.abs(p - req.val) < 0.05);
-
-                if (found !== undefined) {
-                    // SUCESSO
-                    rowsHtml += `
+                // 1. Tenta achar o preço exato
+                const exactMatchIndex = availablePrices.findIndex(p => Math.abs(p - req.val) < 0.05);
+                
+                if (exactMatchIndex !== -1) {
+                    // ACHOU EXATO!
+                    availablePrices.splice(exactMatchIndex, 1); // Remove da lista de disponíveis
+                    rows += `
                         <tr>
-                            <td>
-                                <div class="font-bold text-slate-700">${req.context}</div>
-                                <div class="text-[10px] text-slate-400">Preço correto</div>
-                            </td>
-                            <td><span class="price-expected">R$ ${fmt(req.val)}</span></td>
-                            <td><div class="status-ok"><i class="fa-solid fa-circle-check"></i> OK</div></td>
+                            <td>${req.context}</td>
+                            <td><span class="price-tag text-slate-700">R$ ${fmt(req.val)}</span></td>
+                            <td><div class="status-ok"><i class="fa-solid fa-check-circle"></i> OK</div></td>
                         </tr>`;
                 } else {
-                    // ERRO - DIVERGÊNCIA
-                    errorsCount++;
+                    // NÃO ACHOU! VAMOS PROCURAR O CULPADO.
+                    errorCount++;
                     
-                    // Tenta adivinhar qual preço ERRADO está na imagem
-                    // Pega o preço mais próximo matematicamente
-                    let divergentPrice = null;
+                    // Estratégia do Detetive:
+                    // O preço correto não está lá. Mas deve ter ALGUM preço lá.
+                    // Vamos pegar o primeiro preço "sobrando" na imagem e assumir que é o erro.
+                    // (Prioriza preços que estão "perto" matematicamente, se houver)
+                    
+                    let bestGuessIndex = -1;
                     let minDiff = 999999;
-                    
-                    imgPrices.forEach(p => {
+
+                    availablePrices.forEach((p, idx) => {
                         const diff = Math.abs(p - req.val);
-                        if(diff < minDiff) { minDiff = diff; divergentPrice = p; }
+                        if(diff < minDiff) { minDiff = diff; bestGuessIndex = idx; }
                     });
 
-                    // Se a diferença for muito grande (> R$100), talvez nem seja o preço certo,
-                    // mas vamos mostrar mesmo assim pra ajudar
-                    let divergenceHtml = "";
-                    if (divergentPrice !== null) {
-                        divergenceHtml = `
-                            <div class="divergence-box">
-                                <div class="divergence-label">Na Imagem consta:</div>
-                                <div class="divergence-val">R$ ${fmt(divergentPrice)}</div>
+                    let suggestionHtml = "";
+                    if (bestGuessIndex !== -1) {
+                        const wrongPrice = availablePrices[bestGuessIndex];
+                        // Se a diferença for "razoável" (ex: erro de digitação ou aumento pequeno), sugere.
+                        // Se for absurda (ex: R$ 5 vs R$ 500), talvez seja outro produto, mas mostramos igual.
+                        suggestionHtml = `
+                            <div class="suggestion-box">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                Imagem tem: <span class="price-wrong">R$ ${fmt(wrongPrice)}</span>
                             </div>`;
+                        
+                        // Remove esse preço errado da lista para não sugerir de novo
+                        availablePrices.splice(bestGuessIndex, 1);
                     } else {
-                        divergenceHtml = `<div class="text-[10px] text-red-400 mt-1">Nenhum preço similar encontrado.</div>`;
+                        suggestionHtml = `<div class="text-[10px] text-red-400 mt-1">Nenhum valor encontrado.</div>`;
                     }
 
-                    rowsHtml += `
-                        <tr class="bg-red-50/50">
+                    rows += `
+                        <tr class="bg-red-50">
+                            <td class="font-bold text-red-900">${req.context}</td>
+                            <td><span class="price-tag text-green-700">R$ ${fmt(req.val)}</span></td>
                             <td>
-                                <div class="font-bold text-slate-800">${req.context}</div>
-                                <div class="text-[10px] text-red-600 font-bold uppercase">Preço Divergente</div>
-                            </td>
-                            <td><span class="price-expected text-red-800">R$ ${fmt(req.val)}</span></td>
-                            <td>
-                                <div class="status-err"><i class="fa-solid fa-circle-xmark"></i> ERRO</div>
-                                ${divergenceHtml}
+                                <div class="status-err">DIVERGÊNCIA</div>
+                                ${suggestionHtml}
                             </td>
                         </tr>`;
                 }
             });
 
-            // Renderiza Card Final
-            const badge = errorsCount === 0 
-                ? `<span class="badge bg-ok">APROVADO</span>` 
-                : `<span class="badge bg-err">${errorsCount} DIVERGÊNCIA(S)</span>`;
+            const badge = errorCount === 0 ? "APROVADO" : `${errorCount} ERRO(S)`;
+            const badgeClass = errorCount === 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
             
-            const borderClass = errorsCount === 0 ? "border-green-200" : "border-red-300";
-
-            const div = document.createElement('div');
-            div.className = `result-card animate-fade-in ${borderClass}`;
-            div.innerHTML = `
-                <div class="card-header">
-                    <span class="font-bold text-sm text-slate-700">
-                        <span class="bg-slate-800 text-white px-1.5 rounded text-xs mr-2">ID ${id}</span> ${target.name}
-                    </span>
-                    ${badge}
-                </div>
-                <div class="card-body">
-                    <table class="audit-table">
-                        <thead><tr><th width="40%">Descrição</th><th width="30%">Esperado (Lista)</th><th width="30%">Status</th></tr></thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                    <div class="px-4 py-2 bg-slate-50 border-t border-slate-100 text-[10px] text-slate-400 font-mono">
-                        Arquivo: ${file.name} | Leitura Bruta: ${imgPrices.join(' | ')}
-                    </div>
-                </div>
+            const content = `
+                <table class="audit-table">
+                    <thead><tr><th>Descrição</th><th>Esperado (Lista)</th><th>Status na Imagem</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+                <div class="mt-2 text-[10px] text-slate-400 font-mono px-3">Valores detectados: ${imgPrices.join(' | ')}</div>
             `;
-            container.prepend(div);
+
+            renderCard(container, `${target.name} (ID ${id})`, badge, badgeClass, content);
         }
 
-        // --- UTILS ---
-        function renderIgnored(container, title, reason) {
+        function renderCard(container, title, badgeText, badgeClass, content) {
             const div = document.createElement('div');
-            div.className = "result-card border-slate-200 opacity-70";
+            div.className = "result-card animate-fade-in";
             div.innerHTML = `
-                <div class="card-header bg-slate-50">
-                    <span class="font-bold text-xs text-slate-500">${title}</span>
-                    <span class="badge bg-warn">IGNORADO</span>
+                <div class="card-header">
+                    <span class="font-bold text-sm text-slate-700">${title}</span>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded ${badgeClass}">${badgeText}</span>
                 </div>
-                <div class="p-3 text-xs text-slate-500">${reason}</div>
+                <div>${content}</div>
             `;
-            container.append(div);
+            container.prepend(div);
         }
 
         function parseList(txt) {
             const map = {};
             let currentId = null;
             let currentName = "";
-
             txt.split('\n').forEach(line => {
                 line = line.trim();
                 if(!line) return;
-
-                // Captura ID: "1 - Produto"
                 const idMatch = line.match(/^(\d+)\s*-\s*(.+)/);
                 if(idMatch) {
                     currentId = idMatch[1];
@@ -315,17 +278,13 @@
                     map[currentId] = { name: currentName, prices: [] };
                     return;
                 }
-
                 if(currentId) {
-                    // Captura preços (R$ XX,XX ou XX,XX)
                     const prices = line.match(/(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})/g);
                     if(prices) {
                         prices.forEach(pStr => {
                             const val = parseFloat(pStr.replace(/[R$\s]/g,'').replace('.','').replace(',','.'));
-                            // Descrição: usa o resto da linha (ex: "Nesta embalagem")
                             let desc = line.replace(pStr, '').replace('R$', '').trim();
-                            if(desc.length < 2) desc = "Preço Base"; 
-                            
+                            if(desc.length < 2) desc = "Preço Base";
                             map[currentId].prices.push({ val, context: desc });
                         });
                     }
@@ -342,7 +301,6 @@
                 reader.readAsDataURL(file);
             });
         }
-        
         const fmt = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     </script>
 </body>
