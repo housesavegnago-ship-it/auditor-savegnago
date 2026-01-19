@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V41 - Cloud Vision Pro</title>
+    <title>Auditor V42 - Contextual</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0fdf4; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -22,8 +21,11 @@
         .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
         .badge-ok { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
         .badge-err { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+        .badge-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
         
         .err-item { background: #fff1f2; border-left: 4px solid #f43f5e; padding: 8px; margin-bottom: 6px; border-radius: 2px; }
+        .ok-item { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 8px; margin-bottom: 6px; border-radius: 2px; color: #15803d; }
+        
         .scan-text { font-family: monospace; font-size: 10px; color: #94a3b8; margin-top: 8px; border-top: 1px dashed #e2e8f0; padding-top: 4px; word-break: break-all; }
         .file-tag { font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbf7d0; font-size: 10px; color: #166534; }
     </style>
@@ -34,8 +36,8 @@
         <div class="flex items-center gap-3">
             <img src="https://cdn-icons-png.flaticon.com/512/2910/2910768.png" class="w-8 h-8 bg-white rounded p-1">
             <div>
-                <h1 class="font-bold text-base leading-none">Auditor V41</h1>
-                <p class="text-[10px] text-green-200">Google Cloud Vision (Enterprise)</p>
+                <h1 class="font-bold text-base leading-none">Auditor V42</h1>
+                <p class="text-[10px] text-green-200">Busca Contextual (Vision API)</p>
             </div>
         </div>
         
@@ -53,7 +55,7 @@
                     <span>1. Lista Gabarito</span>
                     <button onclick="document.getElementById('listInput').value = ''" class="text-[10px] text-red-500 hover:text-red-700 font-bold uppercase"><i class="fa-solid fa-trash-can mr-1"></i>Limpar</button>
                 </label>
-                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-green-500 outline-none" placeholder="Ex: Arroz - R$ 20,90..."></textarea>
+                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-green-500 outline-none" placeholder="Cole a lista completa aqui..."></textarea>
             </div>
 
             <div class="flex flex-col h-1/2">
@@ -68,14 +70,14 @@
             </div>
 
             <button id="startBtn" onclick="processQueue()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-bold shadow-md transition text-xs flex justify-center items-center gap-2">
-                <i class="fa-solid fa-robot"></i> Analisar com Google Vision
+                <i class="fa-solid fa-robot"></i> Analisar com Inteligência
             </button>
         </div>
 
         <div class="w-[70%] bg-slate-50 flex flex-col relative overflow-hidden">
             <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center">
                 <div class="w-12 h-12 border-4 border-green-300 border-t-green-800 rounded-full animate-spin mb-3"></div>
-                <div id="loadingText" class="text-green-900 font-bold text-sm animate-pulse">Enviando para Google Cloud...</div>
+                <div id="loadingText" class="text-green-900 font-bold text-sm animate-pulse">Processando...</div>
             </div>
 
             <div class="p-3 bg-white border-b border-gray-200 font-bold text-gray-700 shadow-sm flex justify-between text-sm">
@@ -84,7 +86,7 @@
             
             <div class="scroll-area p-6" id="resultsArea">
                 <div class="text-center text-gray-400 mt-20 text-sm italic">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Configure a lista e as imagens para começar.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Configure a lista e as imagens.
                 </div>
             </div>
         </div>
@@ -132,7 +134,7 @@
 
             for(let i=0; i<fileQueue.length; i++) {
                 const file = fileQueue[i];
-                document.getElementById('loadingText').innerText = `Analisando ${i+1}/${fileQueue.length} (Google Cloud)...`;
+                document.getElementById('loadingText').innerText = `Analisando ${i+1}/${fileQueue.length}...`;
                 
                 try {
                     await analyzeWithVision(key, file, listTxt, resArea);
@@ -156,6 +158,11 @@
             });
         }
 
+        // Normaliza texto para comparação (remove acentos, uppercase)
+        function normalize(str) {
+            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+        }
+
         async function analyzeWithVision(key, file, listTxt, container) {
             const base64 = await toBase64(file);
             const url = `https://vision.googleapis.com/v1/images:annotate?key=${key}`;
@@ -174,65 +181,89 @@
             const data = await response.json();
             if(data.error) throw new Error(data.error.message);
             
-            // O texto completo vem no índice 0
             const rawText = data.responses[0]?.fullTextAnnotation?.text || "";
+            const normalizedText = normalize(rawText);
 
-            // --- LÓGICA DE EXTRAÇÃO E COMPARAÇÃO ---
-            
-            // 1. Limpa o texto e extrai preços
+            // 1. Extrai PREÇOS da imagem
             const foundPrices = [];
-            // Regex que pega R$ XX,XX ou apenas XX,XX
-            // Substitui 'O' por '0' por segurança, embora o Vision raramente erre isso
             const matches = rawText.match(/[\dOQS]{1,4}[.,][\dOQS]{2}\b/g) || [];
-            
             matches.forEach(s => {
                 let c = s.toUpperCase().replace(/[OQ]/g,'0').replace(/[S]/g,'5');
                 let val = parseFloat(c.replace(/[^0-9,]/g,'').replace(',','.'));
-                
-                // Filtro: Ignora anos (2025, 2026) se não tiver R$ colado
                 if (val >= 2020 && val <= 2030 && !rawText.includes('$' + s)) return;
-                
                 foundPrices.push(val);
             });
 
-            // 2. Compara com a lista
+            // 2. Compara SOMENTE se achar o nome do produto
             const products = parseList(listTxt);
-            let errorsHtml = '';
-            let isPerfect = true;
+            let reportHtml = '';
+            let productsFoundInImage = 0;
+            let errorsCount = 0;
 
-            products.forEach((p, idx) => {
-                const baseFound = foundPrices.some(v => Math.abs(v - p.base) < 0.05);
-                let extraFound = true; 
-                if(p.extra) extraFound = foundPrices.some(v => Math.abs(v - p.extra) < 0.05);
+            products.forEach((p) => {
+                // ESTRATÉGIA INTELIGENTE:
+                // Só verifica o preço se o NOME do produto estiver na imagem
+                
+                // Quebra o nome do produto em palavras chaves (ex: "ARROZ CAMIL" -> ["ARROZ", "CAMIL"])
+                // Ignora palavras curtas como "DE", "DA", "5KG" para evitar falso positivo
+                const pNameNorm = normalize(p.name);
+                const keywords = pNameNorm.split(' ').filter(w => w.length > 2);
+                
+                // Verifica se PELO MENOS UMA das palavras chave principais está na imagem
+                // Ex: Se achar "CAMIL" na imagem, assume que o produto pode estar lá
+                const isNamePresent = keywords.some(k => normalizedText.includes(k));
 
-                if(!(baseFound && extraFound)) {
-                    isPerfect = false;
-                    let msg = '';
-                    if(!baseFound) msg += `<div class="font-bold text-red-700">Base R$ ${fmtMoney(p.base)} não encontrado</div>`;
-                    if(!extraFound) msg += `<div class="font-bold text-red-700">Cartão R$ ${fmtMoney(p.extra)} não encontrado</div>`;
+                if (isNamePresent) {
+                    productsFoundInImage++;
+                    
+                    // Agora verifica o preço
+                    const baseFound = foundPrices.some(v => Math.abs(v - p.base) < 0.05);
+                    let extraFound = true; 
+                    if(p.extra) extraFound = foundPrices.some(v => Math.abs(v - p.extra) < 0.05);
 
-                    errorsHtml += `
-                        <div class="err-item">
-                            <div class="font-bold text-slate-800 text-xs mb-1">${p.name}</div>
-                            ${msg}
-                        </div>`;
-                }
+                    if(baseFound && extraFound) {
+                        // Achou nome E preço -> Sucesso
+                        reportHtml += `
+                            <div class="ok-item">
+                                <div class="font-bold text-xs"><i class="fa-solid fa-check"></i> ${p.name}</div>
+                                <div class="text-[10px]">Preço R$ ${fmtMoney(p.base)} confirmado.</div>
+                            </div>`;
+                    } else {
+                        // Achou nome MAS NÃO o preço -> Erro Real
+                        errorsCount++;
+                        let msg = '';
+                        if(!baseFound) msg += `<div>Base R$ ${fmtMoney(p.base)} incorreta/ausente</div>`;
+                        if(!extraFound) msg += `<div>Cartão R$ ${fmtMoney(p.extra)} incorreto/ausente</div>`;
+                        
+                        reportHtml += `
+                            <div class="err-item">
+                                <div class="font-bold text-slate-800 text-xs mb-1"><i class="fa-solid fa-triangle-exclamation"></i> ${p.name}</div>
+                                <div class="text-[10px] text-red-700 font-bold">${msg}</div>
+                            </div>`;
+                    }
+                } 
+                // Se não achou o nome, IGNORA (assume que está em outro encarte)
             });
 
             const div = document.createElement('div');
             div.className = 'result-card animate-fade-in';
             
-            let statusBadge = isPerfect 
-                ? `<span class="badge badge-ok">APROVADO</span>` 
-                : `<span class="badge badge-err">VERIFICAR</span>`;
+            let statusBadge;
+            let bodyContent;
 
-            let bodyContent = isPerfect 
-                ? `<div class="text-green-700 font-bold text-center py-2"><i class="fa-solid fa-check-circle text-2xl mb-1 block"></i>Preços Corretos</div>`
-                : `<div class="p-2">${errorsHtml}</div>`;
-
-            // Debug: Mostra o que o Google Vision leu (tratado)
-            let debugText = `Leitura Google: ${foundPrices.join(' | ')}`;
-            if(foundPrices.length === 0) debugText = "⚠️ Nenhum preço identificado. Verifique se a imagem está nítida.";
+            if (productsFoundInImage === 0) {
+                statusBadge = `<span class="badge badge-info">IGNORADO</span>`;
+                bodyContent = `<div class="text-slate-500 text-center py-2 text-xs">Nenhum produto da lista detectado nesta imagem.</div>`;
+            } else if (errorsCount === 0) {
+                statusBadge = `<span class="badge badge-ok">OK</span>`;
+                bodyContent = `<div class="text-green-700 font-bold text-center py-2 text-xs">
+                    <i class="fa-solid fa-check-double text-xl mb-1 block"></i>
+                    ${productsFoundInImage} produtos conferidos com sucesso.
+                </div>${reportHtml}`; // Mostra os OKs também
+            } else {
+                statusBadge = `<span class="badge badge-err">ERRO</span>`;
+                bodyContent = `<div class="p-2">${reportHtml}</div>`;
+            }
 
             div.innerHTML = `
                 <div class="result-header">
@@ -240,7 +271,7 @@
                     ${statusBadge}
                 </div>
                 <div class="result-body">${bodyContent}
-                    <div class="scan-text">${debugText}</div>
+                    <div class="scan-text">Leitura: ${foundPrices.join(' | ')}</div>
                 </div>
             `;
             container.prepend(div);
