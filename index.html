@@ -3,48 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V42 - Contextual</title>
+    <title>Auditor V43 - ID Match</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0fdf4; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .drop-zone { border: 2px dashed #4ade80; border-radius: 12px; transition: all 0.2s; background-color: #f0fdf4; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .drop-zone:hover { border-color: #16a34a; background-color: #dcfce7; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #eff6ff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .drop-zone { border: 2px dashed #60a5fa; border-radius: 12px; transition: all 0.2s; background-color: #eff6ff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .drop-zone:hover { border-color: #2563eb; background-color: #dbeafe; }
         .scroll-area { overflow-y: auto; height: 100%; }
         
-        .result-card { background: white; border-radius: 8px; border: 1px solid #bbf7d0; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .result-header { padding: 8px 12px; background: #dcfce7; border-bottom: 1px solid #bbf7d0; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; color: #166534; }
+        .result-card { background: white; border-radius: 8px; border: 1px solid #bfdbfe; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .result-header { padding: 8px 12px; background: #dbeafe; border-bottom: 1px solid #bfdbfe; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 12px; color: #1e40af; }
         .result-body { padding: 15px; font-size: 13px; line-height: 1.6; }
         
         .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
         .badge-ok { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
         .badge-err { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
-        .badge-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
         
         .err-item { background: #fff1f2; border-left: 4px solid #f43f5e; padding: 8px; margin-bottom: 6px; border-radius: 2px; }
         .ok-item { background: #f0fdf4; border-left: 4px solid #22c55e; padding: 8px; margin-bottom: 6px; border-radius: 2px; color: #15803d; }
         
         .scan-text { font-family: monospace; font-size: 10px; color: #94a3b8; margin-top: 8px; border-top: 1px dashed #e2e8f0; padding-top: 4px; word-break: break-all; }
-        .file-tag { font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbf7d0; font-size: 10px; color: #166534; }
+        .file-tag { font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 4px; border: 1px solid #93c5fd; font-size: 11px; color: #1e40af; font-weight: bold; }
+        
+        /* Destaque do ID */
+        .id-circle { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #2563eb; color: white; border-radius: 50%; font-size: 10px; margin-right: 5px; }
     </style>
 </head>
 <body class="text-slate-800">
 
-    <header class="bg-green-900 text-white p-3 h-14 flex justify-between items-center shrink-0 shadow-md z-10">
+    <header class="bg-blue-900 text-white p-3 h-14 flex justify-between items-center shrink-0 shadow-md z-10">
         <div class="flex items-center gap-3">
             <img src="https://cdn-icons-png.flaticon.com/512/2910/2910768.png" class="w-8 h-8 bg-white rounded p-1">
             <div>
-                <h1 class="font-bold text-base leading-none">Auditor V42</h1>
-                <p class="text-[10px] text-green-200">Busca Contextual (Vision API)</p>
+                <h1 class="font-bold text-base leading-none">Auditor V43</h1>
+                <p class="text-[10px] text-blue-200">Vínculo por ID (P1 = Item 1)</p>
             </div>
         </div>
         
-        <div class="flex items-center gap-2 bg-green-800 p-1 rounded border border-green-700">
-             <i class="fa-solid fa-key text-green-300 ml-2 text-xs"></i>
-             <input type="password" id="apiKeyInput" class="bg-transparent border-none text-xs text-white w-24 placeholder-green-400/50 focus:ring-0" placeholder="API Key Vision...">
-             <button onclick="saveKey()" class="bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded transition">SALVAR</button>
+        <div class="flex items-center gap-2 bg-blue-800 p-1 rounded border border-blue-700">
+             <i class="fa-solid fa-key text-blue-300 ml-2 text-xs"></i>
+             <input type="password" id="apiKeyInput" class="bg-transparent border-none text-xs text-white w-24 placeholder-blue-400/50 focus:ring-0" placeholder="API Key Vision...">
+             <button onclick="saveKey()" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded transition">SALVAR</button>
         </div>
     </header>
 
@@ -52,32 +55,32 @@
         <div class="w-[30%] bg-white border-r border-gray-200 flex flex-col z-20 shadow-xl p-4 gap-3">
             <div class="flex flex-col h-1/2">
                 <label class="font-bold text-gray-700 mb-1 text-xs flex justify-between">
-                    <span>1. Lista Gabarito</span>
+                    <span>1. Lista Numerada (1 - Produto...)</span>
                     <button onclick="document.getElementById('listInput').value = ''" class="text-[10px] text-red-500 hover:text-red-700 font-bold uppercase"><i class="fa-solid fa-trash-can mr-1"></i>Limpar</button>
                 </label>
-                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-green-500 outline-none" placeholder="Cole a lista completa aqui..."></textarea>
+                <textarea id="listInput" class="flex-1 p-3 border rounded-lg bg-gray-50 text-xs font-mono resize-none focus:ring-2 focus:ring-blue-500 outline-none" placeholder="1 - Arroz Camil&#10;5kg - R$ 20,90&#10;&#10;5 - Feijão..."></textarea>
             </div>
 
             <div class="flex flex-col h-1/2">
-                <label class="font-bold text-gray-700 mb-1 text-xs">2. Imagens</label>
+                <label class="font-bold text-gray-700 mb-1 text-xs">2. Imagens (Nome P1, P5...)</label>
                 <div id="dropZone" class="drop-zone h-full p-2 text-center group relative">
                     <div id="dropContent">
-                        <i class="fa-solid fa-images text-3xl text-green-300 group-hover:text-green-600 mb-2 transition-colors"></i>
+                        <i class="fa-solid fa-images text-3xl text-blue-300 group-hover:text-blue-600 mb-2 transition-colors"></i>
                         <p class="text-xs text-gray-500 font-medium">Arraste os Encartes</p>
                     </div>
                     <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
                 </div>
             </div>
 
-            <button id="startBtn" onclick="processQueue()" class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-bold shadow-md transition text-xs flex justify-center items-center gap-2">
-                <i class="fa-solid fa-robot"></i> Analisar com Inteligência
+            <button id="startBtn" onclick="processQueue()" class="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 rounded-lg font-bold shadow-md transition text-xs flex justify-center items-center gap-2">
+                <i class="fa-solid fa-fingerprint"></i> Analisar por ID
             </button>
         </div>
 
         <div class="w-[70%] bg-slate-50 flex flex-col relative overflow-hidden">
             <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center">
-                <div class="w-12 h-12 border-4 border-green-300 border-t-green-800 rounded-full animate-spin mb-3"></div>
-                <div id="loadingText" class="text-green-900 font-bold text-sm animate-pulse">Processando...</div>
+                <div class="w-12 h-12 border-4 border-blue-300 border-t-blue-800 rounded-full animate-spin mb-3"></div>
+                <div id="loadingText" class="text-blue-900 font-bold text-sm animate-pulse">Processando...</div>
             </div>
 
             <div class="p-3 bg-white border-b border-gray-200 font-bold text-gray-700 shadow-sm flex justify-between text-sm">
@@ -86,7 +89,7 @@
             
             <div class="scroll-area p-6" id="resultsArea">
                 <div class="text-center text-gray-400 mt-20 text-sm italic">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Configure a lista e as imagens.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista numerada e as imagens com "P + Número".
                 </div>
             </div>
         </div>
@@ -112,8 +115,8 @@
         function handleFiles(files) {
             fileQueue = Array.from(files);
             dropContent.innerHTML = `
-                <div class="bg-white w-full h-full flex flex-col items-center justify-center rounded border border-green-200">
-                    <i class="fa-solid fa-layer-group text-green-600 text-2xl mb-1"></i>
+                <div class="bg-white w-full h-full flex flex-col items-center justify-center rounded border border-blue-200">
+                    <i class="fa-solid fa-layer-group text-blue-600 text-2xl mb-1"></i>
                     <span class="text-xs font-bold text-slate-700">${fileQueue.length} arquivo(s)</span>
                 </div>`;
         }
@@ -123,21 +126,25 @@
             const listTxt = document.getElementById('listInput').value;
             
             if(!key) return alert("Falta a API Key do Google Vision!");
-            if(!listTxt) return alert("Falta a lista gabarito!");
+            if(!listTxt) return alert("Falta a lista numerada!");
             if(fileQueue.length === 0) return alert("Sem imagens!");
+
+            // Parse da Lista antes de começar
+            const products = parseListWithIds(listTxt);
+            if(Object.keys(products).length === 0) return alert("Não encontrei números na lista (Ex: '1 - Arroz'). Verifique a formatação.");
 
             const overlay = document.getElementById('loadingOverlay');
             const resArea = document.getElementById('resultsArea');
-            if(resArea.innerText.includes('Configure')) resArea.innerHTML = '';
+            if(resArea.innerText.includes('Cole a lista')) resArea.innerHTML = '';
             
             overlay.classList.remove('hidden');
 
             for(let i=0; i<fileQueue.length; i++) {
                 const file = fileQueue[i];
-                document.getElementById('loadingText').innerText = `Analisando ${i+1}/${fileQueue.length}...`;
+                document.getElementById('loadingText').innerText = `Verificando arquivo ${i+1}/${fileQueue.length}...`;
                 
                 try {
-                    await analyzeWithVision(key, file, listTxt, resArea);
+                    await analyzeWithVisionID(key, file, products, resArea);
                 } catch (err) {
                     resArea.innerHTML = `<div class="bg-red-100 p-3 mb-2 text-red-800 text-xs rounded border border-red-200">
                         <strong>Erro em ${file.name}:</strong> ${err.message}
@@ -146,7 +153,7 @@
             }
             overlay.classList.add('hidden');
             fileQueue = [];
-            dropContent.innerHTML = `<i class="fa-solid fa-check text-green-600 text-2xl"></i><div class="text-xs font-bold text-green-700">Concluído!</div>`;
+            dropContent.innerHTML = `<i class="fa-solid fa-check text-blue-600 text-2xl"></i><div class="text-xs font-bold text-blue-700">Concluído!</div>`;
         }
 
         function toBase64(file) {
@@ -158,12 +165,65 @@
             });
         }
 
-        // Normaliza texto para comparação (remove acentos, uppercase)
-        function normalize(str) {
-            return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+        // PARSE INTELIGENTE COM ID
+        // Retorna um objeto: { '1': {name: '...', base: 20.90}, '5': {name: '...', base: 18.90} }
+        function parseListWithIds(txt) {
+            const map = {};
+            let currentId = null;
+            let currentName = "";
+            
+            txt.split('\n').forEach(line => {
+                line = line.trim();
+                if(!line) return;
+
+                // Tenta achar início de item: "1 - Produto" ou "1- Produto"
+                const startMatch = line.match(/^(\d+)\s*-\s*(.+)/);
+                
+                if(startMatch) {
+                    currentId = parseInt(startMatch[1]).toString(); // '1', '5'
+                    currentName = startMatch[2];
+                    map[currentId] = { name: currentName, base: null, extra: null };
+                }
+                
+                // Se estamos dentro de um item, procura preços
+                if(currentId && map[currentId]) {
+                    // Preço Base: "R$ 25,70"
+                    const priceM = line.match(/(?:^|\s)R\$\s*([\d,.]+)/);
+                    if(priceM && !line.startsWith('(')) {
+                        map[currentId].base = parseFloat(priceM[1].replace('.','').replace(',','.'));
+                    }
+                    // Preço Cartão: "(red.123) - R$ 18,90"
+                    if(line.startsWith('(')) {
+                        const extraM = line.match(/R\$\s*([\d,.]+)/);
+                        if(extraM) {
+                            map[currentId].extra = parseFloat(extraM[1].replace('.','').replace(',','.'));
+                        }
+                    }
+                }
+            });
+            return map;
         }
 
-        async function analyzeWithVision(key, file, listTxt, container) {
+        async function analyzeWithVisionID(key, file, productMap, container) {
+            // 1. Descobrir ID do arquivo (P1, p01, P-1)
+            const idMatch = file.name.match(/[Pp]0*(\d+)/);
+            
+            if(!idMatch) {
+                // Arquivo não tem P+Numero
+                createCard(container, file.name, "IGNORADO", `<div class="text-slate-500 text-xs">Arquivo não contém padrão "P + Número" (Ex: Imagem_P01.png)</div>`, "badge-warn");
+                return;
+            }
+
+            const fileId = parseInt(idMatch[1]).toString(); // '1', '5'
+            const targetProduct = productMap[fileId];
+
+            if(!targetProduct) {
+                // Tem P5, mas não tem item 5 na lista
+                createCard(container, file.name, "SEM LISTA", `<div class="text-slate-500 text-xs">Arquivo é <b>P${fileId}</b>, mas não achei item <b>${fileId}</b> na lista.</div>`, "badge-warn");
+                return;
+            }
+
+            // 2. Chama Vision API
             const base64 = await toBase64(file);
             const url = `https://vision.googleapis.com/v1/images:annotate?key=${key}`;
 
@@ -182,9 +242,8 @@
             if(data.error) throw new Error(data.error.message);
             
             const rawText = data.responses[0]?.fullTextAnnotation?.text || "";
-            const normalizedText = normalize(rawText);
 
-            // 1. Extrai PREÇOS da imagem
+            // 3. Extrai TODOS os preços da imagem
             const foundPrices = [];
             const matches = rawText.match(/[\dOQS]{1,4}[.,][\dOQS]{2}\b/g) || [];
             matches.forEach(s => {
@@ -194,103 +253,59 @@
                 foundPrices.push(val);
             });
 
-            // 2. Compara SOMENTE se achar o nome do produto
-            const products = parseList(listTxt);
-            let reportHtml = '';
-            let productsFoundInImage = 0;
-            let errorsCount = 0;
+            // 4. Verifica SÓ O PRODUTO ALVO (targetProduct)
+            const baseFound = foundPrices.some(v => Math.abs(v - targetProduct.base) < 0.05);
+            let extraFound = true;
+            if(targetProduct.extra) extraFound = foundPrices.some(v => Math.abs(v - targetProduct.extra) < 0.05);
 
-            products.forEach((p) => {
-                // ESTRATÉGIA INTELIGENTE:
-                // Só verifica o preço se o NOME do produto estiver na imagem
-                
-                // Quebra o nome do produto em palavras chaves (ex: "ARROZ CAMIL" -> ["ARROZ", "CAMIL"])
-                // Ignora palavras curtas como "DE", "DA", "5KG" para evitar falso positivo
-                const pNameNorm = normalize(p.name);
-                const keywords = pNameNorm.split(' ').filter(w => w.length > 2);
-                
-                // Verifica se PELO MENOS UMA das palavras chave principais está na imagem
-                // Ex: Se achar "CAMIL" na imagem, assume que o produto pode estar lá
-                const isNamePresent = keywords.some(k => normalizedText.includes(k));
+            let status = "ERRO";
+            let badgeClass = "badge-err";
+            let content = "";
 
-                if (isNamePresent) {
-                    productsFoundInImage++;
-                    
-                    // Agora verifica o preço
-                    const baseFound = foundPrices.some(v => Math.abs(v - p.base) < 0.05);
-                    let extraFound = true; 
-                    if(p.extra) extraFound = foundPrices.some(v => Math.abs(v - p.extra) < 0.05);
-
-                    if(baseFound && extraFound) {
-                        // Achou nome E preço -> Sucesso
-                        reportHtml += `
-                            <div class="ok-item">
-                                <div class="font-bold text-xs"><i class="fa-solid fa-check"></i> ${p.name}</div>
-                                <div class="text-[10px]">Preço R$ ${fmtMoney(p.base)} confirmado.</div>
-                            </div>`;
-                    } else {
-                        // Achou nome MAS NÃO o preço -> Erro Real
-                        errorsCount++;
-                        let msg = '';
-                        if(!baseFound) msg += `<div>Base R$ ${fmtMoney(p.base)} incorreta/ausente</div>`;
-                        if(!extraFound) msg += `<div>Cartão R$ ${fmtMoney(p.extra)} incorreto/ausente</div>`;
-                        
-                        reportHtml += `
-                            <div class="err-item">
-                                <div class="font-bold text-slate-800 text-xs mb-1"><i class="fa-solid fa-triangle-exclamation"></i> ${p.name}</div>
-                                <div class="text-[10px] text-red-700 font-bold">${msg}</div>
-                            </div>`;
-                    }
-                } 
-                // Se não achou o nome, IGNORA (assume que está em outro encarte)
-            });
-
-            const div = document.createElement('div');
-            div.className = 'result-card animate-fade-in';
-            
-            let statusBadge;
-            let bodyContent;
-
-            if (productsFoundInImage === 0) {
-                statusBadge = `<span class="badge badge-info">IGNORADO</span>`;
-                bodyContent = `<div class="text-slate-500 text-center py-2 text-xs">Nenhum produto da lista detectado nesta imagem.</div>`;
-            } else if (errorsCount === 0) {
-                statusBadge = `<span class="badge badge-ok">OK</span>`;
-                bodyContent = `<div class="text-green-700 font-bold text-center py-2 text-xs">
-                    <i class="fa-solid fa-check-double text-xl mb-1 block"></i>
-                    ${productsFoundInImage} produtos conferidos com sucesso.
-                </div>${reportHtml}`; // Mostra os OKs também
+            if(baseFound && extraFound) {
+                status = "OK";
+                badgeClass = "badge-ok";
+                content = `
+                    <div class="ok-item">
+                        <div class="font-bold text-xs flex items-center">
+                            <span class="id-circle">${fileId}</span> ${targetProduct.name}
+                        </div>
+                        <div class="text-[10px] pl-7">Preço R$ ${fmtMoney(targetProduct.base)} confirmado.</div>
+                    </div>`;
             } else {
-                statusBadge = `<span class="badge badge-err">ERRO</span>`;
-                bodyContent = `<div class="p-2">${reportHtml}</div>`;
+                let msg = '';
+                if(!baseFound) msg += `<div>Base R$ ${fmtMoney(targetProduct.base || 0)} incorreta/ausente</div>`;
+                if(!extraFound) msg += `<div>Cartão R$ ${fmtMoney(targetProduct.extra || 0)} incorreto/ausente</div>`;
+                
+                content = `
+                    <div class="err-item">
+                        <div class="font-bold text-slate-800 text-xs mb-1 flex items-center">
+                            <span class="id-circle bg-red-600">${fileId}</span> ${targetProduct.name}
+                        </div>
+                        <div class="text-[10px] text-red-700 font-bold pl-7">${msg}</div>
+                    </div>`;
             }
 
+            createCard(container, file.name, status, content, badgeClass, foundPrices.join(' | '));
+        }
+
+        function createCard(container, title, badgeText, contentHtml, badgeClass, debugInfo = "") {
+            const div = document.createElement('div');
+            div.className = 'result-card animate-fade-in';
             div.innerHTML = `
                 <div class="result-header">
-                    <span class="file-tag"><i class="fa-solid fa-file mr-1"></i>${file.name}</span>
-                    ${statusBadge}
+                    <span class="file-tag"><i class="fa-solid fa-file mr-1"></i>${title}</span>
+                    <span class="badge ${badgeClass}">${badgeText}</span>
                 </div>
-                <div class="result-body">${bodyContent}
-                    <div class="scan-text">Leitura: ${foundPrices.join(' | ')}</div>
+                <div class="result-body">
+                    ${contentHtml}
+                    ${debugInfo ? `<div class="scan-text">Leitura: ${debugInfo}</div>` : ''}
                 </div>
             `;
             container.prepend(div);
         }
 
         const fmtMoney = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-        function parseList(txt) {
-            const arr = [];
-            const cleanP = s => parseFloat(s.replace(/[^0-9,]/g,'').replace(',','.'));
-            txt.split('\n').forEach(l => {
-                const m = l.match(/(.+) – R\$ ([\d,.]+)/i);
-                if(m && !l.trim().startsWith('(')) arr.push({name:m[1].trim(), base:cleanP(m[2]), extra:null});
-                else if(l.trim().startsWith('(') && arr.length) {
-                    const pm = l.match(/R\$ ([\d,.]+)/);
-                    if(pm) arr[arr.length-1].extra = cleanP(pm[1]);
-                }
-            });
-            return arr;
-        }
     </script>
 </body>
 </html>
