@@ -3,100 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V51 - Vision Sherlock</title>
+    <title>Auditor V52 - Raio-X (Extrator Puro)</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { font-family: 'Consolas', 'Courier New', monospace; background-color: #1e1e1e; color: #d4d4d4; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { background: #0f172a; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 20; }
+        .header { background: #333; height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #444; }
         
-        .drop-zone { border: 2px dashed #94a3b8; border-radius: 8px; background: #f8fafc; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .drop-zone:hover { border-color: #ef4444; background: #fef2f2; }
+        .drop-zone { border: 2px dashed #555; border-radius: 8px; background: #252526; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100px; margin-bottom: 20px; }
+        .drop-zone:hover { border-color: #007acc; background: #2d2d30; }
 
-        .result-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .card-header { padding: 10px 15px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .result-card { background: #252526; border: 1px solid #333; margin-bottom: 20px; padding: 15px; border-radius: 4px; }
         
-        .audit-table { width: 100%; text-align: left; font-size: 13px; border-collapse: collapse; }
-        .audit-table th { background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding: 8px 12px; font-size: 11px; text-transform: uppercase; }
-        .audit-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
-        .audit-table tr:last-child td { border-bottom: none; }
+        .raw-text-box { 
+            background: #1e1e1e; border: 1px solid #444; color: #ce9178; 
+            padding: 10px; font-size: 11px; white-space: pre-wrap; 
+            max-height: 200px; overflow-y: auto; margin-top: 5px;
+        }
 
-        .price-box { font-family: monospace; font-weight: bold; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
-        .p-green { color: #166534; background: #dcfce7; border: 1px solid #bbf7d0; }
-        .p-red { color: #991b1b; background: #fee2e2; border: 1px solid #fecaca; text-decoration: line-through; opacity: 0.7; }
-        .p-blue { color: #1e40af; background: #dbeafe; border: 1px solid #bfdbfe; }
-        .arrow-right { color: #dc2626; margin: 0 8px; font-size: 14px; }
+        .price-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+        .price-tag { background: #0e639c; color: white; padding: 2px 6px; font-size: 12px; border-radius: 3px; }
         
-        .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
-        .bg-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-        .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .bg-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .img-preview { max-width: 100px; max-height: 100px; border: 1px solid #555; margin-right: 15px; }
     </style>
 </head>
-<body class="text-slate-800">
+<body>
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 p-1.5 rounded text-white"><i class="fa-solid fa-eye"></i></div>
-            <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V51</h1>
-                <p class="text-[10px] text-slate-400">Google Vision + Sherlock</p>
-            </div>
+            <i class="fa-solid fa-microscope text-yellow-500"></i>
+            <h1 class="font-bold text-sm">V52 - Raio-X de Dados</h1>
         </div>
         <div class="flex gap-2">
-            <input type="password" id="apiKey" class="bg-slate-800 border border-slate-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
-            <button onclick="saveKey()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
+            <input type="password" id="apiKey" class="bg-black border border-gray-600 text-white text-xs p-1 rounded w-40" placeholder="API Key Vision...">
+            <button onclick="saveKey()" class="bg-blue-700 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded">SALVAR</button>
         </div>
     </header>
 
-    <div class="flex flex-1 overflow-hidden">
-        <div class="w-[35%] bg-white border-r border-slate-200 flex flex-col p-4 gap-4 shadow-xl z-10">
-            <div class="flex-1 flex flex-col">
-                <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
-                    1. LISTA GABARITO
-                    <span class="text-indigo-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
-                </label>
-                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="12 - Cerveja Skol&#10;R$ 4,99&#10;Nesta embalagem R$ 4,89&#10;&#10;15 - Feijão..."></textarea>
+    <div class="flex flex-1 p-5 gap-5 overflow-hidden">
+        <div class="w-1/3 flex flex-col">
+            <div id="dropZone" class="drop-zone">
+                <i class="fa-solid fa-upload text-2xl text-gray-500 mb-2"></i>
+                <div class="text-xs text-gray-400">ARRASTE AS IMAGENS AQUI</div>
+                <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
             </div>
             
-            <div class="h-32">
-                <div id="dropZone" class="drop-zone">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-300 mb-2"></i>
-                    <div class="text-xs font-bold text-slate-500">ARRASTE IMAGENS</div>
-                    <div class="text-[10px] text-slate-400">Nome: P12.jpg, P15.png...</div>
-                    <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
-                </div>
+            <div class="text-xs text-gray-500 mb-2">LOG DE PROCESSO:</div>
+            <div id="consoleLog" class="flex-1 bg-black border border-gray-700 p-2 text-xs text-green-500 overflow-y-auto font-mono">
+                > Aguardando imagens...
             </div>
-
-            <button onclick="processQueue()" class="bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
-                <i class="fa-solid fa-magnifying-glass-chart"></i> INICIAR AUDITORIA
-            </button>
         </div>
 
-        <div class="w-[65%] bg-slate-50 relative flex flex-col">
-            <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
-                <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
-                <div class="text-sm font-bold text-indigo-900 animate-pulse">Comparando dados (Vision API)...</div>
-            </div>
-
-            <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
-                <div class="text-center mt-20 text-slate-400 text-sm italic">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e arraste as imagens.
-                </div>
-            </div>
-            
-             <div id="debugConsole" class="h-32 bg-black text-green-400 font-mono text-xs p-2 overflow-y-auto border-t-2 border-gray-800">
-                <div>> Pronto.</div>
+        <div class="w-2/3 flex flex-col overflow-y-auto" id="resultsArea">
+            <div class="text-center mt-20 text-gray-600 italic">
+                Os dados extraídos aparecerão aqui.
             </div>
         </div>
     </div>
 
     <script>
         function log(msg) {
-            const d = document.getElementById('debugConsole');
+            const d = document.getElementById('consoleLog');
             d.innerHTML += `<div>> ${msg}</div>`;
             d.scrollTop = d.scrollHeight;
         }
@@ -106,7 +76,7 @@
         
         function saveKey() {
             localStorage.setItem('vision_key', apiKeyInput.value.trim());
-            alert("Chave Google Vision salva!");
+            alert("Chave salva!");
         }
 
         let files = [];
@@ -115,217 +85,96 @@
 
         dropZone.onclick = () => fileInput.click();
         fileInput.onchange = e => handleFiles(Array.from(e.target.files));
-        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#6366f1'; };
-        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#94a3b8'; handleFiles(Array.from(e.dataTransfer.files)); };
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#007acc'; };
+        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#555'; handleFiles(Array.from(e.dataTransfer.files)); };
 
         function handleFiles(newFiles) {
-            files = newFiles;
-            dropZone.innerHTML = `<div class="text-indigo-600 font-bold text-sm">${files.length} Arquivos</div>`;
-            log(`${files.length} arquivos carregados.`);
-        }
-
-        async function processQueue() {
             const key = apiKeyInput.value.trim();
-            const listTxt = document.getElementById('listInput').value;
-            
             if(!key) return alert("Falta a API Key!");
-            if(!listTxt) return alert("Falta a Lista!");
-            if(files.length === 0) return alert("Faltam Imagens!");
-
-            const listMap = parseList(listTxt);
-            if(Object.keys(listMap).length === 0) return alert("Lista sem IDs (Ex: '12 - Produto').");
-
-            document.getElementById('loading').classList.remove('hidden');
-            const container = document.getElementById('resultsArea');
-            container.innerHTML = '';
             
-            log("Iniciando processamento...");
-
-            for (const file of files) {
-                try {
-                    await analyzeFile(file, key, listMap, container);
-                } catch (err) {
-                    log(`ERRO em ${file.name}: ${err.message}`);
-                    container.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs mb-2 rounded">Erro em ${file.name}: ${err.message}</div>`;
-                }
-            }
-            document.getElementById('loading').classList.add('hidden');
-            files = [];
-            dropZone.innerHTML = `<i class="fa-solid fa-check text-green-500 text-2xl"></i>`;
-            log("Concluído.");
+            document.getElementById('resultsArea').innerHTML = '';
+            
+            newFiles.forEach(file => {
+                log(`Processando ${file.name}...`);
+                analyze(file, key);
+            });
         }
-        
-        function toBase64(file) {
-            return new Promise((resolve, reject) => {
+
+        async function toBase64(file) {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
             });
         }
 
-        async function analyzeFile(file, key, listMap, container) {
-            // 1. Identificar ID
-            const idMatch = file.name.match(/[Pp]0*(\d+)/);
-            if(!idMatch) {
-                renderCard(container, file.name, "IGNORADO", "bg-warn", `<div class="p-3 text-xs text-slate-500">Sem ID (P + Número) no nome.</div>`);
-                log(`Ignorado ${file.name}: Sem ID.`);
-                return;
-            }
-            const id = idMatch[1];
-            const target = listMap[id];
-
-            if(!target) {
-                renderCard(container, file.name, `ID ${id} SEM LISTA`, "bg-warn", `<div class="p-3 text-xs text-slate-500">ID não encontrado na lista.</div>`);
-                log(`Ignorado ${file.name}: ID ${id} não está na lista.`);
-                return;
-            }
-
-            log(`Analisando ${file.name} (ID ${id})...`);
-
-            // 2. Extração Vision API
-            const base64 = await toBase64(file);
-            const apiRes = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] })
-            });
-            
-            if(!apiRes.ok) throw new Error("Erro na API do Google Vision (Verifique a Chave/Billing)");
-            
-            const data = await apiRes.json();
-            const fullText = data.responses[0]?.fullTextAnnotation?.text || "";
-            log(`Google leu ${fullText.length} caracteres.`);
-
-            // 3. Extrair TODOS os preços da imagem (Pool de Candidatos)
-            let imgPrices = [];
-            const matches = fullText.matchAll(/(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g);
-            for (const m of matches) {
-                const val = parseFloat(m[0].replace('.','').replace(',','.'));
-                // Filtra anos
-                if(val >= 2020 && val <= 2030 && !fullText.includes('$' + m[0])) continue;
-                imgPrices.push(val);
-            }
-            log(`Preços encontrados: ${imgPrices.join(', ')}`);
-
-            // --- LÓGICA SHERLOCK ---
-            
-            let reportRows = [];
-            let errorCount = 0;
-            let availableImgPrices = [...imgPrices];
-
-            target.prices.forEach(req => {
-                const matchIdx = availableImgPrices.findIndex(p => Math.abs(p - req.val) < 0.05);
+        async function analyze(file, key) {
+            try {
+                const base64 = await toBase64(file);
                 
-                if (matchIdx !== -1) {
-                    req.status = "OK";
-                    availableImgPrices.splice(matchIdx, 1);
-                    reportRows.push(`
-                        <tr>
-                            <td class="font-bold text-slate-700 w-1/3">${req.context}</td>
-                            <td class="w-1/3"><span class="price-box p-green">R$ ${fmt(req.val)}</span></td>
-                            <td class="w-1/3 text-green-700 font-bold text-xs"><i class="fa-solid fa-check"></i> CONFIRMADO</td>
-                        </tr>
-                    `);
-                } else {
-                    errorCount++;
-                    // Tenta achar candidato na sobra
-                    let candidateVal = null;
-                    if (availableImgPrices.length > 0) {
-                        let bestIdx = -1;
-                        let minDiff = 999999;
-                        availableImgPrices.forEach((p, i) => {
-                            const diff = Math.abs(p - req.val);
-                            if(diff < minDiff) { minDiff = diff; bestIdx = i; }
-                        });
-                        candidateVal = availableImgPrices[bestIdx];
-                        availableImgPrices.splice(bestIdx, 1);
-                    }
+                // Chamada Simples e Direta
+                const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
+                    method: 'POST',
+                    body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] })
+                });
 
-                    let comparisonHtml = "";
-                    if (candidateVal !== null) {
-                        comparisonHtml = `
-                            <div class="flex items-center mt-1">
-                                <span class="price-box p-red" title="Valor na lista">R$ ${fmt(req.val)}</span>
-                                <i class="fa-solid fa-arrow-right arrow-right"></i>
-                                <span class="price-box p-blue" title="Valor na imagem">R$ ${fmt(candidateVal)}</span>
-                            </div>
-                            <div class="text-[10px] text-red-600 font-bold mt-1 uppercase">Ajustar Imagem</div>
-                        `;
-                    } else {
-                        comparisonHtml = `
-                            <div class="price-box p-red">R$ ${fmt(req.val)}</div>
-                            <div class="text-[10px] text-red-500 mt-1">Valor sumiu da imagem</div>
-                        `;
-                    }
-
-                    reportRows.push(`
-                        <tr class="bg-red-50">
-                            <td class="font-bold text-red-900 w-1/3">${req.context}</td>
-                            <td class="w-2/3" colspan="2">${comparisonHtml}</td>
-                        </tr>
-                    `);
+                if(!res.ok) throw new Error(await res.text());
+                
+                const data = await res.json();
+                const fullText = data.responses[0]?.fullTextAnnotation?.text || "[SEM TEXTO DETECTADO]";
+                
+                // REGEX DE TESTE (Preços)
+                // Procura: digitos, ponto ou virgula, 2 digitos
+                const prices = [];
+                const regex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})/g;
+                let match;
+                while ((match = regex.exec(fullText)) !== null) {
+                    // Filtra anos (2025, 2026) se nao tiver cifrão
+                    const val = parseFloat(match[0].replace('.','').replace(',','.'));
+                    if(val >= 2020 && val <= 2030 && !fullText.includes('$' + match[0])) continue;
+                    
+                    prices.push(match[0]); // Mantém o formato original (string) para ver como leu
                 }
-            });
 
-            const badge = errorCount === 0 ? "APROVADO" : `${errorCount} DIVERGÊNCIA(S)`;
-            const bgClass = errorCount === 0 ? "bg-ok" : "bg-err";
+                renderResult(file, fullText, prices);
+                log(`${file.name}: Sucesso. ${fullText.length} caracteres.`);
+
+            } catch (e) {
+                log(`ERRO ${file.name}: ${e.message}`);
+                document.getElementById('resultsArea').innerHTML += `<div class="result-card border-red-500 text-red-400">Erro: ${e.message}</div>`;
+            }
+        }
+
+        function renderResult(file, text, prices) {
+            const container = document.getElementById('resultsArea');
             
-            const content = `
-                <table class="audit-table">
-                    <thead><tr><th>Item</th><th>Análise</th><th>Status</th></tr></thead>
-                    <tbody>${reportRows.join('')}</tbody>
-                </table>
-                <div class="mt-2 text-[10px] text-slate-400 font-mono px-3 border-t pt-2">
-                    Leitura Bruta: ${imgPrices.join(' | ')}
+            const priceTags = prices.length > 0 
+                ? prices.map(p => `<span class="price-tag">${p}</span>`).join(' ')
+                : `<span class="text-gray-500 text-xs">Nenhum padrão de preço (XX,XX) identificado.</span>`;
+
+            const html = `
+                <div class="result-card">
+                    <div class="flex items-start">
+                        <div class="flex-1">
+                            <div class="font-bold text-white mb-2 text-sm border-b border-gray-700 pb-2">
+                                ARQUIVO: ${file.name}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="text-xs text-gray-400 font-bold mb-1">1. PREÇOS IDENTIFICADOS (Filtro):</div>
+                                <div class="price-list">${priceTags}</div>
+                            </div>
+
+                            <div>
+                                <div class="text-xs text-gray-400 font-bold mb-1">2. LEITURA BRUTA (Tudo que o robô viu):</div>
+                                <div class="raw-text-box">${text}</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             `;
-
-            renderCard(container, `${target.name} (ID ${id})`, badge, bgClass, content);
+            container.insertAdjacentHTML('afterbegin', html);
         }
-
-        function renderCard(container, title, badge, bgClass, content) {
-            const div = document.createElement('div');
-            div.className = "result-card animate-fade-in";
-            div.innerHTML = `
-                <div class="card-header">
-                    <span class="font-bold text-sm text-slate-700 truncate mr-2">${title}</span>
-                    <span class="badge ${bgClass} shrink-0">${badge}</span>
-                </div>
-                <div>${content}</div>
-            `;
-            container.prepend(div);
-        }
-
-        function parseList(txt) {
-            const map = {};
-            let currentId = null;
-            let currentName = "";
-            txt.split('\n').forEach(line => {
-                line = line.trim();
-                if(!line) return;
-                const idMatch = line.match(/^(\d+)\s*-\s*(.+)/);
-                if(idMatch) {
-                    currentId = idMatch[1];
-                    currentName = idMatch[2];
-                    map[currentId] = { name: currentName, prices: [] };
-                    return;
-                }
-                if(currentId) {
-                    const prices = line.match(/(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})/g);
-                    if(prices) {
-                        prices.forEach(pStr => {
-                            const val = parseFloat(pStr.replace(/[R$\s]/g,'').replace('.','').replace(',','.'));
-                            let desc = line.replace(pStr, '').replace('R$', '').trim();
-                            if(desc.length < 2) desc = "Preço Base";
-                            map[currentId].prices.push({ val, context: desc });
-                        });
-                    }
-                }
-            });
-            return map;
-        }
-        const fmt = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     </script>
 </body>
 </html>
