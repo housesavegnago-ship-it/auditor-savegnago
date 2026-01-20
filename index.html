@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V75 - Limpeza Rápida</title>
+    <title>Auditor V76 - Comparação Estrutural</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
@@ -29,9 +29,8 @@
         .status-warn { color: #d97706; font-weight: bold; }
 
         .bg-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; text-decoration: line-through; }
-        .bg-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
-        .bg-ref { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .bg-miss { background: #f3f4f6; color: #9ca3af; border: 1px dashed #d1d5db; } /* Sumiu */
 
         .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
         .badge-pass { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
@@ -44,15 +43,15 @@
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 p-1.5 rounded text-white"><i class="fa-solid fa-broom"></i></div>
+            <div class="bg-cyan-700 p-1.5 rounded text-white"><i class="fa-solid fa-code-compare"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V75</h1>
-                <p class="text-[10px] text-indigo-200">Com Limpeza Rápida</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V76</h1>
+                <p class="text-[10px] text-cyan-200">Comparação Estrutural</p>
             </div>
         </div>
         <div class="flex gap-2">
             <input type="password" id="apiKey" class="bg-slate-800 border border-slate-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
-            <button onclick="saveKey()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
+            <button onclick="saveKey()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
         </div>
     </header>
 
@@ -61,9 +60,9 @@
             <div class="flex-1 flex flex-col">
                 <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
                     1. GABARITO (LISTA)
-                    <span class="text-indigo-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar Texto</span>
+                    <span class="text-cyan-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
                 </label>
-                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-cyan-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea>
             </div>
             
             <div class="h-32">
@@ -76,9 +75,9 @@
 
             <div class="flex gap-2">
                 <button onclick="runAudit()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
-                    <i class="fa-solid fa-search-plus"></i> RODAR
+                    <i class="fa-solid fa-play"></i> AUDITAR
                 </button>
-                <button onclick="clearImages()" class="w-16 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center" title="Limpar Imagens e Resultados">
+                <button onclick="clearImages()" class="w-16 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center" title="Limpar">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
@@ -86,13 +85,13 @@
 
         <div class="w-[65%] bg-slate-50 relative flex flex-col">
             <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
-                <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
-                <div class="text-sm font-bold text-indigo-900 animate-pulse">Varrendo cada pixel...</div>
+                <div class="w-10 h-10 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin mb-3"></div>
+                <div class="text-sm font-bold text-cyan-900 animate-pulse">Analisando Estrutura...</div>
             </div>
 
             <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
                 <div class="text-center mt-20 text-slate-400 text-sm italic">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e arraste as imagens.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Aguardando dados.
                 </div>
             </div>
         </div>
@@ -108,28 +107,14 @@
         const fileInput = document.getElementById('fileInput');
 
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-indigo-600 font-bold">${files.length} Arquivos</div>`; };
-        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#6366f1'; };
-        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-indigo-600 font-bold">${files.length} Arquivos</div>`; };
+        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-cyan-600 font-bold">${files.length} Arquivos</div>`; };
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#0891b2'; };
+        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-cyan-600 font-bold">${files.length} Arquivos</div>`; };
 
-        // --- FUNÇÃO LIMPAR IMAGENS ---
         function clearImages() {
-            files = [];
-            fileInput.value = ''; // Reseta input
-            dropZone.innerHTML = `
-                <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i>
-                <div class="text-xs font-bold text-slate-600">2. ARRASTE IMAGENS</div>
-                <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
-            `;
-            dropZone.style.borderColor = '#cbd5e1';
-            
-            // Limpa resultados mas mantém layout
-            const container = document.getElementById('resultsArea');
-            container.innerHTML = `
-                <div class="text-center mt-20 text-slate-400 text-sm italic">
-                    <i class="fa-solid fa-check mr-2 text-green-500"></i> Imagens limpas. Pode enviar novas.
-                </div>
-            `;
+            files = []; fileInput.value = '';
+            dropZone.innerHTML = `<i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i><div class="text-xs font-bold text-slate-600">2. ARRASTE IMAGENS</div><input type="file" id="fileInput" multiple accept="image/*" class="hidden">`;
+            document.getElementById('resultsArea').innerHTML = `<div class="text-center mt-20 text-slate-400 text-sm italic"><i class="fa-solid fa-check mr-2 text-green-500"></i> Pronto.</div>`;
         }
 
         async function runAudit() {
@@ -137,7 +122,7 @@
             const listTxt = document.getElementById('listInput').value;
             if(!key || !listTxt.trim() || files.length === 0) return alert("Faltam dados!");
 
-            const listData = parseListV74(listTxt);
+            const listData = parseListV76(listTxt);
             if(Object.keys(listData).length === 0) return alert("Lista inválida.");
 
             document.getElementById('loading').classList.remove('hidden');
@@ -152,16 +137,15 @@
                 if(!gabarito) { renderError(container, file.name, `ID ${id} não está na lista.`); continue; }
 
                 try {
-                    const imgData = await processImageV74(file, key);
-                    compareAndRenderV74(container, id, gabarito, imgData);
+                    const imgData = await processImageV76(file, key);
+                    compareAndRenderV76(container, id, gabarito, imgData);
                 } catch(e) { renderError(container, file.name, e.message); }
             }
             document.getElementById('loading').classList.add('hidden');
-            // Não limpamos files automaticamente aqui para permitir re-rodar se quiser, mas pode limpar manual
         }
 
-        // --- MANTER LÓGICA V74 (Varredura Profunda) ---
-        function parseListV74(txt) {
+        // --- LIST PARSER V76 (Mantido V71) ---
+        function parseListV76(txt) {
             const map = {};
             const lines = txt.split('\n');
             let currentItem = null;
@@ -182,6 +166,8 @@
             let title = text.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/, '').trim() || text;
             let basePrice = null;
             const offers = [];
+            
+            // Regex base
             const pricesFound = [];
             const priceRegex = /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;
             let match;
@@ -189,6 +175,7 @@
                 pricesFound.push({ val: parseFloat(match[1].replace('.','').replace(',','.')), index: match.index, assigned: false });
             }
 
+            // Base VIP
             const redMatch = text.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);
             if (redMatch) {
                 const val = parseFloat(redMatch[1].replace('.','').replace(',','.'));
@@ -224,40 +211,44 @@
             map[item.id] = { title, basePrice, offers };
         }
 
-        async function processImageV74(file, key) {
-            const base64 = await new Promise(r => { 
-                const reader = new FileReader(); reader.onload = () => r(reader.result.split(',')[1]); reader.readAsDataURL(file); 
-            });
-
+        // --- IMAGE PARSER V76 (GARRANCHO + PROXIMIDADE) ---
+        async function processImageV76(file, key) {
+            const base64 = await new Promise(r => { const reader = new FileReader(); reader.onload = () => r(reader.result.split(',')[1]); reader.readAsDataURL(file); });
             const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
-                method: 'POST',
-                body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] })
+                method: 'POST', body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] })
             });
             const json = await res.json();
             const text = json.responses[0]?.fullTextAnnotation?.text || "";
-            const clean = text.replace(/\r/g, '');
+            let clean = text.replace(/\r/g, '');
 
-            const correctedText = clean.replace(/(\d+)[,.](\d{1,2})[Oo]/g, "$1,$20")
-                                       .replace(/[Oo](\d{2})\b/g, "0$1")
-                                       .replace(/(\d{1,3}) (\d{2})\b/g, "$1,$2");
+            // 1. DECODIFICADOR DE GARRANCHOS (Letras -> Números)
+            // Substitui S->5, O->0, B->8, l/I->1, Z->2 apenas em contextos que parecem preço (X,XX)
+            // Ex: 54,9O -> 54,90 | 2S,99 -> 25,99
+            
+            clean = clean.replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, (match) => {
+                return match.replace(/S/g, '5').replace(/[O]/g, '0').replace(/B/g, '8').replace(/[lI]/g, '1').replace(/Z/g, '2');
+            });
 
+            // Extração
             const pricesFound = [];
             const pRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g;
             let m;
-            while ((m = pRegex.exec(correctedText)) !== null) {
+            while ((m = pRegex.exec(clean)) !== null) {
                 const val = parseFloat(m[0].replace('.','').replace(',','.'));
-                if(!(val >= 2020 && val <= 2030 && Number.isInteger(val))) {
+                if(!(val >= 2020 && val <= 2030 && Number.isInteger(val))) { // Filtro Ano
                      pricesFound.push({ val, index: m.index });
                 }
             }
             
+            // Backup para debug
             const rawNumbers = [...pricesFound]; 
 
             let basePrice = null;
             const offers = [];
-            const buyIdx = correctedText.toUpperCase().indexOf("COMPRAR");
+            const buyIdx = clean.toUpperCase().indexOf("COMPRAR");
             let baseFound = false;
 
+            // Base acima do Comprar
             if(buyIdx !== -1) {
                 const candidates = pricesFound.filter(p => p.index < buyIdx);
                 if(candidates.length) {
@@ -268,70 +259,76 @@
                 }
             }
 
+            // Ofertas (Trigger Search)
             const iTriggers = [
                 { k: "SAVE", t: "SAVE GANHE" }, { k: "CARTÃO", t: "NOSSO CARTÃO" },
-                { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }, { k: "A PARTIR", t: "EMBALAGEM" }
+                { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }, { k: "A PARTIR", t: "EMBALAGEM" }, { k: "UNIDADE", t: "EMBALAGEM" }
             ];
 
             pricesFound.forEach(p => {
-                const ctx = correctedText.substring(Math.max(0, p.index - 60), p.index).toUpperCase().replace(/\n/g,' ');
+                const ctx = clean.substring(Math.max(0, p.index - 60), p.index).toUpperCase().replace(/\n/g,' ');
                 let foundT = null;
                 for(const t of iTriggers) { if(ctx.includes(t.k)) { foundT = t.t; break; } }
+                
+                // Se achou oferta, salva. Se não, e não temos base, vira base.
                 if(foundT) offers.push({ type: foundT, val: p.val });
                 else if(!baseFound) { basePrice = p.val; baseFound = true; }
             });
 
-            return { basePrice, offers, rawText: correctedText, rawNumbers };
+            return { basePrice, offers, rawText: clean, rawNumbers };
         }
 
-        function compareAndRenderV74(container, id, gabarito, imagem) {
+        // --- COMPARADOR ESTRUTURAL V76 ---
+        function compareAndRenderV76(container, id, gabarito, imagem) {
             const rows = [];
             let errorCount = 0;
 
-            function findDeepMatch(targetVal) {
-                let match = imagem.rawNumbers.find(p => Math.abs(p.val - targetVal) < 0.05);
-                if(match) return { val: match.val, type: "EXATO" };
-                match = imagem.rawNumbers.find(p => Math.abs(p.val - targetVal) < 1.0);
-                if(match) return { val: match.val, type: "APROX" };
-                return null;
-            }
-
+            // 1. COMPARAÇÃO BASE
             if (gabarito.basePrice) {
                 if (imagem.basePrice) {
-                    if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
-                    else { rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "ERRO")); errorCount++; }
-                } else {
-                    const deep = findDeepMatch(gabarito.basePrice);
-                    if(deep) {
-                        rows.push(rowHtml("BASE", gabarito.basePrice, deep.val, deep.type === "EXATO" ? "WARN" : "ERRO", "Recuperado na Varredura"));
-                        if(deep.type !== "EXATO") errorCount++;
+                    // Tem base na lista E na imagem -> Compara Valor
+                    if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) {
+                        rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
                     } else {
-                        rows.push(rowHtml("BASE", gabarito.basePrice, null, "SUMIU"));
+                        // VALOR DIFERENTE = ERRO
+                        rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "DIVERGENTE"));
+                        errorCount++;
+                    }
+                } else {
+                    rows.push(rowHtml("BASE", gabarito.basePrice, null, "SUMIU"));
+                    errorCount++;
+                }
+            }
+
+            // 2. COMPARAÇÃO OFERTAS (Por Tipo)
+            gabarito.offers.forEach(req => {
+                // Procura na imagem uma oferta do MESMO TIPO (Ex: Tem Embalagem na imagem?)
+                const matchType = imagem.offers.find(o => o.type === req.type);
+                
+                if (matchType) {
+                    // Achou o tipo certo. Agora compara o preço.
+                    if (Math.abs(matchType.val - req.val) < 0.05) {
+                        rows.push(rowHtml(req.type, req.val, matchType.val, "OK"));
+                    } else {
+                        // PREÇO DIFERENTE = ERRO
+                        rows.push(rowHtml(req.type, req.val, matchType.val, "DIVERGENTE"));
+                        errorCount++;
+                    }
+                } else {
+                    // Não achou nem o tipo (Ex: Imagem não tem "Embalagem" escrito perto de preço nenhum)
+                    // Tenta ver se acha o valor solto (Erro de Categoria)
+                    const matchVal = imagem.offers.find(o => Math.abs(o.val - req.val) < 0.05);
+                    if(matchVal) {
+                        rows.push(rowHtml(req.type, req.val, matchVal.val, "WARN", `Achado como ${matchVal.type}`));
+                        errorCount++;
+                    } else {
+                        rows.push(rowHtml(req.type, req.val, null, "SUMIU"));
                         errorCount++;
                     }
                 }
-            }
-
-            gabarito.offers.forEach(req => {
-                const match = imagem.offers.find(o => o.type === req.type && Math.abs(o.val - req.val) < 0.05) ||
-                              imagem.offers.find(o => Math.abs(o.val - req.val) < 0.05);
-                
-                if (match) {
-                    if(match.type === req.type) rows.push(rowHtml(req.type, req.val, match.val, "OK"));
-                    else { rows.push(rowHtml(req.type, req.val, match.val, "WARN", `Achado como ${match.type}`)); errorCount++; }
-                } else {
-                     const deep = findDeepMatch(req.val);
-                     if(deep) {
-                        rows.push(rowHtml(req.type, req.val, deep.val, deep.type === "EXATO" ? "WARN" : "ERRO", "Recuperado na Varredura"));
-                        if(deep.type !== "EXATO") errorCount++;
-                     } else {
-                        rows.push(rowHtml(req.type, req.val, null, "SUMIU"));
-                        errorCount++;
-                     }
-                }
             });
 
-            const status = errorCount === 0 ? "APROVADO" : `${errorCount} DIVERGÊNCIA(S)`;
+            const status = errorCount === 0 ? "APROVADO" : "REPROVADO";
             const badgeClass = errorCount === 0 ? "badge-pass" : "badge-fail";
             const div = document.createElement('div');
             div.className = "result-card animate-fade-in";
@@ -347,13 +344,13 @@
                     <tbody>${rows.join('')}</tbody>
                 </table>
                 <div class="text-center p-2 border-t border-slate-100">
-                    <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-indigo-500 hover:underline">
+                    <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-cyan-500 hover:underline">
                         <i class="fa-solid fa-microscope"></i> Ver Detalhes
                     </button>
                 </div>
                 <div id="${debugId}" class="debug-panel">
-                    <strong>Todos números detectados:</strong> ${imagem.rawNumbers.map(n=>n.val).join(', ')}<br>
-                    <strong>OCR Bruto:</strong><br>${imagem.rawText.substring(0, 150)}...
+                    <strong>Números Detectados:</strong> ${imagem.rawNumbers.map(n=>n.val).join(', ')}<br>
+                    <strong>Texto Lido:</strong><br>${imagem.rawText.substring(0, 150)}...
                 </div>
             `;
             container.prepend(div);
@@ -362,11 +359,27 @@
         function rowHtml(label, exp, found, status, obs="") {
             let icon, stClass, valHtml;
             const expFmt = fmt(exp);
-            if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; }
-            else if (status === "ERRO") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found || 0)}</span>`; }
-            else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px] block">${obs}</span>`; }
-            else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="text-xs text-slate-400 italic">Não lido</span>`; }
-            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-indigo-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
+            
+            if (status === "OK") { 
+                icon = '✔'; stClass = 'status-ok'; 
+                valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; 
+            }
+            else if (status === "DIVERGENTE") { 
+                // MOSTRA O VALOR ERRADO EM VERMELHO
+                icon = '✖'; stClass = 'status-err'; 
+                valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; 
+            }
+            else if (status === "WARN") { 
+                icon = '⚠'; stClass = 'status-warn'; 
+                valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; 
+            }
+            else { 
+                // SUMIU
+                icon = '✖'; stClass = 'status-err'; 
+                valHtml = `<span class="price-tag bg-miss">---</span>`; 
+            }
+            
+            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-cyan-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
         }
 
         function renderError(c, t, m) { c.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs rounded mb-2"><strong>${t}:</strong> ${m}</div>`; }
