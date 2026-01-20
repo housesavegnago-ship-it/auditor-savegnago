@@ -3,266 +3,398 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passo 2 - Lista V71 (Multilinha)</title>
+    <title>Auditor V72 - Comparador Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #0f172a; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: #111827; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
         
-        .result-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .card-header { padding: 12px 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .drop-zone { border: 2px dashed #9ca3af; border-radius: 8px; background: #f3f4f6; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .drop-zone:hover { border-color: #2563eb; background: #eff6ff; }
+
+        .result-card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .card-header { padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
         
-        .section-label { font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
-        .title-box { font-size: 15px; color: #1e293b; font-weight: 700; padding: 10px; background: #fff; border: 2px solid #e2e8f0; margin-bottom: 12px; border-radius: 6px; }
+        /* TABELA DE COMPARAÇÃO */
+        .comp-table { width: 100%; text-align: left; font-size: 13px; border-collapse: collapse; }
+        .comp-table th { background: #f3f4f6; color: #6b7280; font-weight: 700; border-bottom: 2px solid #e5e7eb; padding: 8px 12px; font-size: 11px; text-transform: uppercase; }
+        .comp-table td { padding: 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+        .comp-table tr:last-child td { border-bottom: none; }
+
+        .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
         
-        .price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 5px; }
-        .price-card { padding: 12px; border-radius: 8px; border-width: 1px; border-style: solid; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .price-val { font-size: 22px; font-weight: 800; font-family: monospace; display: block; margin-top: 2px; letter-spacing: -1px; }
-        
-        .style-base { background: #f0fdf4; border-color: #86efac; color: #166534; }
-        .style-base .tag { background: #166534; color: white; }
+        /* ESTADOS */
+        .status-ok { color: #16a34a; font-weight: bold; }
+        .status-err { color: #dc2626; font-weight: bold; }
+        .status-warn { color: #d97706; font-weight: bold; }
 
-        .style-card { background: #eff6ff; border-color: #60a5fa; color: #1e40af; }
-        .style-card .tag { background: #1d4ed8; color: white; }
+        .bg-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; text-decoration: line-through; }
+        .bg-ref { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; } /* Azul para o correto */
 
-        .style-save { background: #fdf2f8; border-color: #f472b6; color: #be185d; }
-        .style-save .tag { background: #db2777; color: white; }
-
-        .style-other { background: #fff7ed; border-color: #fb923c; color: #9a3412; }
-        .style-other .tag { background: #ea580c; color: white; }
-
-        .tag { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 2px 8px; border-radius: 12px; margin-bottom: 4px; }
-        .debug-text { font-size: 10px; color: #9ca3af; font-family: monospace; margin-top: 10px; border-top: 1px solid #f3f4f6; padding-top: 5px; }
+        .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
+        .badge-pass { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .badge-fail { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
     </style>
 </head>
 <body class="text-slate-800">
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-indigo-900 p-1.5 rounded text-white"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-scale-balanced"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Passo 2 (V71)</h1>
-                <p class="text-[10px] text-indigo-200">Parser Multilinhas</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V72</h1>
+                <p class="text-[10px] text-gray-400">Sistema Integrado de Comparação</p>
             </div>
+        </div>
+        <div class="flex gap-2">
+            <input type="password" id="apiKey" class="bg-gray-800 border border-gray-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
+            <button onclick="saveKey()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <div class="w-[40%] bg-white border-r border-slate-200 flex flex-col p-6 shadow-xl z-10">
-            <label class="text-xs font-bold text-slate-500 mb-2 flex justify-between">
-                COLE A LISTA
-                <span class="text-indigo-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
-            </label>
-            <textarea id="listInput" class="flex-1 border-2 border-slate-200 rounded-lg p-4 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none resize-none transition" placeholder="Cole sua lista aqui..."></textarea>
+        <div class="w-[35%] bg-white border-r border-slate-200 flex flex-col p-4 gap-4 shadow-xl z-10">
+            <div class="flex-1 flex flex-col">
+                <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
+                    1. COLE A LISTA (GABARITO)
+                    <span class="text-blue-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                </label>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="1 - Cerveja R$ 53,82 (red.123) ..."></textarea>
+            </div>
             
-            <button onclick="analyzeList()" class="mt-4 bg-indigo-800 hover:bg-indigo-700 text-white py-4 rounded-lg font-bold shadow-lg transition text-sm flex justify-center items-center gap-2">
-                <i class="fa-solid fa-magic"></i> DECODIFICAR
+            <div class="h-32">
+                <div id="dropZone" class="drop-zone">
+                    <i class="fa-solid fa-images text-3xl text-slate-300 mb-2"></i>
+                    <div class="text-xs font-bold text-slate-500">2. ARRASTE IMAGENS (P1.jpg...)</div>
+                    <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                </div>
+            </div>
+
+            <button onclick="runAudit()" class="bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
+                <i class="fa-solid fa-check-double"></i> EXECUTAR AUDITORIA
             </button>
         </div>
 
-        <div class="w-[60%] bg-slate-50 relative flex flex-col">
-            <div class="p-4 border-b border-slate-200 bg-white shadow-sm flex justify-between items-center">
-                <span class="font-bold text-xs text-slate-600">VISUALIZAÇÃO</span>
+        <div class="w-[65%] bg-slate-50 relative flex flex-col">
+            <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
+                <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+                <div class="text-sm font-bold text-blue-900 animate-pulse">Comparando Gabarito vs. Imagem...</div>
             </div>
-            <div id="resultsArea" class="flex-1 overflow-y-auto p-8">
+
+            <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
                 <div class="text-center mt-20 text-slate-400 text-sm italic">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Aguardando lista.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e arraste as imagens.
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function analyzeList() {
-            const txt = document.getElementById('listInput').value;
+        const apiKeyInput = document.getElementById('apiKey');
+        if(localStorage.getItem('vision_key')) apiKeyInput.value = localStorage.getItem('vision_key');
+        function saveKey() { localStorage.setItem('vision_key', apiKeyInput.value.trim()); alert("Salvo!"); }
+
+        let files = [];
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-blue-600 font-bold">${files.length} Arquivos</div>`; };
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#2563eb'; };
+        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-blue-600 font-bold">${files.length} Arquivos</div>`; };
+
+        async function runAudit() {
+            const key = apiKeyInput.value.trim();
+            const listTxt = document.getElementById('listInput').value;
+
+            if(!key) return alert("Falta API Key!");
+            if(!listTxt.trim()) return alert("Falta Lista!");
+            if(files.length === 0) return alert("Faltam Imagens!");
+
+            // 1. Parse da Lista (Gabarito)
+            const listData = parseListV72(listTxt);
+            if(Object.keys(listData).length === 0) return alert("Lista inválida. Use formato: 'ID - Nome...'");
+
+            document.getElementById('loading').classList.remove('hidden');
             const container = document.getElementById('resultsArea');
             container.innerHTML = '';
 
-            if(!txt.trim()) return alert("Cole uma lista primeiro!");
+            for(const file of files) {
+                // 2. Acha o ID na imagem
+                const idMatch = file.name.match(/[Pp]0*(\d+)/);
+                if(!idMatch) {
+                    renderError(container, file.name, "Nome do arquivo não tem ID (P+Numero)");
+                    continue;
+                }
+                const id = idMatch[1];
+                const gabarito = listData[id];
 
-            // 1. FUNDIR LINHAS (Lógica Multilinha)
+                if(!gabarito) {
+                    renderError(container, file.name, `ID ${id} não está na lista colada.`);
+                    continue;
+                }
+
+                try {
+                    // 3. Processa Imagem
+                    const imgData = await processImageV72(file, key);
+                    
+                    // 4. Compara
+                    compareAndRender(container, id, gabarito, imgData);
+
+                } catch(e) {
+                    renderError(container, file.name, e.message);
+                }
+            }
+
+            document.getElementById('loading').classList.add('hidden');
+            files = [];
+            dropZone.innerHTML = `<i class="fa-solid fa-check text-green-500 text-2xl"></i>`;
+        }
+
+        // --- CÉREBRO DE LISTA (V71) ---
+        function parseListV72(txt) {
+            const map = {};
             const lines = txt.split('\n');
-            const items = [];
             let currentItem = null;
 
+            // Multilinha Merge
             lines.forEach(line => {
                 line = line.trim();
                 if(!line) return;
-
-                // Se a linha começa com "Numero -", é um novo item
                 const idMatch = line.match(/^(\d+)\s*-\s*(.+)/);
-                
                 if (idMatch) {
-                    if (currentItem) items.push(currentItem);
-                    currentItem = {
-                        id: idMatch[1],
-                        fullText: line // Começa com a primeira linha
-                    };
-                } else {
-                    // Se não começa com número, é continuação do item anterior (oferta na linha de baixo)
-                    if (currentItem) {
-                        currentItem.fullText += " " + line;
-                    }
+                    if (currentItem) processListItem(map, currentItem);
+                    currentItem = { id: idMatch[1], text: line };
+                } else if (currentItem) {
+                    currentItem.text += " " + line;
                 }
             });
-            if (currentItem) items.push(currentItem);
-
-            if (items.length === 0) {
-                container.innerHTML = `<div class="p-4 bg-red-100 text-red-800 rounded">Formato inválido. Use: "1 - Produto..."</div>`;
-                return;
-            }
-
-            // 2. Processar cada item fundido
-            items.forEach(item => {
-                const structured = parseItemV71(item.fullText);
-                renderItemCard(container, item.id, structured, item.fullText);
-            });
+            if (currentItem) processListItem(map, currentItem);
+            return map;
         }
 
-        // --- CÉREBRO V71: PARSER UNIFICADO ---
-        function parseItemV71(text) {
-            // Limpa espaços duplos criados pela fusão
-            const cleanText = text.replace(/\s+/g, ' ').trim();
+        function processListItem(map, item) {
+            const text = item.text.replace(/\s+/g, ' ').trim();
             
-            let title = cleanText;
+            // Extração de Dados da Lista (Baseada na V71 Blindada)
+            let title = text.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/, '').trim() || text;
+            
             let basePrice = null;
             const offers = [];
-
-            // A. Título (Corta no (red. ou no R$)
-            const titleSplit = cleanText.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i);
-            if (titleSplit) title = titleSplit[1].replace(/^\d+\s*-\s*/, '').trim(); // Remove "1 - " do título também
-
-            // B. Coletar Preços
             const pricesFound = [];
             const priceRegex = /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;
             let match;
-            while ((match = priceRegex.exec(cleanText)) !== null) {
-                const valStr = match[1];
-                const val = parseFloat(valStr.replace('.','').replace(',','.'));
-                pricesFound.push({ val: val, index: match.index, assigned: false });
+            while ((match = priceRegex.exec(text)) !== null) {
+                const val = parseFloat(match[1].replace('.','').replace(',','.'));
+                pricesFound.push({ val, index: match.index, assigned: false });
             }
 
-            // C. PRIORIDADE 1: Base VIP (Antes de "(red")
-            // Regex flexível: Aceita espaços opcionais entre o valor e o (red
-            const redMatch = cleanText.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);
+            // Base VIP (Antes de RED ou depois de Travessão)
+            const redMatch = text.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);
             if (redMatch) {
-                const vipVal = parseFloat(redMatch[1].replace('.','').replace(',','.'));
-                const vipPrice = pricesFound.find(p => Math.abs(p.val - vipVal) < 0.001 && !p.assigned);
-                if (vipPrice) {
-                    basePrice = { val: vipPrice.val };
-                    vipPrice.assigned = true;
-                }
-            }
-
-            // D. PRIORIDADE 2: Base VIP (Depois de Travessão) - Fallback
-            if (!basePrice) {
-                const dashMatch = cleanText.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);
+                const val = parseFloat(redMatch[1].replace('.','').replace(',','.'));
+                const p = pricesFound.find(p => Math.abs(p.val - val) < 0.001);
+                if(p) { basePrice = p.val; p.assigned = true; }
+            } else {
+                const dashMatch = text.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);
                 if (dashMatch) {
-                    const vipVal = parseFloat(dashMatch[1].replace('.','').replace(',','.'));
-                    const vipPrice = pricesFound.find(p => Math.abs(p.val - vipVal) < 0.001 && !p.assigned);
-                    if (vipPrice) {
-                        basePrice = { val: vipPrice.val };
-                        vipPrice.assigned = true;
-                    }
+                    const val = parseFloat(dashMatch[1].replace('.','').replace(',','.'));
+                    const p = pricesFound.find(p => Math.abs(p.val - val) < 0.001);
+                    if(p) { basePrice = p.val; p.assigned = true; }
                 }
             }
 
-            // E. CLASSIFICAR OFERTAS (Proximidade)
+            // Ofertas da Lista
             const triggers = [
-                { key: "NOSSO CARTÃO", type: "NOSSO CARTÃO", css: "style-card" },
-                { key: "NOSSO CARTAO", type: "NOSSO CARTÃO", css: "style-card" },
-                { key: "CARTÃO", type: "NOSSO CARTÃO", css: "style-card" },
-                { key: "SAVE GANHE", type: "SAVE GANHE", css: "style-save" },
-                { key: "SAVEGANHE", type: "SAVE GANHE", css: "style-save" },
-                { key: "NO SAVE", type: "SAVE GANHE", css: "style-save" },
-                { key: "CLIENTE", type: "CLIENTE CAMPEÃO", css: "style-other" },
-                { key: "EMBALAGEM", type: "EMBALAGEM", css: "style-other" },
-                { key: "LEVANDO", type: "EMBALAGEM", css: "style-other" },
-                { key: "SAI POR", type: "EMBALAGEM", css: "style-other" },
-                { key: "A PARTIR", type: "EMBALAGEM", css: "style-other" },
-                { key: "UNIDADE", type: "EMBALAGEM", css: "style-other" },
-                { key: "NESTA EMBALAGEM", type: "EMBALAGEM", css: "style-other" }
+                { key: "CARTÃO", type: "NOSSO CARTÃO" },
+                { key: "SAVE", type: "SAVE GANHE" },
+                { key: "EMBALAGEM", type: "EMBALAGEM" },
+                { key: "SAI POR", type: "EMBALAGEM" },
+                { key: "UNIDADE", type: "EMBALAGEM" }
             ];
 
             pricesFound.forEach(p => {
-                if (p.assigned) return;
-                const context = cleanText.substring(Math.max(0, p.index - 80), p.index).toUpperCase();
-                let bestTrigger = null;
-                let minDistance = 9999;
-
+                if(p.assigned) return;
+                const context = text.substring(Math.max(0, p.index - 80), p.index).toUpperCase();
+                let bestT = null, minD = 9999;
                 triggers.forEach(t => {
-                    const lastIdx = context.lastIndexOf(t.key);
-                    if (lastIdx !== -1) {
-                        const distance = context.length - (lastIdx + t.key.length);
-                        if (distance < minDistance) { minDistance = distance; bestTrigger = t; }
-                    }
+                    const idx = context.lastIndexOf(t.key);
+                    if(idx !== -1 && (context.length - idx) < minD) { minD = context.length - idx; bestT = t; }
                 });
-
-                if (bestTrigger && minDistance < 60) {
-                    offers.push({ type: bestTrigger.type, val: p.val, css: bestTrigger.css });
+                if(bestT && minD < 60) {
+                    offers.push({ type: bestT.type, val: p.val });
                     p.assigned = true;
                 }
             });
 
-            // F. SOBRA = BASE (Se ainda não achou)
-            if (!basePrice) {
-                const leftovers = pricesFound.filter(p => !p.assigned);
-                if (leftovers.length > 0) {
-                    basePrice = { val: leftovers[0].val };
+            if(!basePrice) {
+                const left = pricesFound.find(p => !p.assigned);
+                if(left) basePrice = left.val;
+            }
+
+            map[item.id] = { title, basePrice, offers };
+        }
+
+        // --- CÉREBRO DE IMAGEM (V60) ---
+        async function processImageV72(file, key) {
+            const base64 = await new Promise(r => { 
+                const reader = new FileReader(); 
+                reader.onload = () => r(reader.result.split(',')[1]); 
+                reader.readAsDataURL(file); 
+            });
+
+            const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
+                method: 'POST',
+                body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] })
+            });
+            const json = await res.json();
+            const text = json.responses[0]?.fullTextAnnotation?.text || "";
+            const clean = text.replace(/\r/g, '');
+
+            // Parser de Imagem
+            let basePrice = null;
+            const offers = [];
+            
+            // Preços
+            const pricesFound = [];
+            const pRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})/g;
+            let m;
+            while ((m = pRegex.exec(clean)) !== null) {
+                const val = parseFloat(m[0].replace('.','').replace(',','.'));
+                if(val > 2020 && !clean.includes('$'+m[0])) continue; // Filtra ano
+                pricesFound.push({ val, index: m.index });
+            }
+
+            // Lógica de Imagem (Base acima de Comprar ou Maior)
+            const buyIdx = clean.toUpperCase().indexOf("COMPRAR");
+            let baseFound = false;
+
+            if(buyIdx !== -1) {
+                const candidates = pricesFound.filter(p => p.index < buyIdx);
+                if(candidates.length) {
+                    const p = candidates[candidates.length -1];
+                    basePrice = p.val;
+                    baseFound = true;
+                    // Remove da lista para não virar oferta
+                    pricesFound.splice(pricesFound.indexOf(p), 1);
                 }
             }
 
-            return { title, basePrice, offers };
+            // Ofertas da Imagem
+            const iTriggers = [
+                { k: "SAVE", t: "SAVE GANHE" }, { k: "CARTÃO", t: "NOSSO CARTÃO" },
+                { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }, { k: "A PARTIR", t: "EMBALAGEM" }
+            ];
+
+            pricesFound.forEach(p => {
+                const ctx = clean.substring(Math.max(0, p.index - 60), p.index).toUpperCase().replace(/\n/g,' ');
+                let foundT = null;
+                for(const t of iTriggers) { if(ctx.includes(t.k)) { foundT = t.t; break; } }
+
+                if(foundT) offers.push({ type: foundT, val: p.val });
+                else if(!baseFound) { basePrice = p.val; baseFound = true; } // Fallback
+            });
+
+            return { basePrice, offers };
         }
 
-        function renderItemCard(container, id, data, raw) {
-            const div = document.createElement('div');
-            div.className = "result-card animate-fade-in";
+        // --- COMPARADOR E RENDER ---
+        function compareAndRender(container, id, gabarito, imagem) {
+            const rows = [];
+            let errorCount = 0;
 
-            let baseHtml = "";
-            if (data.basePrice) {
-                baseHtml = `
-                    <div class="price-card style-base">
-                        <span class="tag">PREÇO BASE</span>
-                        <span class="price-val">R$ ${fmt(data.basePrice.val)}</span>
-                    </div>
-                `;
-            } else {
-                baseHtml = `
-                    <div class="price-card bg-slate-50 border-slate-200 opacity-50">
-                        <span class="tag bg-slate-200 text-slate-500">SEM BASE</span>
-                        <span class="price-val text-slate-400">---</span>
-                    </div>
-                `;
+            // 1. Comparar Base
+            if (gabarito.basePrice) {
+                if (imagem.basePrice) {
+                    const diff = Math.abs(gabarito.basePrice - imagem.basePrice);
+                    if (diff < 0.05) {
+                        rows.push(rowHtml("PREÇO BASE", gabarito.basePrice, imagem.basePrice, "OK"));
+                    } else {
+                        rows.push(rowHtml("PREÇO BASE", gabarito.basePrice, imagem.basePrice, "ERRO"));
+                        errorCount++;
+                    }
+                } else {
+                    rows.push(rowHtml("PREÇO BASE", gabarito.basePrice, null, "SUMIU"));
+                    errorCount++;
+                }
             }
 
-            let offersHtml = data.offers.map(o => `
-                <div class="price-card ${o.css}">
-                    <span class="tag">${o.type}</span>
-                    <span class="price-val">R$ ${fmt(o.val)}</span>
-                </div>
-            `).join('');
+            // 2. Comparar Ofertas
+            gabarito.offers.forEach(req => {
+                // Tenta achar match na imagem pelo TIPO e PREÇO
+                const perfectMatch = imagem.offers.find(o => o.type === req.type && Math.abs(o.val - req.val) < 0.05);
+                
+                if (perfectMatch) {
+                    rows.push(rowHtml(req.type, req.val, req.val, "OK"));
+                } else {
+                    // Tenta achar só pelo PREÇO (Tipo errado)
+                    const valMatch = imagem.offers.find(o => Math.abs(o.val - req.val) < 0.05);
+                    if (valMatch) {
+                        rows.push(rowHtml(req.type, req.val, valMatch.val, "WARN", `Achado como ${valMatch.type}`));
+                        errorCount++; // Considera erro leve
+                    } else {
+                        rows.push(rowHtml(req.type, req.val, null, "SUMIU"));
+                        errorCount++;
+                    }
+                }
+            });
 
+            const status = errorCount === 0 ? "APROVADO" : `${errorCount} DIVERGÊNCIA(S)`;
+            const badgeClass = errorCount === 0 ? "badge-pass" : "badge-fail";
+
+            const div = document.createElement('div');
+            div.className = "result-card animate-fade-in";
             div.innerHTML = `
                 <div class="card-header">
-                    <span class="font-bold text-sm text-slate-700">ITEM ID: ${id}</span>
+                    <span class="font-bold text-sm text-slate-700">${gabarito.title} (ID ${id})</span>
+                    <span class="badge ${badgeClass}">${status}</span>
                 </div>
-                <div class="p-6">
-                    <span class="section-label">PRODUTO</span>
-                    <div class="title-box">${data.title}</div>
-                    <span class="section-label">PREÇOS</span>
-                    <div class="price-grid">
-                        ${baseHtml}
-                        ${offersHtml}
-                    </div>
-                    <div class="debug-text">RAW: ${raw}</div>
-                </div>
+                <table class="comp-table">
+                    <thead><tr><th>Item</th><th>Esperado (Lista)</th><th>Encontrado (Imagem)</th><th>Status</th></tr></thead>
+                    <tbody>${rows.join('')}</tbody>
+                </table>
             `;
             container.prepend(div);
         }
 
+        function rowHtml(label, exp, found, status, obs = "") {
+            let icon, stClass, valHtml;
+            const expFmt = fmt(exp);
+            
+            if (status === "OK") {
+                icon = '<i class="fa-solid fa-check-circle"></i>';
+                stClass = 'status-ok';
+                valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`;
+            } else if (status === "ERRO") {
+                icon = '<i class="fa-solid fa-circle-xmark"></i>';
+                stClass = 'status-err';
+                valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`;
+            } else if (status === "WARN") {
+                icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                stClass = 'status-warn';
+                valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[10px] block">${obs}</span>`;
+            } else {
+                icon = '<i class="fa-solid fa-eye-slash"></i>';
+                stClass = 'status-err';
+                valHtml = `<span class="text-xs text-slate-400 italic">Não encontrado</span>`;
+            }
+
+            return `
+                <tr>
+                    <td class="font-bold text-slate-600">${label}</td>
+                    <td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td>
+                    <td>${valHtml}</td>
+                    <td class="${stClass}">${icon} ${status}</td>
+                </tr>
+            `;
+        }
+
+        function renderError(c, title, msg) {
+            c.innerHTML += `<div class="p-4 mb-2 bg-red-100 text-red-800 rounded text-sm border border-red-200"><strong>${title}:</strong> ${msg}</div>`;
+        }
         const fmt = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     </script>
 </body>
