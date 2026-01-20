@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V78 - Turbo Free OCR</title>
+    <title>Auditor V79 - Preço e Título</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #111827; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .header { background: #1e293b; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
         .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
         .drop-zone:hover { border-color: #3b82f6; background: #eff6ff; }
@@ -23,6 +23,7 @@
         .comp-table tr:last-child td { border-bottom: none; }
 
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .text-title { font-size: 12px; line-height: 1.4; color: #334155; display: block; max-width: 250px; }
         
         .status-ok { color: #16a34a; font-weight: bold; }
         .status-err { color: #dc2626; font-weight: bold; }
@@ -38,7 +39,7 @@
 
         .debug-panel { font-size: 10px; color: #6b7280; background: #f9fafb; padding: 8px; border-top: 1px solid #e2e8f0; display: none; }
         
-        .api-select { background: #374151; border: 1px solid #4b5563; color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; outline: none; }
+        .api-select { background: #334155; border: 1px solid #475569; color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; outline: none; }
         .api-select:focus { border-color: #3b82f6; }
     </style>
 </head>
@@ -46,10 +47,10 @@
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-violet-600 p-1.5 rounded text-white"><i class="fa-solid fa-robot"></i></div>
+            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-spell-check"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V78</h1>
-                <p class="text-[10px] text-violet-200">Turbo Free OCR (Engine 2)</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V79</h1>
+                <p class="text-[10px] text-blue-200">Comparador de Título + Preço</p>
             </div>
         </div>
         
@@ -64,7 +65,7 @@
 
             <div id="visionKeyContainer" class="flex gap-2">
                 <input type="password" id="apiKey" class="bg-gray-800 border border-gray-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
-                <button onclick="saveKey()" class="bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
+                <button onclick="saveKey()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
             </div>
         </div>
     </header>
@@ -74,9 +75,9 @@
             <div class="flex-1 flex flex-col">
                 <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
                     1. GABARITO (LISTA)
-                    <span class="text-violet-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar Texto</span>
+                    <span class="text-blue-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar Texto</span>
                 </label>
-                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-violet-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea>
             </div>
             
             <div class="h-32">
@@ -99,8 +100,8 @@
 
         <div class="w-[65%] bg-slate-50 relative flex flex-col">
             <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
-                <div class="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mb-3"></div>
-                <div id="loadingText" class="text-sm font-bold text-violet-900 animate-pulse">Iniciando motor...</div>
+                <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+                <div id="loadingText" class="text-sm font-bold text-blue-900 animate-pulse">Iniciando motor...</div>
             </div>
 
             <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
@@ -118,30 +119,19 @@
 
         if(localStorage.getItem('vision_key')) apiKeyInput.value = localStorage.getItem('vision_key');
         
-        function saveKey() { 
-            localStorage.setItem('vision_key', apiKeyInput.value.trim()); 
-            alert("Chave Vision Salva!"); 
-        }
-
-        function toggleApiKeyInput() {
-            if (apiSelector.value === 'vision') {
-                visionContainer.style.display = 'flex';
-            } else {
-                visionContainer.style.display = 'none';
-            }
-        }
+        function saveKey() { localStorage.setItem('vision_key', apiKeyInput.value.trim()); alert("Chave Vision Salva!"); }
+        function toggleApiKeyInput() { visionContainer.style.display = (apiSelector.value === 'vision') ? 'flex' : 'none'; }
         toggleApiKeyInput();
 
         const FREE_OCR_KEY = 'K87864832788957';
-
         let files = [];
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
 
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-violet-600 font-bold">${files.length} Arquivos</div>`; };
-        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#7c3aed'; };
-        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-violet-600 font-bold">${files.length} Arquivos</div>`; };
+        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-blue-600 font-bold">${files.length} Arquivos</div>`; };
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#2563eb'; };
+        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-blue-600 font-bold">${files.length} Arquivos</div>`; };
 
         function clearImages() {
             files = []; fileInput.value = '';
@@ -160,9 +150,7 @@
             if(Object.keys(listData).length === 0) return alert("Lista inválida.");
 
             document.getElementById('loading').classList.remove('hidden');
-            const loadingText = document.getElementById('loadingText');
-            loadingText.innerText = mode === 'vision' ? "Google Vision Processando..." : "Free OCR (Engine 2) Processando...";
-
+            document.getElementById('loadingText').innerText = mode === 'vision' ? "Google Vision..." : "Free OCR Turbo...";
             const container = document.getElementById('resultsArea');
             container.innerHTML = '';
 
@@ -175,21 +163,16 @@
 
                 try {
                     let imgData;
-                    if (mode === 'vision') {
-                        imgData = await processImageVision(file, apiKeyInput.value.trim());
-                    } else {
-                        imgData = await processImageFreeOCR(file);
-                    }
+                    if (mode === 'vision') imgData = await processImageVision(file, apiKeyInput.value.trim());
+                    else imgData = await processImageFreeOCR(file);
                     
-                    compareAndRenderV76(container, id, gabarito, imgData, mode);
-                } catch(e) { 
-                    renderError(container, file.name, e.message); 
-                }
+                    compareAndRenderV79(container, id, gabarito, imgData, mode);
+                } catch(e) { renderError(container, file.name, e.message); }
             }
             document.getElementById('loading').classList.add('hidden');
         }
 
-        // --- VISION ---
+        // --- ENGINES ---
         async function processImageVision(file, key) {
             const base64 = await toBase64(file);
             const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
@@ -197,46 +180,39 @@
             });
             const json = await res.json();
             const text = json.responses[0]?.fullTextAnnotation?.text || "";
-            // Vision tem boa estrutura, contexto menor ok
             return extractPricesFromText(text, 80);
         }
 
-        // --- FREE OCR TURBO (ENGINE 2 + SCALE) ---
         async function processImageFreeOCR(file) {
             let base64 = await toBase64(file);
-            // Comprime se for > 900KB
-            if (file.size > 900 * 1024) { base64 = await compressImage(base64); }
+            if (file.size > 900 * 1024) base64 = await compressImage(base64);
 
             const formData = new FormData();
             formData.append("base64Image", "data:image/jpeg;base64," + base64);
             formData.append("language", "por");
             formData.append("isOverlayRequired", "false");
             formData.append("apikey", FREE_OCR_KEY);
-            
-            // *** MELHORIAS DA V78 ***
-            formData.append("OCREngine", "2"); // Engine 2 é melhor pra numeros
-            formData.append("scale", "true");  // Ajuda em texto pequeno
-            formData.append("detectOrientation", "true");
+            formData.append("OCREngine", "2"); 
+            formData.append("scale", "true"); 
 
-            const res = await fetch("https://api.ocr.space/parse/image", {
-                method: 'POST', body: formData
-            });
-            
+            const res = await fetch("https://api.ocr.space/parse/image", { method: 'POST', body: formData });
             const json = await res.json();
             if (json.IsErroredOnProcessing) throw new Error("Free OCR Error: " + json.ErrorMessage);
             
             const text = json.ParsedResults && json.ParsedResults[0] ? json.ParsedResults[0].ParsedText : "";
-            
-            // Free OCR Engine 2 as vezes retorna quebras de linha estranhas
-            // Aumentamos o contexto de busca para 150 chars
             return extractPricesFromText(text, 150);
         }
 
-        // --- LÓGICA DE EXTRAÇÃO COMUM ---
+        // --- CORE LÓGICO ---
         function extractPricesFromText(rawText, lookBackChars) {
             let clean = rawText.replace(/\r/g, '').replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, (match) => {
                 return match.replace(/S/g, '5').replace(/[O]/g, '0').replace(/B/g, '8').replace(/[lI]/g, '1').replace(/Z/g, '2');
             });
+
+            // *** NOVA LÓGICA DE TÍTULO V79 ***
+            // Pega tudo antes do primeiro "R$" ou "Número,Número"
+            const titleMatch = clean.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s);
+            const extractedTitle = titleMatch ? titleMatch[1].replace(/\n/g, ' ').trim() : "Não identificado";
 
             const pricesFound = [];
             const pRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g;
@@ -270,159 +246,52 @@
             ];
 
             pricesFound.forEach(p => {
-                // Olha para trás com o tamanho definido (Vision=80, Free=150)
                 const ctx = clean.substring(Math.max(0, p.index - lookBackChars), p.index).toUpperCase().replace(/\n/g,' ');
-                
                 let bestT = null, minD = 9999;
-                
                 for(const t of iTriggers) { 
                     const idx = ctx.lastIndexOf(t.k);
                     if(idx !== -1) {
-                        const dist = ctx.length - idx; // Distancia do fim do trigger até o preço
+                        const dist = ctx.length - idx; 
                         if (dist < minD) { minD = dist; bestT = t.t; }
                     }
                 }
-                
-                // Se achou trigger perto (até 100 chars pra Free OCR), vincula
-                if(bestT && minD < 100) { 
-                    offers.push({ type: bestT, val: p.val }); 
-                }
-                else if(!baseFound) { 
-                    basePrice = p.val; baseFound = true; 
-                }
+                if(bestT && minD < 100) offers.push({ type: bestT, val: p.val }); 
+                else if(!baseFound) { basePrice = p.val; baseFound = true; }
             });
 
-            return { basePrice, offers, rawText: clean, rawNumbers };
+            return { title: extractedTitle, basePrice, offers, rawText: clean, rawNumbers };
         }
 
-        // --- AUXILIARES ---
-        function toBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-                reader.readAsDataURL(file);
-            });
-        }
-
-        function compressImage(base64) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.src = "data:image/jpeg;base64," + base64;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1000;
-                    const scaleSize = MAX_WIDTH / img.width;
-                    canvas.width = MAX_WIDTH;
-                    canvas.height = img.height * scaleSize;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]); 
-                };
-            });
-        }
-
-        // --- LIST PARSER (Mantido) ---
-        function parseListV76(txt) {
-            const map = {};
-            const lines = txt.split('\n');
-            let currentItem = null;
-            lines.forEach(line => {
-                line = line.trim(); if(!line) return;
-                const idMatch = line.match(/^(\d+)\s*-\s*(.+)/);
-                if (idMatch) {
-                    if (currentItem) processListBlock(map, currentItem);
-                    currentItem = { id: idMatch[1], text: line };
-                } else if (currentItem) currentItem.text += " " + line;
-            });
-            if (currentItem) processListBlock(map, currentItem);
-            return map;
-        }
-
-        function processListBlock(map, item) {
-            const text = item.text.replace(/\s+/g, ' ').trim();
-            let title = text.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/, '').trim() || text;
-            let basePrice = null;
-            const offers = [];
-            const pricesFound = [];
-            const priceRegex = /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;
-            let match;
-            while ((match = priceRegex.exec(text)) !== null) {
-                pricesFound.push({ val: parseFloat(match[1].replace('.','').replace(',','.')), index: match.index, assigned: false });
-            }
-
-            const redMatch = text.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);
-            if (redMatch) {
-                const val = parseFloat(redMatch[1].replace('.','').replace(',','.'));
-                const p = pricesFound.find(p => Math.abs(p.val - val) < 0.001);
-                if(p) { basePrice = p.val; p.assigned = true; }
-            } else {
-                const dashMatch = text.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);
-                if (dashMatch) {
-                    const val = parseFloat(dashMatch[1].replace('.','').replace(',','.'));
-                    const p = pricesFound.find(p => Math.abs(p.val - val) < 0.001);
-                    if(p) { basePrice = p.val; p.assigned = true; }
-                }
-            }
-
-            const triggers = [
-                { k: "CARTÃO", t: "NOSSO CARTÃO" }, { k: "SAVE", t: "SAVE GANHE" },
-                { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "SAI POR", t: "EMBALAGEM" },
-                { k: "UNIDADE", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }
-            ];
-
-            pricesFound.forEach(p => {
-                if(p.assigned) return;
-                const ctx = text.substring(Math.max(0, p.index - 80), p.index).toUpperCase();
-                let bestT = null, minD = 9999;
-                triggers.forEach(t => {
-                    const idx = ctx.lastIndexOf(t.k);
-                    if(idx !== -1 && (ctx.length - idx) < minD) { minD = ctx.length - idx; bestT = t; }
-                });
-                if(bestT && minD < 60) { offers.push({ type: bestT.t, val: p.val }); p.assigned = true; }
-            });
-
-            if(!basePrice) { const l = pricesFound.find(p => !p.assigned); if(l) basePrice = l.val; }
-            map[item.id] = { title, basePrice, offers };
-        }
-
-        // --- RENDER (Mantido) ---
-        function compareAndRenderV76(container, id, gabarito, imagem, mode) {
+        // --- COMPARADOR V79 (Com Título) ---
+        function compareAndRenderV79(container, id, gabarito, imagem, mode) {
             const rows = [];
             let errorCount = 0;
 
+            // 1. COMPARAÇÃO DE TÍTULO (NOVO)
+            const sim = checkTitleSimilarity(gabarito.title, imagem.title);
+            let titleStatus = "OK";
+            if (sim < 0.4) { titleStatus = "ERRO"; errorCount++; } // Menos de 40% de match = Erro
+            else if (sim < 0.7) { titleStatus = "WARN"; } // Entre 40% e 70% = Alerta
+            
+            rows.push(rowTitleHtml(gabarito.title, imagem.title, titleStatus, Math.round(sim * 100)));
+
+            // 2. COMPARAÇÃO DE PREÇOS
             if (gabarito.basePrice) {
                 if (imagem.basePrice) {
-                    if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) {
-                        rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
-                    } else {
-                        rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "DIVERGENTE"));
-                        errorCount++;
-                    }
-                } else {
-                    rows.push(rowHtml("BASE", gabarito.basePrice, null, "SUMIU"));
-                    errorCount++;
-                }
+                    if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
+                    else { rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "DIVERGENTE")); errorCount++; }
+                } else { rows.push(rowHtml("BASE", gabarito.basePrice, null, "SUMIU")); errorCount++; }
             }
 
             gabarito.offers.forEach(req => {
                 const matchType = imagem.offers.find(o => o.type === req.type);
                 if (matchType) {
-                    if (Math.abs(matchType.val - req.val) < 0.05) {
-                        rows.push(rowHtml(req.type, req.val, matchType.val, "OK"));
-                    } else {
-                        rows.push(rowHtml(req.type, req.val, matchType.val, "DIVERGENTE"));
-                        errorCount++;
-                    }
+                    if (Math.abs(matchType.val - req.val) < 0.05) rows.push(rowHtml(req.type, req.val, matchType.val, "OK"));
+                    else { rows.push(rowHtml(req.type, req.val, matchType.val, "DIVERGENTE")); errorCount++; }
                 } else {
                     const matchVal = imagem.offers.find(o => Math.abs(o.val - req.val) < 0.05);
-                    if(matchVal) {
-                        rows.push(rowHtml(req.type, req.val, matchVal.val, "WARN", `Achado como ${matchVal.type}`));
-                        errorCount++;
-                    } else {
-                        rows.push(rowHtml(req.type, req.val, null, "SUMIU"));
-                        errorCount++;
-                    }
+                    if(matchVal) { rows.push(rowHtml(req.type, req.val, matchVal.val, "WARN", `Achado como ${matchVal.type}`)); errorCount++; }
+                    else { rows.push(rowHtml(req.type, req.val, null, "SUMIU")); errorCount++; }
                 }
             });
 
@@ -431,14 +300,11 @@
             const div = document.createElement('div');
             div.className = "result-card animate-fade-in";
             const debugId = `debug-${id}`;
-            const engineLabel = mode === 'vision' ? 'Google Vision' : 'Free OCR';
+            const engineLabel = mode === 'vision' ? 'Vision' : 'Free OCR';
             
             div.innerHTML = `
                 <div class="card-header">
-                    <div>
-                        <span class="font-bold text-sm text-slate-700">${gabarito.title} (ID ${id})</span>
-                        <span class="text-[9px] text-gray-400 ml-1">via ${engineLabel}</span>
-                    </div>
+                    <div><span class="font-bold text-sm text-slate-700">ID ${id}</span> <span class="text-[9px] text-gray-400">(${engineLabel})</span></div>
                     <span class="badge ${badgeClass}">${status}</span>
                 </div>
                 <table class="comp-table">
@@ -446,16 +312,44 @@
                     <tbody>${rows.join('')}</tbody>
                 </table>
                 <div class="text-center p-2 border-t border-slate-100">
-                    <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-violet-500 hover:underline">
-                        <i class="fa-solid fa-microscope"></i> Ver Detalhes
-                    </button>
+                    <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-blue-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button>
                 </div>
                 <div id="${debugId}" class="debug-panel">
-                    <strong>Números:</strong> ${imagem.rawNumbers.map(n=>n.val).join(', ')}<br>
-                    <strong>Texto Lido:</strong><br>${imagem.rawText.substring(0, 200)}...
+                    <strong>RAW Text:</strong> ${imagem.rawText.substring(0, 150)}...
                 </div>
             `;
             container.prepend(div);
+        }
+
+        // --- ALGORITMO DE SIMILARIDADE ---
+        function checkTitleSimilarity(exp, fnd) {
+            // Remove palavras curtas e simbolos
+            const tokenize = str => str.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+            const expTokens = tokenize(exp);
+            const fndText = fnd.toLowerCase();
+            
+            if(expTokens.length === 0) return 0;
+
+            let matches = 0;
+            expTokens.forEach(t => {
+                if(fndText.includes(t)) matches++;
+            });
+
+            return matches / expTokens.length;
+        }
+
+        function rowTitleHtml(exp, found, status, pct) {
+            let icon, stClass, bgClass;
+            if(status === "OK") { icon='✔'; stClass='status-ok'; bgClass='bg-ok'; }
+            else if(status === "WARN") { icon='⚠'; stClass='status-warn'; bgClass='bg-ref'; }
+            else { icon='✖'; stClass='status-err'; bgClass='bg-err'; }
+
+            return `<tr>
+                <td class="font-bold text-slate-600">TÍTULO PRODUTO</td>
+                <td><span class="text-title">${exp}</span></td>
+                <td><span class="text-title font-bold text-slate-600">${found}</span><span class="text-[9px] text-gray-400">(${pct}% match)</span></td>
+                <td class="${stClass}">${icon} ${status}</td>
+            </tr>`;
         }
 
         function rowHtml(label, exp, found, status, obs="") {
@@ -465,9 +359,14 @@
             else if (status === "DIVERGENTE") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; }
             else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; }
             else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-miss">---</span>`; }
-            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-violet-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
+            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
         }
 
+        // --- AUXILIARES E PARSERS ANTIGOS (Mantidos) ---
+        function toBase64(file) { return new Promise((r,j) => { const reader = new FileReader(); reader.onload=()=>r(reader.result.split(',')[1]); reader.onerror=j; reader.readAsDataURL(file); }); }
+        function compressImage(b64) { return new Promise(r => { const i=new Image(); i.src="data:image/jpeg;base64,"+b64; i.onload=()=>{ const c=document.createElement('canvas'); c.width=1000; c.height=i.height*(1000/i.width); c.getContext('2d').drawImage(i,0,0,c.width,c.height); r(c.toDataURL('image/jpeg',0.7).split(',')[1]); }}); }
+        function parseListV76(txt) { const map={}; const lines=txt.split('\n'); let cur=null; lines.forEach(l=>{ l=l.trim(); if(!l)return; const m=l.match(/^(\d+)\s*-\s*(.+)/); if(m){ if(cur)processListBlock(map,cur); cur={id:m[1],text:l}; }else if(cur)cur.text+=" "+l; }); if(cur)processListBlock(map,cur); return map; }
+        function processListBlock(map,item){ const t=item.text.replace(/\s+/g,' ').trim(); let ti=t.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/,'').trim()||t; let bp=null; const ofs=[]; const pfs=[]; const pr=/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi; let m; while((m=pr.exec(t))!==null)pfs.push({v:parseFloat(m[1].replace('.','').replace(',','.')),i:m.index,a:false}); const rm=t.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i); if(rm){ const v=parseFloat(rm[1].replace('.','').replace(',','.')); const p=pfs.find(p=>Math.abs(p.v-v)<0.001); if(p){bp=p.v; p.a=true;}} else { const dm=t.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/); if(dm){ const v=parseFloat(dm[1].replace('.','').replace(',','.')); const p=pfs.find(p=>Math.abs(p.v-v)<0.001); if(p){bp=p.v; p.a=true;}}} const trs=[{k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"SAVE",t:"SAVE GANHE"},{k:"EMBALAGEM",t:"EMBALAGEM"},{k:"SAI POR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},{k:"LEVANDO",t:"EMBALAGEM"}]; pfs.forEach(p=>{ if(p.a)return; const ctx=t.substring(Math.max(0,p.i-80),p.i).toUpperCase(); let bt=null, md=9999; trs.forEach(tr=>{ const idx=ctx.lastIndexOf(tr.k); if(idx!==-1 && (ctx.length-idx)<md){ md=ctx.length-idx; bt=tr.t;}}); if(bt && md<60){ofs.push({type:bt,val:p.v}); p.a=true;}}); if(!bp){const l=pfs.find(p=>!p.a); if(l)bp=l.v;} map[item.id]={title:ti,basePrice:bp,offers:ofs}; }
         function renderError(c, t, m) { c.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs rounded mb-2"><strong>${t}:</strong> ${m}</div>`; }
         const fmt = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     </script>
