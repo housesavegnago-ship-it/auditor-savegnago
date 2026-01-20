@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passo 2 - Lista V65 (Hierarquia)</title>
+    <title>Passo 2 - Lista V66 (Exclusão Mútua)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
@@ -21,7 +21,6 @@
         .price-card { padding: 12px; border-radius: 8px; border-width: 1px; border-style: solid; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .price-val { font-size: 22px; font-weight: 800; font-family: monospace; display: block; margin-top: 2px; letter-spacing: -1px; }
         
-        /* CORES */
         .style-base { background: #f0fdf4; border-color: #86efac; color: #166534; }
         .style-base .tag { background: #166534; color: white; }
 
@@ -41,10 +40,10 @@
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-indigo-800 p-1.5 rounded text-white"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="bg-violet-800 p-1.5 rounded text-white"><i class="fa-solid fa-code-merge"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Passo 2 (V65)</h1>
-                <p class="text-[10px] text-indigo-200">Lógica Hierárquica</p>
+                <h1 class="font-bold text-lg leading-none">Passo 2 (V66)</h1>
+                <p class="text-[10px] text-violet-200">Parser Infalível</p>
             </div>
         </div>
     </header>
@@ -53,12 +52,12 @@
         <div class="w-[40%] bg-white border-r border-slate-200 flex flex-col p-6 shadow-xl z-10">
             <label class="text-xs font-bold text-slate-500 mb-2 flex justify-between">
                 COLE A LISTA
-                <span class="text-indigo-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                <span class="text-violet-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
             </label>
-            <textarea id="listInput" class="flex-1 border-2 border-slate-200 rounded-lg p-4 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none resize-none transition" placeholder="1 - Cerveja (Nesta embalagem a unidade sai por R$ 2,99)"></textarea>
+            <textarea id="listInput" class="flex-1 border-2 border-slate-200 rounded-lg p-4 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-violet-500 outline-none resize-none transition" placeholder="1 - Cerveja R$ 5,00 (Nesta embalagem a unidade sai por R$ 2,99)"></textarea>
             
-            <button onclick="analyzeList()" class="mt-4 bg-indigo-700 hover:bg-indigo-600 text-white py-4 rounded-lg font-bold shadow-lg transition text-sm flex justify-center items-center gap-2">
-                <i class="fa-solid fa-filter"></i> DECODIFICAR
+            <button onclick="analyzeList()" class="mt-4 bg-violet-700 hover:bg-violet-600 text-white py-4 rounded-lg font-bold shadow-lg transition text-sm flex justify-center items-center gap-2">
+                <i class="fa-solid fa-check-circle"></i> DECODIFICAR
             </button>
         </div>
 
@@ -93,7 +92,7 @@
                     foundAny = true;
                     const id = idMatch[1];
                     const fullText = idMatch[2];
-                    const structured = parseSingleLineV65(fullText);
+                    const structured = parseSingleLineV66(fullText);
                     renderItemCard(container, id, structured);
                 }
             });
@@ -103,30 +102,29 @@
             }
         }
 
-        // --- CÉREBRO V65: HIERARQUIA ---
-        function parseSingleLineV65(text) {
+        // --- CÉREBRO V66: LÓGICA DE EXCLUSÃO MÚTUA ---
+        function parseSingleLineV66(text) {
             let title = text;
             let basePrice = null;
             const offers = [];
 
-            // 1. Título (Corte Simples)
+            // 1. Título
             const titleSplit = text.match(/^(.*?)(?=\(red\.|–\s*R\$|R\$)/i);
             if (titleSplit) title = titleSplit[1].trim();
 
-            // 2. Coletar todos os preços e seus índices
+            // 2. Coleta Preços
             const pricesFound = [];
             const priceRegex = /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;
             let match;
             while ((match = priceRegex.exec(text)) !== null) {
                 const valStr = match[1];
                 const val = parseFloat(valStr.replace('.','').replace(',','.'));
-                pricesFound.push({ val: val, index: match.index, assigned: false });
+                pricesFound.push({ val: val, index: match.index, text: match[0], assigned: false });
             }
 
-            // 3. IDENTIFICAR OFERTAS (Prioridade 1)
-            // Varre procurando gatilhos ANTES de cada preço
+            // 3. DETECTAR OFERTAS (Prioridade)
             pricesFound.forEach(p => {
-                // Olha 60 chars pra trás
+                // Olha contexto anterior (60 chars)
                 const contextBefore = text.substring(Math.max(0, p.index - 60), p.index).toUpperCase();
                 
                 let detected = null;
@@ -150,17 +148,17 @@
 
                 if (detected) {
                     offers.push({ type: detected, val: p.val, css: css });
-                    p.assigned = true; // Marca como "Já usei esse preço"
+                    p.assigned = true;
                 }
             });
 
-            // 4. IDENTIFICAR BASE (Prioridade 2 - O que sobrou)
-            // O preço que não foi marcado como oferta é a Base.
-            // Se houver mais de um, geralmente o primeiro é a base na lista linear.
+            // 4. DETECTAR BASE (Tudo que sobrou)
             const leftovers = pricesFound.filter(p => !p.assigned);
             
             if (leftovers.length > 0) {
-                // Pega o primeiro não atribuído como Base
+                // Se sobrar algum preço que não é oferta, ele é a Base.
+                // Ex: "R$ 5,00 (Nesta embalagem sai por R$ 2,99)"
+                // O 2,99 virou oferta (embalagem). O 5,00 sobrou -> Base.
                 basePrice = { val: leftovers[0].val };
             }
 
