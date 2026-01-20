@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V81 - Ajuste Fino</title>
+    <title>Auditor V82 - Título Duplo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
         .header { background: #1f2937; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
         .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
@@ -25,10 +24,13 @@
 
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
         
-        /* DIFF TEXT STYLES (COM ESPAÇAMENTO) */
+        /* DIFF TEXT STYLES */
         .diff-word { display: inline-block; margin-right: 4px; }
         .diff-found { color: #16a34a; font-weight: bold; } 
         .diff-missing { color: #dc2626; text-decoration: line-through; opacity: 0.6; } 
+        
+        /* LINHA DE TITULO DA LISTA */
+        .list-title-text { font-weight: 600; color: #1e293b; font-size: 12px; }
 
         .status-ok { color: #16a34a; font-weight: bold; }
         .status-err { color: #dc2626; font-weight: bold; }
@@ -55,8 +57,8 @@
         <div class="flex items-center gap-3">
             <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-robot"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V81</h1>
-                <p class="text-[10px] text-gray-400">Polimento Visual</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V82</h1>
+                <p class="text-[10px] text-gray-400">Comparador Visual Completo</p>
             </div>
         </div>
         
@@ -172,18 +174,18 @@
                     if (mode === 'vision') imgData = await processImageVision(file, apiKeyInput.value.trim());
                     else imgData = await processImageFreeOCR(file);
                     
-                    compareAndRenderV81(container, id, gabarito, imgData, mode);
+                    compareAndRenderV82(container, id, gabarito, imgData, mode);
                 } catch(e) { renderError(container, file.name, e.message); }
             }
             document.getElementById('loading').classList.add('hidden');
         }
 
-        // --- ENGINES (Mantidos V79) ---
+        // --- ENGINES (Mantidos) ---
         async function processImageVision(file, key) {
             const base64 = await toBase64(file);
             const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, { method: 'POST', body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] }) });
             const json = await res.json();
-            return extractPricesFromTextV80(json.responses[0]?.fullTextAnnotation?.text || "", 80);
+            return extractPricesFromTextV82(json.responses[0]?.fullTextAnnotation?.text || "", 80);
         }
 
         async function processImageFreeOCR(file) {
@@ -198,13 +200,16 @@
             const res = await fetch("https://api.ocr.space/parse/image", { method: 'POST', body: formData });
             const json = await res.json();
             if (json.IsErroredOnProcessing) throw new Error("Free OCR Error: " + json.ErrorMessage);
-            return extractPricesFromTextV80(json.ParsedResults?.[0]?.ParsedText || "", 150);
+            return extractPricesFromTextV82(json.ParsedResults?.[0]?.ParsedText || "", 150);
         }
 
-        // --- CORE LÓGICO (Mantido V80) ---
-        function extractPricesFromTextV80(rawText, lookBackChars) {
+        // --- CORE LÓGICO V82 ---
+        function extractPricesFromTextV82(rawText, lookBackChars) {
             let clean = rawText.replace(/\r/g, '').replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, (match) => match.replace(/S/g,'5').replace(/[O]/g,'0').replace(/B/g,'8').replace(/[lI]/g,'1').replace(/Z/g,'2'));
+            
+            // TITULO: Pega tudo antes do primeiro preço (R$ ou XX,XX)
             let extractedTitle = clean.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s)?.[1] || "";
+            // Faxina de Palavras Proibidas
             ["SAVE", "GANHE", "NOSSO", "CLUBE", "OFERTA", "CLIENTE", "LEVANDO", "CARTÃO"].forEach(g => { const idx = extractedTitle.toUpperCase().indexOf(g); if(idx !== -1) extractedTitle = extractedTitle.substring(0, idx); });
             extractedTitle = extractedTitle.replace(/\n/g, ' ').trim();
 
@@ -230,8 +235,8 @@
             return { title: extractedTitle, basePrice, offers, rawText: clean, rawNumbers: pricesFound };
         }
 
-        // --- RENDER V81 (COM ESPAÇAMENTO E CORREÇÃO DE COR) ---
-        function compareAndRenderV81(container, id, gabarito, imagem, mode) {
+        // --- RENDER V82 (DUPLA LINHA) ---
+        function compareAndRenderV82(container, id, gabarito, imagem, mode) {
             const rows = [];
             let errorCount = 0;
 
@@ -239,9 +244,10 @@
             const titleStatus = sim < 0.4 ? "ERRO" : (sim < 0.7 ? "WARN" : "OK");
             if (titleStatus === "ERRO") errorCount++;
             
-            // Diff com espaçamento
-            const titleDiffHtml = generateTitleDiffV81(gabarito.title, imagem.title);
-            rows.push(rowTitleHtml(titleDiffHtml, titleStatus, Math.round(sim * 100)));
+            const titleDiffHtml = generateTitleDiffV82(gabarito.title, imagem.title);
+            
+            // DUPLA LINHA DE TÍTULO NA TABELA
+            rows.push(rowTitleDouble(gabarito.title, titleDiffHtml, titleStatus, Math.round(sim * 100)));
 
             if (gabarito.basePrice) {
                 if (imagem.basePrice) {
@@ -282,39 +288,56 @@
                     <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-blue-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button>
                 </div>
                 <div id="${debugId}" class="debug-panel">
-                    <strong>Raw Title:</strong> ${imagem.title}<br>
+                    <strong>Raw OCR Title:</strong> ${imagem.title}<br>
                     <strong>RAW Text:</strong> ${imagem.rawText.substring(0, 150)}...
                 </div>
             `;
             container.prepend(div);
         }
 
-        // --- DIFF COM ESPAÇAMENTO V81 ---
-        function generateTitleDiffV81(expected, found) {
+        // --- RENDERIZADORES AUXILIARES V82 ---
+        function generateTitleDiffV82(expected, found) {
             const expTokens = expected.split(/\s+/);
             const foundClean = found.toLowerCase();
-            
             return expTokens.map(word => {
                 const wClean = word.toLowerCase().replace(/[^\w]/g,'');
                 if(wClean.length < 2) return `<span class="diff-word text-gray-400">${word}</span>`;
-                
-                // Se achou a palavra, pinta de verde. Se não, risca de vermelho.
-                if (foundClean.includes(wClean)) {
-                    return `<span class="diff-word diff-found">${word}</span>`;
-                } else {
-                    return `<span class="diff-word diff-missing">${word}</span>`;
-                }
+                if (foundClean.includes(wClean)) return `<span class="diff-word diff-found">${word}</span>`;
+                else return `<span class="diff-word diff-missing">${word}</span>`;
             }).join(' ');
         }
 
-        // --- AUXILIARES (Mantidos) ---
-        function rowTitleHtml(diffHtml, status, pct) {
+        function rowTitleDouble(expected, diffHtml, status, pct) {
             let icon, stClass;
             if(status === "OK") { icon='✔'; stClass='status-ok'; } else if(status === "WARN") { icon='⚠'; stClass='status-warn'; } else { icon='✖'; stClass='status-err'; }
-            return `<tr><td class="font-bold text-slate-600">TÍTULO</td><td colspan="2"><div class="text-[12px] leading-snug">${diffHtml}</div></td><td class="${stClass}"><div class="flex flex-col items-center"><span>${icon} ${status}</span><span class="text-[9px] text-gray-400">(${pct}%)</span></div></td></tr>`;
+            
+            return `
+                <tr>
+                    <td class="font-bold text-slate-600 align-top pt-3">TÍTULO (LISTA)</td>
+                    <td colspan="2"><span class="list-title-text">${expected}</span></td>
+                    <td rowspan="2" class="${stClass} align-middle border-l border-slate-100 pl-2">
+                        <div class="flex flex-col items-center"><span>${icon} ${status}</span><span class="text-[9px] text-gray-400">(${pct}%)</span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="font-bold text-slate-600 align-top pb-3 text-[10px]">TÍTULO (IMG)</td>
+                    <td colspan="2" class="pb-3"><div class="text-[12px] leading-snug">${diffHtml}</div></td>
+                </tr>
+            `;
         }
+
+        function rowHtml(label, exp, found, status, obs="") {
+            let icon, stClass, valHtml;
+            const expFmt = fmt(exp);
+            if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; }
+            else if (status === "DIVERGENTE") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; }
+            else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; }
+            else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-miss">---</span>`; }
+            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass} border-l border-slate-100 pl-2">${icon} ${status}</td></tr>`;
+        }
+
+        // --- MANTER PARSERS V76 ---
         function checkTitleSimilarity(exp, fnd) { const t=s=>s.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).filter(w=>w.length>2); const eT=t(exp); const fT=fnd.toLowerCase(); if(eT.length===0)return 0; let m=0; eT.forEach(t=>{if(fT.includes(t))m++}); return m/eT.length; }
-        function rowHtml(l,e,f,s,o=""){ let i,c,v; const ef=fmt(e); if(s==="OK"){i='✔';c='status-ok';v=`<span class="price-tag bg-ok">R$ ${fmt(f)}</span>`} else if(s==="DIVERGENTE"){i='✖';c='status-err';v=`<span class="price-tag bg-err">R$ ${fmt(f)}</span>`} else if(s==="WARN"){i='⚠';c='status-warn';v=`<span class="price-tag bg-ref">R$ ${fmt(f)}</span> <span class="text-[9px]">${o}</span>`} else{i='✖';c='status-err';v=`<span class="price-tag bg-miss">---</span>`} return `<tr><td class="font-bold text-slate-600">${l}</td><td><span class="font-mono font-bold text-blue-800">R$ ${ef}</span></td><td>${v}</td><td class="${c}">${i} ${s}</td></tr>`; }
         function toBase64(f){return new Promise((r,j)=>{const d=new FileReader();d.onload=()=>r(d.result.split(',')[1]);d.onerror=j;d.readAsDataURL(f)})}
         function compressImage(b){return new Promise(r=>{const i=new Image();i.src="data:image/jpeg;base64,"+b;i.onload=()=>{const c=document.createElement('canvas');c.width=1000;c.height=i.height*(1000/i.width);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',0.7).split(',')[1])}})}
         function parseListV76(t){const m={};const l=t.split('\n');let c=null;l.forEach(x=>{x=x.trim();if(!x)return;const r=x.match(/^(\d+)\s*-\s*(.+)/);if(r){if(c)processListBlock(m,c);c={id:r[1],text:x}}else if(c)c.text+=" "+x});if(c)processListBlock(m,c);return m}
