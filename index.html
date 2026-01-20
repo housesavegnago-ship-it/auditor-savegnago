@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passo 2 - Decodificador de Lista (V61)</title>
+    <title>Passo 2 - Lista Linguiça (V62)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #0f766e; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
+        .header { background: #047857; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
         
         .result-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .card-header { padding: 12px 15px; background: #f0fdfa; border-bottom: 1px solid #ccfbf1; display: flex; justify-content: space-between; align-items: center; }
+        .card-header { padding: 12px 15px; background: #ecfdf5; border-bottom: 1px solid #d1fae5; display: flex; justify-content: space-between; align-items: center; }
         
         .section-label { font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
-        .title-box { font-size: 16px; color: #1e293b; font-weight: 700; padding: 12px; background: #f8fafc; border-left: 4px solid #0f766e; margin-bottom: 12px; border-radius: 4px; }
+        .title-box { font-size: 16px; color: #1e293b; font-weight: 700; padding: 12px; background: #f8fafc; border-left: 4px solid #047857; margin-bottom: 12px; border-radius: 4px; }
         
         .price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 5px; }
         .price-card { padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; text-align: center; }
@@ -37,10 +37,10 @@
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-teal-800 p-1.5 rounded text-white"><i class="fa-solid fa-list-ol"></i></div>
+            <div class="bg-emerald-800 p-1.5 rounded text-white"><i class="fa-solid fa-file-lines"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Passo 2 (V61)</h1>
-                <p class="text-[10px] text-teal-200">Decodificador de Lista</p>
+                <h1 class="font-bold text-lg leading-none">Passo 2 (V62)</h1>
+                <p class="text-[10px] text-emerald-200">Parser de Linha Única</p>
             </div>
         </div>
     </header>
@@ -48,13 +48,13 @@
     <div class="flex flex-1 overflow-hidden">
         <div class="w-[40%] bg-white border-r border-slate-200 flex flex-col p-6 shadow-xl z-10">
             <label class="text-xs font-bold text-slate-500 mb-2 flex justify-between">
-                COLE SUA LISTA AQUI
-                <span class="text-teal-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                COLE SUA LISTA LINHA ÚNICA
+                <span class="text-emerald-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
             </label>
-            <textarea id="listInput" class="flex-1 border-2 border-slate-200 rounded-lg p-4 text-sm font-mono bg-slate-50 focus:ring-2 focus:ring-teal-500 outline-none resize-none transition" placeholder="Exemplo:&#10;1 - Costela Bovina Minga Granel kg&#10;R$ 26,50&#10;No Save Ganhe R$ 24,70"></textarea>
+            <textarea id="listInput" class="flex-1 border-2 border-slate-200 rounded-lg p-4 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-emerald-500 outline-none resize-none transition" placeholder="1 - Costela Bovina Minga Granel Kg (red.131327) – R$ 26,50 (Save Ganhe: R$ 24,70)"></textarea>
             
-            <button onclick="analyzeList()" class="mt-4 bg-teal-700 hover:bg-teal-600 text-white py-4 rounded-lg font-bold shadow-lg transition text-sm flex justify-center items-center gap-2">
-                <i class="fa-solid fa-gears"></i> DECODIFICAR LISTA
+            <button onclick="analyzeList()" class="mt-4 bg-emerald-700 hover:bg-emerald-600 text-white py-4 rounded-lg font-bold shadow-lg transition text-sm flex justify-center items-center gap-2">
+                <i class="fa-solid fa-code-branch"></i> FATIAR E ORGANIZAR
             </button>
         </div>
 
@@ -65,7 +65,7 @@
 
             <div id="resultsArea" class="flex-1 overflow-y-auto p-8">
                 <div class="text-center mt-20 text-slate-400 text-sm italic">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e clique em Decodificar.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e clique no botão.
                 </div>
             </div>
         </div>
@@ -79,92 +79,88 @@
 
             if(!txt.trim()) return alert("Cole uma lista primeiro!");
 
-            // 1. Quebra em blocos de Itens (Procura padrão "Numero - Nome")
-            // Regex: Início da linha, digitos, traço.
-            const rawItems = [];
             const lines = txt.split('\n');
-            let currentItem = null;
+            let foundAny = false;
 
             lines.forEach(line => {
                 line = line.trim();
                 if(!line) return;
 
-                // Detecta início de novo item (Ex: "1 - Costela")
+                // 1. Tenta achar o ID do item
                 const idMatch = line.match(/^(\d+)\s*-\s*(.+)/);
                 
                 if (idMatch) {
-                    if (currentItem) rawItems.push(currentItem);
-                    currentItem = {
-                        id: idMatch[1],
-                        title: idMatch[2],
-                        lines: []
-                    };
-                } else {
-                    // Se já tem um item aberto, adiciona as linhas de preço/oferta nele
-                    if (currentItem) currentItem.lines.push(line);
+                    foundAny = true;
+                    const id = idMatch[1];
+                    const fullText = idMatch[2];
+                    
+                    const structured = parseSingleLine(fullText);
+                    renderItemCard(container, id, structured);
                 }
             });
-            if (currentItem) rawItems.push(currentItem);
 
-            if (rawItems.length === 0) {
-                container.innerHTML = `<div class="p-4 bg-red-100 text-red-800 rounded">Não encontrei nenhum padrão "ID - Nome" (Ex: 1 - Arroz). Verifique a formatação.</div>`;
-                return;
+            if (!foundAny) {
+                container.innerHTML = `<div class="p-4 bg-red-100 text-red-800 rounded">Não encontrei nenhum padrão "ID - Nome" (Ex: 1 - Arroz).</div>`;
             }
-
-            // 2. Processa cada item
-            rawItems.forEach(item => {
-                const structured = parseItemLines(item.lines);
-                renderItemCard(container, item, structured);
-            });
         }
 
-        function parseItemLines(lines) {
+        // --- CÉREBRO NOVO: PARSER DE LINHA ÚNICA ---
+        function parseSingleLine(text) {
+            let title = text;
             let basePrice = null;
             const offers = [];
 
-            // Palavras-chave para identificar ofertas
-            const triggers = [
-                { key: "SAVE GANHE", label: "SAVE GANHE", css: "bg-save" },
-                { key: "SAVEGANHE", label: "SAVE GANHE", css: "bg-save" },
-                { key: "NO SAVE", label: "SAVE GANHE", css: "bg-save" },
-                { key: "CARTÃO", label: "CARTÃO", css: "bg-card" },
-                { key: "CARTAO", label: "CARTÃO", css: "bg-card" },
-                { key: "CLIENTE", label: "CLIENTE", css: "bg-card" },
-                { key: "EMBALAGEM", label: "EMBALAGEM", css: "bg-card" },
-                { key: "LEVANDO", label: "LEVANDO", css: "bg-card" },
-                { key: "A PARTIR", label: "A PARTIR", css: "bg-card" }
-            ];
+            // 1. Separar o Título
+            // O título vai até encontrar "(red." OU "– R$" OU "R$"
+            const titleSplit = text.match(/^(.*?)(?=\(red\.|–\s*R\$|R\$)/i);
+            if (titleSplit) {
+                title = titleSplit[1].trim();
+            }
 
-            lines.forEach(line => {
-                // Tenta extrair preço da linha
-                const priceMatch = line.match(/(\d{1,3}(?:\.\d{3})*)[,.](\d{2})/);
-                if (!priceMatch) return; // Linha sem preço ignora
-
-                const val = parseFloat(priceMatch[0].replace('.','').replace(',','.'));
-                const upperLine = line.toUpperCase();
-
-                // Verifica se é oferta
-                let isOffer = false;
-                for (const t of triggers) {
-                    if (upperLine.includes(t.key)) {
-                        offers.push({ type: t.label, val: val, css: t.css, originalText: line });
-                        isOffer = true;
-                        break;
-                    }
+            // 2. Extrair Preços Soltos (Base)
+            // Procura padrão "– R$ XX,XX" ou apenas preços fora de parenteses
+            // Regex: Pega "R$ XX,XX" que NÃO está precedido por "(" ou ":" 
+            // Mas mais simples: Pega todos os preços e vê o contexto.
+            
+            const priceRegex = /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;
+            let match;
+            
+            // Vamos varrer a string original procurando preços
+            while ((match = priceRegex.exec(text)) !== null) {
+                const valStr = match[1];
+                const val = parseFloat(valStr.replace('.','').replace(',','.'));
+                const index = match.index;
+                
+                // Contexto: Olha o que tem em volta
+                // Se estiver dentro de parenteses (...) é oferta secundária ou info extra
+                // Se estiver logo depois de "–" é Base
+                
+                const contextBefore = text.substring(Math.max(0, index - 20), index).toUpperCase();
+                const contextAfter = text.substring(index, Math.min(text.length, index + 20)); // Pra ver se fecha parenteses
+                
+                // Analisa Ofertas (Gatilhos)
+                if (contextBefore.includes("SAVE GANHE") || contextBefore.includes("SAVEGANHE")) {
+                    offers.push({ type: "SAVE GANHE", val: val, css: "bg-save" });
+                } else if (contextBefore.includes("CARTÃO") || contextBefore.includes("CARTAO")) {
+                    offers.push({ type: "CARTÃO", val: val, css: "bg-card" });
+                } else if (contextBefore.includes("CLIENTE")) {
+                    offers.push({ type: "CLIENTE", val: val, css: "bg-card" });
+                } else if (contextBefore.includes("EMBALAGEM") || contextBefore.includes("LEVANDO")) {
+                    offers.push({ type: "EMBALAGEM", val: val, css: "bg-card" });
+                } 
+                // Se não for oferta, é BASE?
+                else {
+                    // Geralmente a base vem depois de "– " ou solta
+                    // Vamos assumir que é base se não caiu nos ifs acima
+                    // Mas cuidado com "(red.123)" que as vezes tem numero parecido, mas o regex R$ protege
+                    basePrice = { val: val };
                 }
+            }
 
-                // Se não for oferta, assume que é Base
-                if (!isOffer) {
-                    // Se já existe uma base, a gente substitui ou ignora?
-                    // Geralmente o base é o preço "seco".
-                    basePrice = { val: val, originalText: line };
-                }
-            });
-
-            return { basePrice, offers };
+            return { title, basePrice, offers };
         }
 
-        function renderItemCard(container, item, data) {
+        function renderItemCard(container, id, data) {
             const div = document.createElement('div');
             div.className = "result-card animate-fade-in";
 
@@ -174,12 +170,11 @@
                     <div class="price-card card-base">
                         <span class="tag-type bg-base">PREÇO BASE</span>
                         <span class="price-val">R$ ${fmt(data.basePrice.val)}</span>
-                        <div class="text-[10px] text-slate-400 mt-1 truncate">"${data.basePrice.originalText}"</div>
                     </div>
                 `;
             } else {
                 baseHtml = `
-                    <div class="price-card bg-slate-50 border-slate-200">
+                    <div class="price-card bg-slate-50 border-slate-200 opacity-50">
                         <span class="tag-type bg-slate-200 text-slate-500">SEM BASE</span>
                         <span class="price-val text-slate-400">---</span>
                     </div>
@@ -190,19 +185,18 @@
                 <div class="price-card card-offer">
                     <span class="tag-type ${o.css}">${o.type}</span>
                     <span class="price-val">R$ ${fmt(o.val)}</span>
-                    <div class="text-[10px] text-slate-400 mt-1 truncate">"${o.originalText}"</div>
                 </div>
             `).join('');
 
             div.innerHTML = `
                 <div class="card-header">
-                    <span class="font-bold text-sm text-teal-800">ID ${item.id}</span>
+                    <span class="font-bold text-sm text-emerald-900">ID ${id}</span>
                 </div>
                 <div class="p-6">
                     <span class="section-label">PRODUTO</span>
-                    <div class="title-box">${item.title}</div>
+                    <div class="title-box">${data.title}</div>
 
-                    <span class="section-label">PREÇOS ESTRUTURADOS</span>
+                    <span class="section-label">PREÇOS DECODIFICADOS</span>
                     <div class="price-grid">
                         ${baseHtml}
                         ${offersHtml}
