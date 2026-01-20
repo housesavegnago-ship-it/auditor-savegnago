@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V73 - Detetive OCR</title>
+    <title>Auditor V74 - Varredura Profunda</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #1e1e1e; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: #0f172a; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
         
-        .drop-zone { border: 2px dashed #9ca3af; border-radius: 8px; background: #e5e7eb; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .drop-zone:hover { border-color: #3b82f6; background: #dbeafe; }
+        .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .drop-zone:hover { border-color: #3b82f6; background: #eff6ff; }
 
-        .result-card { background: white; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .card-header { padding: 12px 15px; background: #f3f4f6; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .result-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .card-header { padding: 12px 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         
         .comp-table { width: 100%; text-align: left; font-size: 13px; border-collapse: collapse; }
-        .comp-table th { background: #f9fafb; color: #6b7280; font-weight: 700; border-bottom: 2px solid #e5e7eb; padding: 8px 12px; font-size: 11px; text-transform: uppercase; }
-        .comp-table td { padding: 12px; border-bottom: 1px solid #f9fafb; vertical-align: middle; }
+        .comp-table th { background: #f1f5f9; color: #64748b; font-weight: 700; border-bottom: 2px solid #e2e8f0; padding: 8px 12px; font-size: 11px; text-transform: uppercase; }
+        .comp-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         .comp-table tr:last-child td { border-bottom: none; }
 
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
@@ -30,28 +30,29 @@
 
         .bg-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; text-decoration: line-through; }
+        .bg-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
         .bg-ref { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
 
         .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
         .badge-pass { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
         .badge-fail { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
 
-        .debug-panel { font-size: 10px; color: #6b7280; background: #f9fafb; padding: 8px; border-top: 1px solid #e5e7eb; display: none; }
+        .debug-panel { font-size: 10px; color: #6b7280; background: #f9fafb; padding: 8px; border-top: 1px solid #e2e8f0; display: none; }
     </style>
 </head>
 <body class="text-slate-800">
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-purple-600 p-1.5 rounded text-white"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+            <div class="bg-indigo-600 p-1.5 rounded text-white"><i class="fa-solid fa-radar"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V73</h1>
-                <p class="text-[10px] text-gray-400">Detetive de OCR</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V74</h1>
+                <p class="text-[10px] text-indigo-200">Varredura Profunda</p>
             </div>
         </div>
         <div class="flex gap-2">
-            <input type="password" id="apiKey" class="bg-gray-800 border border-gray-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
-            <button onclick="saveKey()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
+            <input type="password" id="apiKey" class="bg-slate-800 border border-slate-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
+            <button onclick="saveKey()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
         </div>
     </header>
 
@@ -60,9 +61,9 @@
             <div class="flex-1 flex flex-col">
                 <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
                     1. GABARITO (LISTA)
-                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                    <span class="text-indigo-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
                 </label>
-                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-purple-500 outline-none resize-none" placeholder="1 - Costela..."></textarea>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea>
             </div>
             
             <div class="h-32">
@@ -74,19 +75,19 @@
             </div>
 
             <button onclick="runAudit()" class="bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
-                <i class="fa-solid fa-play"></i> RODAR AUDITORIA
+                <i class="fa-solid fa-search-plus"></i> EXECUTAR VARREDURA
             </button>
         </div>
 
         <div class="w-[65%] bg-slate-50 relative flex flex-col">
             <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
-                <div class="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-3"></div>
-                <div class="text-sm font-bold text-purple-900 animate-pulse">Analisando Pixels...</div>
+                <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
+                <div class="text-sm font-bold text-indigo-900 animate-pulse">Varrendo cada pixel...</div>
             </div>
 
             <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
                 <div class="text-center mt-20 text-slate-400 text-sm italic">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e arraste as imagens.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Aguardando dados.
                 </div>
             </div>
         </div>
@@ -102,16 +103,16 @@
         const fileInput = document.getElementById('fileInput');
 
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-purple-600 font-bold">${files.length} Arquivos</div>`; };
-        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#9333ea'; };
-        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-purple-600 font-bold">${files.length} Arquivos</div>`; };
+        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-indigo-600 font-bold">${files.length} Arquivos</div>`; };
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#6366f1'; };
+        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-indigo-600 font-bold">${files.length} Arquivos</div>`; };
 
         async function runAudit() {
             const key = apiKeyInput.value.trim();
             const listTxt = document.getElementById('listInput').value;
             if(!key || !listTxt.trim() || files.length === 0) return alert("Faltam dados!");
 
-            const listData = parseListV73(listTxt); // V71 Logic
+            const listData = parseListV74(listTxt);
             if(Object.keys(listData).length === 0) return alert("Lista inválida.");
 
             document.getElementById('loading').classList.remove('hidden');
@@ -126,8 +127,8 @@
                 if(!gabarito) { renderError(container, file.name, `ID ${id} não está na lista.`); continue; }
 
                 try {
-                    const imgData = await processImageV73(file, key);
-                    compareAndRenderV73(container, id, gabarito, imgData);
+                    const imgData = await processImageV74(file, key);
+                    compareAndRenderV74(container, id, gabarito, imgData);
                 } catch(e) { renderError(container, file.name, e.message); }
             }
             document.getElementById('loading').classList.add('hidden');
@@ -135,8 +136,8 @@
             dropZone.innerHTML = `<i class="fa-solid fa-check text-green-500 text-2xl"></i>`;
         }
 
-        // --- LIST PARSER (Mesmo da V71 - Funcionando bem) ---
-        function parseListV73(txt) {
+        // --- LIST PARSER (Mantido V71) ---
+        function parseListV74(txt) {
             const map = {};
             const lines = txt.split('\n');
             let currentItem = null;
@@ -155,9 +156,10 @@
         function processListBlock(map, item) {
             const text = item.text.replace(/\s+/g, ' ').trim();
             let title = text.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/, '').trim() || text;
-            
             let basePrice = null;
             const offers = [];
+            
+            // Extrai preços
             const pricesFound = [];
             const priceRegex = /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;
             let match;
@@ -165,6 +167,7 @@
                 pricesFound.push({ val: parseFloat(match[1].replace('.','').replace(',','.')), index: match.index, assigned: false });
             }
 
+            // Base VIP
             const redMatch = text.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);
             if (redMatch) {
                 const val = parseFloat(redMatch[1].replace('.','').replace(',','.'));
@@ -200,8 +203,8 @@
             map[item.id] = { title, basePrice, offers };
         }
 
-        // --- IMAGE PARSER V73 (CORRETOR OCR) ---
-        async function processImageV73(file, key) {
+        // --- IMAGE PARSER V74 (VARREDURA) ---
+        async function processImageV74(file, key) {
             const base64 = await new Promise(r => { 
                 const reader = new FileReader(); reader.onload = () => r(reader.result.split(',')[1]); reader.readAsDataURL(file); 
             });
@@ -214,33 +217,25 @@
             const text = json.responses[0]?.fullTextAnnotation?.text || "";
             const clean = text.replace(/\r/g, '');
 
-            // 1. CORREÇÃO DE OCR (Troca O por 0 em contextos numéricos)
-            // Procura padrões como "26,5O"
+            // 1. CORREÇÃO OCR AGRESSIVA
             const correctedText = clean.replace(/(\d+)[,.](\d{1,2})[Oo]/g, "$1,$20")
-                                       .replace(/[Oo](\d{2})\b/g, "0$1"); // Ex: O5,90
+                                       .replace(/[Oo](\d{2})\b/g, "0$1")
+                                       .replace(/(\d{1,3}) (\d{2})\b/g, "$1,$2"); // Correção de espaço "26 50" -> "26,50"
 
             const pricesFound = [];
-            // Regex melhorada: aceita espaço "26 50" se tiver R$ antes
-            // Regex padrão: XX,XX ou XX.XX
             const pRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g;
-            
             let m;
             while ((m = pRegex.exec(correctedText)) !== null) {
                 const val = parseFloat(m[0].replace('.','').replace(',','.'));
-                
-                // Filtro de Ano Inteligente:
-                // Se for entre 2020 e 2030, SÓ ignora se for inteiro (ex: 2024 ok ignorar, 20,24 é preço)
-                const isYear = (val >= 2020 && val <= 2030 && Number.isInteger(val));
-                
-                if(!isYear || correctedText.includes('$'+m[0]) || correctedText.includes('$ '+m[0])) {
-                    pricesFound.push({ val, index: m.index });
+                // Filtro Ano: Só ignora se for ano inteiro (2024). Se for 20,24 aceita.
+                if(!(val >= 2020 && val <= 2030 && Number.isInteger(val))) {
+                     pricesFound.push({ val, index: m.index });
                 }
             }
             
-            // Debug: Salva todos os números crus
-            const allRawNumbers = pricesFound.map(p => p.val);
+            // Backup dos números para Varredura Profunda
+            const rawNumbers = [...pricesFound]; 
 
-            // Logica Base (Acima de Comprar)
             let basePrice = null;
             const offers = [];
             const buyIdx = correctedText.toUpperCase().indexOf("COMPRAR");
@@ -269,39 +264,67 @@
                 else if(!baseFound) { basePrice = p.val; baseFound = true; }
             });
 
-            return { basePrice, offers, rawText: correctedText, allRawNumbers };
+            return { basePrice, offers, rawText: correctedText, rawNumbers };
         }
 
-        function compareAndRenderV73(container, id, gabarito, imagem) {
+        function compareAndRenderV74(container, id, gabarito, imagem) {
             const rows = [];
             let errorCount = 0;
+
+            // Função Auxiliar de Varredura Profunda
+            function findDeepMatch(targetVal) {
+                // Procura match exato
+                let match = imagem.rawNumbers.find(p => Math.abs(p.val - targetVal) < 0.05);
+                if(match) return { val: match.val, type: "EXATO" };
+                
+                // Procura match aproximado (erro de OCR leve)
+                match = imagem.rawNumbers.find(p => Math.abs(p.val - targetVal) < 1.0); // Tolerancia 1 real
+                if(match) return { val: match.val, type: "APROX" };
+                
+                return null;
+            }
 
             if (gabarito.basePrice) {
                 if (imagem.basePrice) {
                     if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
                     else { rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "ERRO")); errorCount++; }
-                } else { rows.push(rowHtml("BASE", gabarito.basePrice, null, "SUMIU")); errorCount++; }
+                } else {
+                    // Tenta Resgate
+                    const deep = findDeepMatch(gabarito.basePrice);
+                    if(deep) {
+                        rows.push(rowHtml("BASE", gabarito.basePrice, deep.val, deep.type === "EXATO" ? "WARN" : "ERRO", "Recuperado na Varredura"));
+                        if(deep.type !== "EXATO") errorCount++;
+                    } else {
+                        rows.push(rowHtml("BASE", gabarito.basePrice, null, "SUMIU"));
+                        errorCount++;
+                    }
+                }
             }
 
             gabarito.offers.forEach(req => {
                 const match = imagem.offers.find(o => o.type === req.type && Math.abs(o.val - req.val) < 0.05) ||
-                              imagem.offers.find(o => Math.abs(o.val - req.val) < 0.05); // Fallback valor
+                              imagem.offers.find(o => Math.abs(o.val - req.val) < 0.05);
                 
                 if (match) {
                     if(match.type === req.type) rows.push(rowHtml(req.type, req.val, match.val, "OK"));
                     else { rows.push(rowHtml(req.type, req.val, match.val, "WARN", `Achado como ${match.type}`)); errorCount++; }
                 } else {
-                    rows.push(rowHtml(req.type, req.val, null, "SUMIU"));
-                    errorCount++;
+                     // Tenta Resgate
+                     const deep = findDeepMatch(req.val);
+                     if(deep) {
+                        rows.push(rowHtml(req.type, req.val, deep.val, deep.type === "EXATO" ? "WARN" : "ERRO", "Recuperado na Varredura"));
+                        if(deep.type !== "EXATO") errorCount++;
+                     } else {
+                        rows.push(rowHtml(req.type, req.val, null, "SUMIU"));
+                        errorCount++;
+                     }
                 }
             });
 
-            const status = errorCount === 0 ? "APROVADO" : `${errorCount} ERRO(S)`;
+            const status = errorCount === 0 ? "APROVADO" : `${errorCount} DIVERGÊNCIA(S)`;
             const badgeClass = errorCount === 0 ? "badge-pass" : "badge-fail";
             const div = document.createElement('div');
             div.className = "result-card animate-fade-in";
-            
-            // Debug ID
             const debugId = `debug-${id}`;
             
             div.innerHTML = `
@@ -314,13 +337,13 @@
                     <tbody>${rows.join('')}</tbody>
                 </table>
                 <div class="text-center p-2 border-t border-slate-100">
-                    <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-blue-500 hover:underline">
-                        <i class="fa-solid fa-microscope"></i> Ver Detalhes (Debug)
+                    <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-indigo-500 hover:underline">
+                        <i class="fa-solid fa-microscope"></i> Ver Detalhes
                     </button>
                 </div>
                 <div id="${debugId}" class="debug-panel">
-                    <strong>Números lidos na imagem:</strong> ${imagem.allRawNumbers.join(', ')}<br>
-                    <strong>Texto bruto OCR:</strong><br>${imagem.rawText.substring(0, 200)}...
+                    <strong>Todos números detectados:</strong> ${imagem.rawNumbers.map(n=>n.val).join(', ')}<br>
+                    <strong>OCR Bruto:</strong><br>${imagem.rawText.substring(0, 150)}...
                 </div>
             `;
             container.prepend(div);
@@ -330,10 +353,10 @@
             let icon, stClass, valHtml;
             const expFmt = fmt(exp);
             if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; }
-            else if (status === "ERRO") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; }
-            else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; }
-            else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="text-xs text-slate-400">Não lido</span>`; }
-            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-purple-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
+            else if (status === "ERRO") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found || 0)}</span>`; }
+            else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px] block">${obs}</span>`; }
+            else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="text-xs text-slate-400 italic">Não lido</span>`; }
+            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-indigo-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
         }
 
         function renderError(c, t, m) { c.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs rounded mb-2"><strong>${t}:</strong> ${m}</div>`; }
