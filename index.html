@@ -3,74 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V52 - Raio-X (Extrator Puro)</title>
+    <title>Auditor V53 - Organizador Semântico</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { font-family: 'Consolas', 'Courier New', monospace; background-color: #1e1e1e; color: #d4d4d4; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { background: #333; height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid #444; }
+        .header { background: #0f172a; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 20; }
         
-        .drop-zone { border: 2px dashed #555; border-radius: 8px; background: #252526; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100px; margin-bottom: 20px; }
-        .drop-zone:hover { border-color: #007acc; background: #2d2d30; }
+        .drop-zone { border: 2px dashed #94a3b8; border-radius: 8px; background: #f8fafc; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .drop-zone:hover { border-color: #0ea5e9; background: #f0f9ff; }
 
-        .result-card { background: #252526; border: 1px solid #333; margin-bottom: 20px; padding: 15px; border-radius: 4px; }
+        .result-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-header { padding: 10px 15px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         
-        .raw-text-box { 
-            background: #1e1e1e; border: 1px solid #444; color: #ce9178; 
-            padding: 10px; font-size: 11px; white-space: pre-wrap; 
-            max-height: 200px; overflow-y: auto; margin-top: 5px;
-        }
+        /* Tabela de Organização */
+        .org-table { width: 100%; text-align: left; font-size: 13px; border-collapse: separate; border-spacing: 0; }
+        .org-table th { background: #e0f2fe; color: #0369a1; font-weight: 700; border-bottom: 2px solid #bae6fd; padding: 8px 12px; font-size: 11px; text-transform: uppercase; }
+        .org-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        
+        .detected-title { font-weight: bold; color: #334155; display: block; margin-bottom: 4px; }
+        .detected-base { font-size: 16px; font-weight: 800; color: #1e293b; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e1; display: inline-block; }
+        
+        .offer-tag { display: inline-block; font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; margin-right: 5px; margin-bottom: 2px; }
+        .tag-save { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .tag-card { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        .tag-client { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .tag-pack { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
 
-        .price-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-        .price-tag { background: #0e639c; color: white; padding: 2px 6px; font-size: 12px; border-radius: 3px; }
-        
-        .img-preview { max-width: 100px; max-height: 100px; border: 1px solid #555; margin-right: 15px; }
+        /* Status de Comparação */
+        .status-ok { color: #16a34a; font-weight: bold; font-size: 12px; }
+        .status-err { color: #dc2626; font-weight: bold; font-size: 12px; }
+        .correction-box { margin-top: 5px; background: #fef2f2; border: 1px dashed #fca5a5; padding: 5px; border-radius: 4px; }
+        .correction-text { color: #b91c1c; font-weight: bold; font-size: 11px; }
+
+        .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
+        .bg-ok { background: #dcfce7; color: #166534; }
+        .bg-err { background: #fee2e2; color: #991b1b; }
+        .bg-warn { background: #fef9c3; color: #854d0e; }
     </style>
 </head>
-<body>
+<body class="text-slate-800">
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <i class="fa-solid fa-microscope text-yellow-500"></i>
-            <h1 class="font-bold text-sm">V52 - Raio-X de Dados</h1>
+            <div class="bg-sky-600 p-1.5 rounded text-white"><i class="fa-solid fa-sitemap"></i></div>
+            <div>
+                <h1 class="font-bold text-lg leading-none">Auditor V53</h1>
+                <p class="text-[10px] text-slate-400">Organizador Semântico</p>
+            </div>
         </div>
         <div class="flex gap-2">
-            <input type="password" id="apiKey" class="bg-black border border-gray-600 text-white text-xs p-1 rounded w-40" placeholder="API Key Vision...">
-            <button onclick="saveKey()" class="bg-blue-700 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded">SALVAR</button>
+            <input type="password" id="apiKey" class="bg-slate-800 border border-slate-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
+            <button onclick="saveKey()" class="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
         </div>
     </header>
 
-    <div class="flex flex-1 p-5 gap-5 overflow-hidden">
-        <div class="w-1/3 flex flex-col">
-            <div id="dropZone" class="drop-zone">
-                <i class="fa-solid fa-upload text-2xl text-gray-500 mb-2"></i>
-                <div class="text-xs text-gray-400">ARRASTE AS IMAGENS AQUI</div>
-                <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+    <div class="flex flex-1 overflow-hidden">
+        <div class="w-[35%] bg-white border-r border-slate-200 flex flex-col p-4 gap-4 shadow-xl z-10">
+            <div class="flex-1 flex flex-col">
+                <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
+                    1. LISTA GABARITO
+                    <span class="text-sky-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                </label>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-sky-500 outline-none resize-none" placeholder="12 - Cerveja Skol&#10;R$ 4,99&#10;Nesta embalagem R$ 4,89&#10;&#10;15 - Feijão..."></textarea>
+                <div class="text-[10px] text-slate-400 mt-1">O sistema vai tentar cruzar as ofertas automaticamente.</div>
             </div>
             
-            <div class="text-xs text-gray-500 mb-2">LOG DE PROCESSO:</div>
-            <div id="consoleLog" class="flex-1 bg-black border border-gray-700 p-2 text-xs text-green-500 overflow-y-auto font-mono">
-                > Aguardando imagens...
+            <div class="h-32">
+                <div id="dropZone" class="drop-zone">
+                    <i class="fa-solid fa-images text-3xl text-slate-300 mb-2"></i>
+                    <div class="text-xs font-bold text-slate-500">ARRASTE IMAGENS (P12.jpg...)</div>
+                    <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
+                </div>
             </div>
+
+            <button onclick="processQueue()" class="bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
+                <i class="fa-solid fa-layer-group"></i> ORGANIZAR E AUDITAR
+            </button>
         </div>
 
-        <div class="w-2/3 flex flex-col overflow-y-auto" id="resultsArea">
-            <div class="text-center mt-20 text-gray-600 italic">
-                Os dados extraídos aparecerão aqui.
+        <div class="w-[65%] bg-slate-50 relative flex flex-col">
+            <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
+                <div class="w-10 h-10 border-4 border-sky-200 border-t-sky-600 rounded-full animate-spin mb-3"></div>
+                <div class="text-sm font-bold text-sky-900 animate-pulse">Lendo estrutura do encarte...</div>
+            </div>
+
+            <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
+                <div class="text-center mt-20 text-slate-400 text-sm italic">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e arraste as imagens.
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function log(msg) {
-            const d = document.getElementById('consoleLog');
-            d.innerHTML += `<div>> ${msg}</div>`;
-            d.scrollTop = d.scrollHeight;
-        }
-
         const apiKeyInput = document.getElementById('apiKey');
         if(localStorage.getItem('vision_key')) apiKeyInput.value = localStorage.getItem('vision_key');
         
@@ -85,96 +114,306 @@
 
         dropZone.onclick = () => fileInput.click();
         fileInput.onchange = e => handleFiles(Array.from(e.target.files));
-        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#007acc'; };
-        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#555'; handleFiles(Array.from(e.dataTransfer.files)); };
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#0ea5e9'; };
+        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#94a3b8'; handleFiles(Array.from(e.dataTransfer.files)); };
 
         function handleFiles(newFiles) {
+            files = newFiles;
+            dropZone.innerHTML = `<div class="text-sky-600 font-bold text-sm">${files.length} Arquivos</div>`;
+        }
+
+        async function processQueue() {
             const key = apiKeyInput.value.trim();
+            const listTxt = document.getElementById('listInput').value;
+            
             if(!key) return alert("Falta a API Key!");
-            
-            document.getElementById('resultsArea').innerHTML = '';
-            
-            newFiles.forEach(file => {
-                log(`Processando ${file.name}...`);
-                analyze(file, key);
-            });
+            if(!listTxt) return alert("Falta a Lista!");
+            if(files.length === 0) return alert("Faltam Imagens!");
+
+            const listMap = parseList(listTxt);
+            if(Object.keys(listMap).length === 0) return alert("Lista sem IDs (Ex: '12 - Produto').");
+
+            document.getElementById('loading').classList.remove('hidden');
+            const container = document.getElementById('resultsArea');
+            container.innerHTML = '';
+
+            for (const file of files) {
+                try {
+                    await analyzeFile(file, key, listMap, container);
+                } catch (err) {
+                    container.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs mb-2 rounded">Erro em ${file.name}: ${err.message}</div>`;
+                }
+            }
+            document.getElementById('loading').classList.add('hidden');
+            files = [];
+            dropZone.innerHTML = `<i class="fa-solid fa-check text-green-500 text-2xl"></i>`;
         }
 
-        async function toBase64(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-            });
-        }
+        // --- CÉREBRO: ORGANIZADOR SEMÂNTICO ---
+        function organizeData(fullText) {
+            // 1. Limpeza básica
+            const text = fullText.replace(/\r/g, '');
+            
+            // 2. Extração do Título (Tudo antes do primeiro KG/G/ML ou primeiro Preço)
+            // Regex procura por (digitos + kg/g/ml) OU (R$)
+            const titleMatch = text.match(/^(.*?)(?=\d+\s*(?:kg|g|ml|l|un)|R\$|\d+[.,]\d{2})/is);
+            const title = titleMatch ? titleMatch[1].trim() : "Título não identificado";
 
-        async function analyze(file, key) {
-            try {
-                const base64 = await toBase64(file);
+            // 3. Localizar Preço Base (Acima do botão Comprar)
+            // Procura a palavra "COMPRAR" (case insensitive)
+            // Pega o último preço que aparece ANTES de "COMPRAR"
+            let basePrice = null;
+            const comprarIndex = text.toUpperCase().indexOf("COMPRAR");
+            
+            // Encontra todos os preços e suas posições
+            const pricesFound = [];
+            const priceRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})/g;
+            let match;
+            
+            while ((match = priceRegex.exec(text)) !== null) {
+                const val = parseFloat(match[0].replace('.','').replace(',','.'));
+                // Filtra anos falsos
+                if(val >= 2020 && val <= 2030 && !text.includes('$' + match[0])) continue;
                 
-                // Chamada Simples e Direta
-                const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
-                    method: 'POST',
-                    body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] })
+                pricesFound.push({
+                    val: val,
+                    index: match.index,
+                    text: match[0]
                 });
+            }
 
-                if(!res.ok) throw new Error(await res.text());
+            if (comprarIndex !== -1) {
+                // Filtra preços que estão ANTES do botão comprar
+                const candidates = pricesFound.filter(p => p.index < comprarIndex);
+                if (candidates.length > 0) {
+                    // O último antes do botão é o Base
+                    basePrice = candidates[candidates.length - 1].val;
+                }
+            } else {
+                // Fallback: Se não achar "Comprar", assume o maior preço ou o último
+                // Mas seguindo a regra do usuário, se não tem comprar, pode não ter base clara.
+                // Vamos tentar pegar o preço que NÃO é oferta.
+            }
+
+            // 4. Localizar Ofertas (Save Ganhe, Cartão, Cliente, Embalagem)
+            const offers = [];
+            
+            // Definição das ofertas e seus gatilhos
+            const triggers = [
+                { type: "SAVE GANHE", keywords: ["SAVE GANHE", "SAVEGANHE"] },
+                { type: "NOSSO CARTÃO", keywords: ["CARTÃO", "CARTAO", "NOSSO"] },
+                { type: "CLIENTE CAMPEÃO", keywords: ["CLIENTE", "CAMPEÃO", "CAMPEAO"] },
+                { type: "CONDICIONAL", keywords: ["EMBALAGEM", "PROMOÇÃO", "PROMOCAO", "LEVANDO", "APARTIR", "A PARTIR"] }
+            ];
+
+            pricesFound.forEach(p => {
+                // Pula se for o preço base já identificado
+                if (p.val === basePrice) return;
+
+                // Olha o texto ANTES do preço (até 50 caracteres pra trás)
+                const context = text.substring(Math.max(0, p.index - 50), p.index).toUpperCase();
                 
-                const data = await res.json();
-                const fullText = data.responses[0]?.fullTextAnnotation?.text || "[SEM TEXTO DETECTADO]";
-                
-                // REGEX DE TESTE (Preços)
-                // Procura: digitos, ponto ou virgula, 2 digitos
-                const prices = [];
-                const regex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})/g;
-                let match;
-                while ((match = regex.exec(fullText)) !== null) {
-                    // Filtra anos (2025, 2026) se nao tiver cifrão
-                    const val = parseFloat(match[0].replace('.','').replace(',','.'));
-                    if(val >= 2020 && val <= 2030 && !fullText.includes('$' + match[0])) continue;
-                    
-                    prices.push(match[0]); // Mantém o formato original (string) para ver como leu
+                let detectedType = null;
+                for (const t of triggers) {
+                    if (t.keywords.some(k => context.includes(k))) {
+                        detectedType = t.type;
+                        break;
+                    }
                 }
 
-                renderResult(file, fullText, prices);
-                log(`${file.name}: Sucesso. ${fullText.length} caracteres.`);
+                if (detectedType) {
+                    offers.push({ type: detectedType, val: p.val });
+                } else {
+                    // Se sobrou um preço que não é Base e não tem gatilho de oferta...
+                    // Pode ser que o Base não tenha sido achado pelo "Comprar"
+                    if (basePrice === null) basePrice = p.val; 
+                }
+            });
 
-            } catch (e) {
-                log(`ERRO ${file.name}: ${e.message}`);
-                document.getElementById('resultsArea').innerHTML += `<div class="result-card border-red-500 text-red-400">Erro: ${e.message}</div>`;
+            return { title, basePrice, offers, allPrices: pricesFound.map(p => p.val) };
+        }
+
+        async function analyzeFile(file, key, listMap, container) {
+            const idMatch = file.name.match(/[Pp]0*(\d+)/);
+            if(!idMatch) {
+                renderIgnored(container, file.name, "Sem ID P+Número");
+                return;
             }
-        }
+            const id = idMatch[1];
+            const target = listMap[id];
+            if(!target) {
+                renderIgnored(container, file.name, `ID ${id} fora da lista`);
+                return;
+            }
 
-        function renderResult(file, text, prices) {
-            const container = document.getElementById('resultsArea');
+            // 1. OCR Google
+            const base64 = await toBase64(file);
+            const apiRes = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
+                method: 'POST',
+                body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] })
+            });
+            const data = await apiRes.json();
+            const fullText = data.responses[0]?.fullTextAnnotation?.text || "";
+
+            // 2. ORGANIZAR DADOS (O Cérebro Novo)
+            const organized = organizeData(fullText);
+
+            // 3. COMPARAR COM A LISTA
+            let analysisHtml = "";
+            let errorCount = 0;
+
+            // Comparar Preço Base
+            const expectedBase = target.prices.find(p => p.context.toUpperCase().includes("BASE") || p.context.length < 5); // Heurística pra achar base na lista
             
-            const priceTags = prices.length > 0 
-                ? prices.map(p => `<span class="price-tag">${p}</span>`).join(' ')
-                : `<span class="text-gray-500 text-xs">Nenhum padrão de preço (XX,XX) identificado.</span>`;
+            // Se a lista definiu um preço base simples (primeira linha geralmente)
+            if (target.prices.length > 0) {
+                // Assume que o primeiro preço da lista é sempre a BASE, a não ser que tenha contexto explícito
+                const listBase = target.prices[0]; 
+                
+                if (organized.basePrice) {
+                    if (Math.abs(organized.basePrice - listBase.val) < 0.05) {
+                        analysisHtml += row("PREÇO BASE", listBase.val, organized.basePrice, true);
+                    } else {
+                        errorCount++;
+                        analysisHtml += row("PREÇO BASE", listBase.val, organized.basePrice, false);
+                    }
+                } else {
+                    // Não achou base na imagem (acima do comprar)
+                    errorCount++;
+                    analysisHtml += row("PREÇO BASE", listBase.val, null, false, "Não achei preço acima do botão 'Comprar'");
+                }
 
-            const html = `
-                <div class="result-card">
-                    <div class="flex items-start">
-                        <div class="flex-1">
-                            <div class="font-bold text-white mb-2 text-sm border-b border-gray-700 pb-2">
-                                ARQUIVO: ${file.name}
-                            </div>
-                            
-                            <div class="mb-3">
-                                <div class="text-xs text-gray-400 font-bold mb-1">1. PREÇOS IDENTIFICADOS (Filtro):</div>
-                                <div class="price-list">${priceTags}</div>
-                            </div>
+                // Comparar Ofertas (os outros itens da lista)
+                for (let i = 1; i < target.prices.length; i++) {
+                    const req = target.prices[i];
+                    // Tenta achar nas ofertas organizadas ou nos preços soltos
+                    // Procura match por valor nas ofertas encontradas
+                    const match = organized.offers.find(o => Math.abs(o.val - req.val) < 0.05) 
+                               || organized.allPrices.find(p => Math.abs(p - req.val) < 0.05);
 
-                            <div>
-                                <div class="text-xs text-gray-400 font-bold mb-1">2. LEITURA BRUTA (Tudo que o robô viu):</div>
-                                <div class="raw-text-box">${text}</div>
-                            </div>
-                        </div>
-                    </div>
+                    if (match) {
+                        analysisHtml += row(req.context, req.val, req.val, true);
+                    } else {
+                        errorCount++;
+                        // Tenta achar o "intruso" nas ofertas detectadas
+                        const intruder = organized.offers.find(o => !target.prices.some(t => Math.abs(t.val - o.val) < 0.05));
+                        const valFound = intruder ? intruder.val : null;
+                        analysisHtml += row(req.context, req.val, valFound, false);
+                    }
+                }
+            }
+
+            // Renderizar Card
+            const badge = errorCount === 0 ? "APROVADO" : "CORRIGIR";
+            const bgClass = errorCount === 0 ? "bg-ok" : "bg-err";
+
+            const cardContent = `
+                <div class="mb-3">
+                    <span class="detected-title"><i class="fa-solid fa-quote-left text-slate-300"></i> ${organized.title}</span>
                 </div>
+                
+                <div class="mb-3">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase">Ofertas Detectadas na Imagem:</div>
+                    ${renderDetectedOffers(organized)}
+                </div>
+
+                <table class="org-table">
+                    <thead><tr><th>Item da Lista</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead>
+                    <tbody>${analysisHtml}</tbody>
+                </table>
             `;
-            container.insertAdjacentHTML('afterbegin', html);
+
+            renderCard(container, `${target.name} (ID ${id})`, badge, bgClass, cardContent);
         }
+
+        function row(label, expected, found, isOk, extraMsg = "") {
+            const statusIcon = isOk ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-xmark"></i>';
+            const statusClass = isOk ? 'status-ok' : 'status-err';
+            const foundDisplay = found ? `R$ ${fmt(found)}` : (extraMsg || "Não encontrado");
+            const foundClass = isOk ? "text-slate-700" : "text-red-600 font-bold";
+            const correction = !isOk && found ? `<div class="correction-box"><div class="correction-text">ALTERAR PARA R$ ${fmt(expected)}</div></div>` : '';
+
+            return `
+                <tr>
+                    <td class="font-bold text-slate-700">${label}</td>
+                    <td><span class="font-mono font-bold text-slate-600">R$ ${fmt(expected)}</span></td>
+                    <td class="${foundClass}">${foundDisplay} ${correction}</td>
+                    <td class="${statusClass}">${statusIcon}</td>
+                </tr>
+            `;
+        }
+
+        function renderDetectedOffers(org) {
+            let html = "";
+            if(org.basePrice) html += `<span class="offer-tag" style="background:#f1f5f9; border:1px solid #cbd5e1">BASE: R$ ${fmt(org.basePrice)}</span> `;
+            
+            org.offers.forEach(o => {
+                let cls = "tag-pack";
+                if(o.type.includes("SAVE")) cls = "tag-save";
+                if(o.type.includes("CARTÃO")) cls = "tag-card";
+                if(o.type.includes("CLIENTE")) cls = "tag-client";
+                html += `<span class="offer-tag ${cls}">${o.type}: R$ ${fmt(o.val)}</span> `;
+            });
+            
+            if(html === "") return `<span class="text-xs text-slate-400 italic">Nenhuma oferta estruturada identificada.</span>`;
+            return html;
+        }
+
+        function renderCard(container, title, badge, bgClass, content) {
+            const div = document.createElement('div');
+            div.className = "result-card animate-fade-in";
+            div.innerHTML = `
+                <div class="card-header">
+                    <span class="font-bold text-sm text-slate-700">${title}</span>
+                    <span class="badge ${bgClass}">${badge}</span>
+                </div>
+                <div class="p-4">${content}</div>
+            `;
+            container.prepend(div);
+        }
+
+        function renderIgnored(container, title, msg) {
+             renderCard(container, title, "IGNORADO", "bg-warn", `<div class="text-xs text-slate-500">${msg}</div>`);
+        }
+
+        function parseList(txt) {
+            const map = {};
+            let currentId = null;
+            let currentName = "";
+            txt.split('\n').forEach(line => {
+                line = line.trim();
+                if(!line) return;
+                const idMatch = line.match(/^(\d+)\s*-\s*(.+)/);
+                if(idMatch) {
+                    currentId = idMatch[1];
+                    currentName = idMatch[2];
+                    map[currentId] = { name: currentName, prices: [] };
+                    return;
+                }
+                if(currentId) {
+                    const prices = line.match(/(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})/g);
+                    if(prices) {
+                        prices.forEach(pStr => {
+                            const val = parseFloat(pStr.replace(/[R$\s]/g,'').replace('.','').replace(',','.'));
+                            let desc = line.replace(pStr, '').replace('R$', '').trim();
+                            if(desc.length < 2) desc = "Preço Base";
+                            map[currentId].prices.push({ val, context: desc });
+                        });
+                    }
+                }
+            });
+            return map;
+        }
+        
+        function toBase64(file) {
+            return new Promise((r, j) => {
+                const reader = new FileReader();
+                reader.onload = () => r(reader.result.split(',')[1]);
+                reader.onerror = j;
+                reader.readAsDataURL(file);
+            });
+        }
+        const fmt = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     </script>
 </body>
 </html>
