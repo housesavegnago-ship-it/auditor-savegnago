@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V80 - Visual Diff</title>
+    <title>Auditor V81 - Ajuste Fino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* HEADER FIXO - CINZA ESCURO */
         .header { background: #1f2937; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
         .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
@@ -26,10 +25,10 @@
 
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
         
-        /* DIFF TEXT STYLES */
-        .diff-found { color: #16a34a; font-weight: bold; } /* Verde para achado */
-        .diff-missing { color: #dc2626; text-decoration: line-through; opacity: 0.7; } /* Vermelho riscado para faltante */
-        .diff-extra { color: #6b7280; font-size: 11px; font-style: italic; } /* Cinza para texto extra da imagem */
+        /* DIFF TEXT STYLES (COM ESPAÇAMENTO) */
+        .diff-word { display: inline-block; margin-right: 4px; }
+        .diff-found { color: #16a34a; font-weight: bold; } 
+        .diff-missing { color: #dc2626; text-decoration: line-through; opacity: 0.6; } 
 
         .status-ok { color: #16a34a; font-weight: bold; }
         .status-err { color: #dc2626; font-weight: bold; }
@@ -56,8 +55,8 @@
         <div class="flex items-center gap-3">
             <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-robot"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V80</h1>
-                <p class="text-[10px] text-gray-400">Visual Diff & Title Cleaning</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V81</h1>
+                <p class="text-[10px] text-gray-400">Polimento Visual</p>
             </div>
         </div>
         
@@ -173,60 +172,40 @@
                     if (mode === 'vision') imgData = await processImageVision(file, apiKeyInput.value.trim());
                     else imgData = await processImageFreeOCR(file);
                     
-                    compareAndRenderV80(container, id, gabarito, imgData, mode);
+                    compareAndRenderV81(container, id, gabarito, imgData, mode);
                 } catch(e) { renderError(container, file.name, e.message); }
             }
             document.getElementById('loading').classList.add('hidden');
         }
 
-        // --- ENGINES ---
+        // --- ENGINES (Mantidos V79) ---
         async function processImageVision(file, key) {
             const base64 = await toBase64(file);
-            const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
-                method: 'POST', body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] })
-            });
+            const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, { method: 'POST', body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] }) });
             const json = await res.json();
-            const text = json.responses[0]?.fullTextAnnotation?.text || "";
-            return extractPricesFromTextV80(text, 80);
+            return extractPricesFromTextV80(json.responses[0]?.fullTextAnnotation?.text || "", 80);
         }
 
         async function processImageFreeOCR(file) {
             let base64 = await toBase64(file);
             if (file.size > 900 * 1024) base64 = await compressImage(base64);
-
             const formData = new FormData();
             formData.append("base64Image", "data:image/jpeg;base64," + base64);
             formData.append("language", "por");
-            formData.append("isOverlayRequired", "false");
             formData.append("apikey", FREE_OCR_KEY);
             formData.append("OCREngine", "2"); 
             formData.append("scale", "true"); 
-
             const res = await fetch("https://api.ocr.space/parse/image", { method: 'POST', body: formData });
             const json = await res.json();
             if (json.IsErroredOnProcessing) throw new Error("Free OCR Error: " + json.ErrorMessage);
-            
-            const text = json.ParsedResults && json.ParsedResults[0] ? json.ParsedResults[0].ParsedText : "";
-            return extractPricesFromTextV80(text, 150);
+            return extractPricesFromTextV80(json.ParsedResults?.[0]?.ParsedText || "", 150);
         }
 
-        // --- CORE LÓGICO V80 ---
+        // --- CORE LÓGICO (Mantido V80) ---
         function extractPricesFromTextV80(rawText, lookBackChars) {
-            let clean = rawText.replace(/\r/g, '').replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, (match) => {
-                return match.replace(/S/g, '5').replace(/[O]/g, '0').replace(/B/g, '8').replace(/[lI]/g, '1').replace(/Z/g, '2');
-            });
-
-            // *** TÍTULO COM FAXINA ***
-            // 1. Pega tudo antes do primeiro preço
+            let clean = rawText.replace(/\r/g, '').replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, (match) => match.replace(/S/g,'5').replace(/[O]/g,'0').replace(/B/g,'8').replace(/[lI]/g,'1').replace(/Z/g,'2'));
             let extractedTitle = clean.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s)?.[1] || "";
-            
-            // 2. Faxina: Corta se encontrar palavras de oferta
-            const garbage = ["SAVE", "GANHE", "NOSSO", "CLUBE", "OFERTA", "CLIENTE", "LEVANDO", "CARTÃO"];
-            garbage.forEach(g => {
-                const idx = extractedTitle.toUpperCase().indexOf(g);
-                if(idx !== -1) extractedTitle = extractedTitle.substring(0, idx);
-            });
-            
+            ["SAVE", "GANHE", "NOSSO", "CLUBE", "OFERTA", "CLIENTE", "LEVANDO", "CARTÃO"].forEach(g => { const idx = extractedTitle.toUpperCase().indexOf(g); if(idx !== -1) extractedTitle = extractedTitle.substring(0, idx); });
             extractedTitle = extractedTitle.replace(/\n/g, ' ').trim();
 
             const pricesFound = [];
@@ -234,64 +213,36 @@
             let m;
             while ((m = pRegex.exec(clean)) !== null) {
                 const val = parseFloat(m[0].replace('.','').replace(',','.'));
-                if(!(val >= 2020 && val <= 2030 && Number.isInteger(val))) {
-                     pricesFound.push({ val, index: m.index });
-                }
+                if(!(val >= 2020 && val <= 2030 && Number.isInteger(val))) pricesFound.push({ val, index: m.index });
             }
 
-            const rawNumbers = [...pricesFound]; 
-            let basePrice = null;
-            const offers = [];
+            let basePrice = null; const offers = []; let baseFound = false;
             const buyIdx = clean.toUpperCase().indexOf("COMPRAR");
-            let baseFound = false;
-
-            if(buyIdx !== -1) {
-                const candidates = pricesFound.filter(p => p.index < buyIdx);
-                if(candidates.length) {
-                    const p = candidates[candidates.length - 1];
-                    basePrice = p.val;
-                    baseFound = true;
-                    pricesFound.splice(pricesFound.indexOf(p), 1);
-                }
-            }
-
-            const iTriggers = [
-                { k: "SAVE", t: "SAVE GANHE" }, { k: "CARTÃO", t: "NOSSO CARTÃO" },
-                { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }, { k: "A PARTIR", t: "EMBALAGEM" }, { k: "UNIDADE", t: "EMBALAGEM" }
-            ];
-
+            if(buyIdx !== -1) { const c = pricesFound.filter(p => p.index < buyIdx); if(c.length) { const p = c[c.length - 1]; basePrice = p.val; baseFound = true; pricesFound.splice(pricesFound.indexOf(p), 1); } }
+            
+            const iTriggers = [{ k: "SAVE", t: "SAVE GANHE" }, { k: "CARTÃO", t: "NOSSO CARTÃO" }, { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }, { k: "A PARTIR", t: "EMBALAGEM" }, { k: "UNIDADE", t: "EMBALAGEM" }];
             pricesFound.forEach(p => {
                 const ctx = clean.substring(Math.max(0, p.index - lookBackChars), p.index).toUpperCase().replace(/\n/g,' ');
                 let bestT = null, minD = 9999;
-                for(const t of iTriggers) { 
-                    const idx = ctx.lastIndexOf(t.k);
-                    if(idx !== -1) {
-                        const dist = ctx.length - idx; 
-                        if (dist < minD) { minD = dist; bestT = t.t; }
-                    }
-                }
-                if(bestT && minD < 100) offers.push({ type: bestT, val: p.val }); 
-                else if(!baseFound) { basePrice = p.val; baseFound = true; }
+                for(const t of iTriggers) { const idx = ctx.lastIndexOf(t.k); if(idx !== -1) { const dist = ctx.length - idx; if (dist < minD) { minD = dist; bestT = t.t; } } }
+                if(bestT && minD < 100) offers.push({ type: bestT, val: p.val }); else if(!baseFound) { basePrice = p.val; baseFound = true; }
             });
-
-            return { title: extractedTitle, basePrice, offers, rawText: clean, rawNumbers };
+            return { title: extractedTitle, basePrice, offers, rawText: clean, rawNumbers: pricesFound };
         }
 
-        // --- COMPARADOR V80 ---
-        function compareAndRenderV80(container, id, gabarito, imagem, mode) {
+        // --- RENDER V81 (COM ESPAÇAMENTO E CORREÇÃO DE COR) ---
+        function compareAndRenderV81(container, id, gabarito, imagem, mode) {
             const rows = [];
             let errorCount = 0;
 
-            // 1. TÍTULO: VISUAL DIFF
-            const titleDiffHtml = generateTitleDiff(gabarito.title, imagem.title);
-            // Lógica de Status do Título (Baseado em % de acerto)
             const sim = checkTitleSimilarity(gabarito.title, imagem.title);
             const titleStatus = sim < 0.4 ? "ERRO" : (sim < 0.7 ? "WARN" : "OK");
             if (titleStatus === "ERRO") errorCount++;
-
+            
+            // Diff com espaçamento
+            const titleDiffHtml = generateTitleDiffV81(gabarito.title, imagem.title);
             rows.push(rowTitleHtml(titleDiffHtml, titleStatus, Math.round(sim * 100)));
 
-            // 2. PREÇOS
             if (gabarito.basePrice) {
                 if (imagem.basePrice) {
                     if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
@@ -338,63 +289,38 @@
             container.prepend(div);
         }
 
-        // --- GERADOR DE DIFF DO TÍTULO ---
-        function generateTitleDiff(expected, found) {
+        // --- DIFF COM ESPAÇAMENTO V81 ---
+        function generateTitleDiffV81(expected, found) {
             const expTokens = expected.split(/\s+/);
             const foundClean = found.toLowerCase();
             
             return expTokens.map(word => {
                 const wClean = word.toLowerCase().replace(/[^\w]/g,'');
-                if(wClean.length < 2) return word; // Ignora palavras muito curtas
+                if(wClean.length < 2) return `<span class="diff-word text-gray-400">${word}</span>`;
                 
+                // Se achou a palavra, pinta de verde. Se não, risca de vermelho.
                 if (foundClean.includes(wClean)) {
-                    return `<span class="diff-found">${word}</span>`;
+                    return `<span class="diff-word diff-found">${word}</span>`;
                 } else {
-                    return `<span class="diff-missing">${word}</span>`;
+                    return `<span class="diff-word diff-missing">${word}</span>`;
                 }
             }).join(' ');
         }
 
+        // --- AUXILIARES (Mantidos) ---
         function rowTitleHtml(diffHtml, status, pct) {
             let icon, stClass;
-            if(status === "OK") { icon='✔'; stClass='status-ok'; }
-            else if(status === "WARN") { icon='⚠'; stClass='status-warn'; }
-            else { icon='✖'; stClass='status-err'; }
-
-            return `<tr>
-                <td class="font-bold text-slate-600">TÍTULO</td>
-                <td colspan="2"><div class="text-[12px] leading-snug">${diffHtml}</div></td>
-                <td class="${stClass}"><div class="flex flex-col items-center"><span>${icon} ${status}</span><span class="text-[9px] text-gray-400">(${pct}%)</span></div></td>
-            </tr>`;
+            if(status === "OK") { icon='✔'; stClass='status-ok'; } else if(status === "WARN") { icon='⚠'; stClass='status-warn'; } else { icon='✖'; stClass='status-err'; }
+            return `<tr><td class="font-bold text-slate-600">TÍTULO</td><td colspan="2"><div class="text-[12px] leading-snug">${diffHtml}</div></td><td class="${stClass}"><div class="flex flex-col items-center"><span>${icon} ${status}</span><span class="text-[9px] text-gray-400">(${pct}%)</span></div></td></tr>`;
         }
-
-        // --- MANTER OUTRAS FUNÇÕES ---
-        function checkTitleSimilarity(exp, fnd) {
-            const tokenize = str => str.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
-            const expTokens = tokenize(exp);
-            const fndText = fnd.toLowerCase();
-            if(expTokens.length === 0) return 0;
-            let matches = 0;
-            expTokens.forEach(t => { if(fndText.includes(t)) matches++; });
-            return matches / expTokens.length;
-        }
-
-        function rowHtml(label, exp, found, status, obs="") {
-            let icon, stClass, valHtml;
-            const expFmt = fmt(exp);
-            if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; }
-            else if (status === "DIVERGENTE") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; }
-            else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; }
-            else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-miss">---</span>`; }
-            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
-        }
-
-        function toBase64(file) { return new Promise((r,j) => { const reader = new FileReader(); reader.onload=()=>r(reader.result.split(',')[1]); reader.onerror=j; reader.readAsDataURL(file); }); }
-        function compressImage(b64) { return new Promise(r => { const i=new Image(); i.src="data:image/jpeg;base64,"+b64; i.onload=()=>{ const c=document.createElement('canvas'); c.width=1000; c.height=i.height*(1000/i.width); c.getContext('2d').drawImage(i,0,0,c.width,c.height); r(c.toDataURL('image/jpeg',0.7).split(',')[1]); }}); }
-        function parseListV76(txt) { const map={}; const lines=txt.split('\n'); let cur=null; lines.forEach(l=>{ l=l.trim(); if(!l)return; const m=l.match(/^(\d+)\s*-\s*(.+)/); if(m){ if(cur)processListBlock(map,cur); cur={id:m[1],text:l}; }else if(cur)cur.text+=" "+l; }); if(cur)processListBlock(map,cur); return map; }
-        function processListBlock(map,item){ const t=item.text.replace(/\s+/g,' ').trim(); let ti=t.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/,'').trim()||t; let bp=null; const ofs=[]; const pfs=[]; const pr=/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi; let m; while((m=pr.exec(t))!==null)pfs.push({v:parseFloat(m[1].replace('.','').replace(',','.')),i:m.index,a:false}); const rm=t.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i); if(rm){ const v=parseFloat(rm[1].replace('.','').replace(',','.')); const p=pfs.find(p=>Math.abs(p.v-v)<0.001); if(p){bp=p.v; p.a=true;}} else { const dm=t.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/); if(dm){ const v=parseFloat(dm[1].replace('.','').replace(',','.')); const p=pfs.find(p=>Math.abs(p.v-v)<0.001); if(p){bp=p.v; p.a=true;}}} const trs=[{k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"SAVE",t:"SAVE GANHE"},{k:"EMBALAGEM",t:"EMBALAGEM"},{k:"SAI POR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},{k:"LEVANDO",t:"EMBALAGEM"}]; pfs.forEach(p=>{ if(p.a)return; const ctx=t.substring(Math.max(0,p.i-80),p.i).toUpperCase(); let bt=null, md=9999; trs.forEach(tr=>{ const idx=ctx.lastIndexOf(tr.k); if(idx!==-1 && (ctx.length-idx)<md){ md=ctx.length-idx; bt=tr.t;}}); if(bt && md<60){ofs.push({type:bt,val:p.v}); p.a=true;}}); if(!bp){const l=pfs.find(p=>!p.a); if(l)bp=l.v;} map[item.id]={title:ti,basePrice:bp,offers:ofs}; }
-        function renderError(c, t, m) { c.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs rounded mb-2"><strong>${t}:</strong> ${m}</div>`; }
-        const fmt = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        function checkTitleSimilarity(exp, fnd) { const t=s=>s.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).filter(w=>w.length>2); const eT=t(exp); const fT=fnd.toLowerCase(); if(eT.length===0)return 0; let m=0; eT.forEach(t=>{if(fT.includes(t))m++}); return m/eT.length; }
+        function rowHtml(l,e,f,s,o=""){ let i,c,v; const ef=fmt(e); if(s==="OK"){i='✔';c='status-ok';v=`<span class="price-tag bg-ok">R$ ${fmt(f)}</span>`} else if(s==="DIVERGENTE"){i='✖';c='status-err';v=`<span class="price-tag bg-err">R$ ${fmt(f)}</span>`} else if(s==="WARN"){i='⚠';c='status-warn';v=`<span class="price-tag bg-ref">R$ ${fmt(f)}</span> <span class="text-[9px]">${o}</span>`} else{i='✖';c='status-err';v=`<span class="price-tag bg-miss">---</span>`} return `<tr><td class="font-bold text-slate-600">${l}</td><td><span class="font-mono font-bold text-blue-800">R$ ${ef}</span></td><td>${v}</td><td class="${c}">${i} ${s}</td></tr>`; }
+        function toBase64(f){return new Promise((r,j)=>{const d=new FileReader();d.onload=()=>r(d.result.split(',')[1]);d.onerror=j;d.readAsDataURL(f)})}
+        function compressImage(b){return new Promise(r=>{const i=new Image();i.src="data:image/jpeg;base64,"+b;i.onload=()=>{const c=document.createElement('canvas');c.width=1000;c.height=i.height*(1000/i.width);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',0.7).split(',')[1])}})}
+        function parseListV76(t){const m={};const l=t.split('\n');let c=null;l.forEach(x=>{x=x.trim();if(!x)return;const r=x.match(/^(\d+)\s*-\s*(.+)/);if(r){if(c)processListBlock(m,c);c={id:r[1],text:x}}else if(c)c.text+=" "+x});if(c)processListBlock(m,c);return m}
+        function processListBlock(m,i){const t=i.text.replace(/\s+/g,' ').trim();let ti=t.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/,'').trim()||t;let bp=null;const o=[];const p=[];const r=/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;let x;while((x=r.exec(t))!==null)p.push({v:parseFloat(x[1].replace('.','').replace(',','.')),i:x.index,a:false});const rm=t.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);if(rm){const v=parseFloat(rm[1].replace('.','').replace(',','.'));const k=p.find(n=>Math.abs(n.v-v)<0.001);if(k){bp=k.v;k.a=true}}else{const dm=t.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);if(dm){const v=parseFloat(dm[1].replace('.','').replace(',','.'));const k=p.find(n=>Math.abs(n.v-v)<0.001);if(k){bp=k.v;k.a=true}}}const tr=[{k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"SAVE",t:"SAVE GANHE"},{k:"EMBALAGEM",t:"EMBALAGEM"},{k:"SAI POR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},{k:"LEVANDO",t:"EMBALAGEM"}];p.forEach(n=>{if(n.a)return;const cx=t.substring(Math.max(0,n.i-80),n.i).toUpperCase();let bt=null,md=9999;tr.forEach(k=>{const ix=cx.lastIndexOf(k.k);if(ix!==-1&&(cx.length-ix)<md){md=cx.length-ix;bt=k.t}});if(bt&&md<60){o.push({type:bt,val:n.v});n.a=true}});if(!bp){const l=p.find(n=>!n.a);if(l)bp=l.v}m[i.id]={title:ti,basePrice:bp,offers:o}}
+        function renderError(c,t,m){c.innerHTML+=`<div class="p-3 bg-red-100 text-red-800 text-xs rounded mb-2"><strong>${t}:</strong> ${m}</div>`}
+        const fmt=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2});
     </script>
 </body>
 </html>
