@@ -3,55 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V72 - Comparador Final</title>
+    <title>Auditor V73 - Detetive OCR</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #111827; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: #1e1e1e; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
         
-        .drop-zone { border: 2px dashed #9ca3af; border-radius: 8px; background: #f3f4f6; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .drop-zone:hover { border-color: #2563eb; background: #eff6ff; }
+        .drop-zone { border: 2px dashed #9ca3af; border-radius: 8px; background: #e5e7eb; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .drop-zone:hover { border-color: #3b82f6; background: #dbeafe; }
 
-        .result-card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .card-header { padding: 12px 15px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .result-card { background: white; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .card-header { padding: 12px 15px; background: #f3f4f6; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
         
-        /* TABELA DE COMPARAÇÃO */
         .comp-table { width: 100%; text-align: left; font-size: 13px; border-collapse: collapse; }
-        .comp-table th { background: #f3f4f6; color: #6b7280; font-weight: 700; border-bottom: 2px solid #e5e7eb; padding: 8px 12px; font-size: 11px; text-transform: uppercase; }
-        .comp-table td { padding: 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+        .comp-table th { background: #f9fafb; color: #6b7280; font-weight: 700; border-bottom: 2px solid #e5e7eb; padding: 8px 12px; font-size: 11px; text-transform: uppercase; }
+        .comp-table td { padding: 12px; border-bottom: 1px solid #f9fafb; vertical-align: middle; }
         .comp-table tr:last-child td { border-bottom: none; }
 
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
         
-        /* ESTADOS */
         .status-ok { color: #16a34a; font-weight: bold; }
         .status-err { color: #dc2626; font-weight: bold; }
         .status-warn { color: #d97706; font-weight: bold; }
 
         .bg-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; text-decoration: line-through; }
-        .bg-ref { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; } /* Azul para o correto */
+        .bg-ref { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
 
         .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
         .badge-pass { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
         .badge-fail { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+        .debug-panel { font-size: 10px; color: #6b7280; background: #f9fafb; padding: 8px; border-top: 1px solid #e5e7eb; display: none; }
     </style>
 </head>
 <body class="text-slate-800">
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-scale-balanced"></i></div>
+            <div class="bg-purple-600 p-1.5 rounded text-white"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V72</h1>
-                <p class="text-[10px] text-gray-400">Sistema Integrado de Comparação</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V73</h1>
+                <p class="text-[10px] text-gray-400">Detetive de OCR</p>
             </div>
         </div>
         <div class="flex gap-2">
             <input type="password" id="apiKey" class="bg-gray-800 border border-gray-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
-            <button onclick="saveKey()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
+            <button onclick="saveKey()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
         </div>
     </header>
 
@@ -59,29 +59,29 @@
         <div class="w-[35%] bg-white border-r border-slate-200 flex flex-col p-4 gap-4 shadow-xl z-10">
             <div class="flex-1 flex flex-col">
                 <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
-                    1. COLE A LISTA (GABARITO)
-                    <span class="text-blue-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                    1. GABARITO (LISTA)
+                    <span class="text-purple-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
                 </label>
-                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="1 - Cerveja R$ 53,82 (red.123) ..."></textarea>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-purple-500 outline-none resize-none" placeholder="1 - Costela..."></textarea>
             </div>
             
             <div class="h-32">
                 <div id="dropZone" class="drop-zone">
-                    <i class="fa-solid fa-images text-3xl text-slate-300 mb-2"></i>
-                    <div class="text-xs font-bold text-slate-500">2. ARRASTE IMAGENS (P1.jpg...)</div>
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i>
+                    <div class="text-xs font-bold text-slate-600">2. ARRASTE IMAGENS</div>
                     <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
                 </div>
             </div>
 
             <button onclick="runAudit()" class="bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
-                <i class="fa-solid fa-check-double"></i> EXECUTAR AUDITORIA
+                <i class="fa-solid fa-play"></i> RODAR AUDITORIA
             </button>
         </div>
 
         <div class="w-[65%] bg-slate-50 relative flex flex-col">
             <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
-                <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-                <div class="text-sm font-bold text-blue-900 animate-pulse">Comparando Gabarito vs. Imagem...</div>
+                <div class="w-10 h-10 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mb-3"></div>
+                <div class="text-sm font-bold text-purple-900 animate-pulse">Analisando Pixels...</div>
             </div>
 
             <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
@@ -102,84 +102,58 @@
         const fileInput = document.getElementById('fileInput');
 
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-blue-600 font-bold">${files.length} Arquivos</div>`; };
-        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#2563eb'; };
-        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-blue-600 font-bold">${files.length} Arquivos</div>`; };
+        fileInput.onchange = e => { files = Array.from(e.target.files); dropZone.innerHTML = `<div class="text-purple-600 font-bold">${files.length} Arquivos</div>`; };
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#9333ea'; };
+        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#9ca3af'; files = Array.from(e.dataTransfer.files); dropZone.innerHTML = `<div class="text-purple-600 font-bold">${files.length} Arquivos</div>`; };
 
         async function runAudit() {
             const key = apiKeyInput.value.trim();
             const listTxt = document.getElementById('listInput').value;
+            if(!key || !listTxt.trim() || files.length === 0) return alert("Faltam dados!");
 
-            if(!key) return alert("Falta API Key!");
-            if(!listTxt.trim()) return alert("Falta Lista!");
-            if(files.length === 0) return alert("Faltam Imagens!");
-
-            // 1. Parse da Lista (Gabarito)
-            const listData = parseListV72(listTxt);
-            if(Object.keys(listData).length === 0) return alert("Lista inválida. Use formato: 'ID - Nome...'");
+            const listData = parseListV73(listTxt); // V71 Logic
+            if(Object.keys(listData).length === 0) return alert("Lista inválida.");
 
             document.getElementById('loading').classList.remove('hidden');
             const container = document.getElementById('resultsArea');
             container.innerHTML = '';
 
             for(const file of files) {
-                // 2. Acha o ID na imagem
                 const idMatch = file.name.match(/[Pp]0*(\d+)/);
-                if(!idMatch) {
-                    renderError(container, file.name, "Nome do arquivo não tem ID (P+Numero)");
-                    continue;
-                }
+                if(!idMatch) { renderError(container, file.name, "Sem ID no arquivo"); continue; }
                 const id = idMatch[1];
                 const gabarito = listData[id];
-
-                if(!gabarito) {
-                    renderError(container, file.name, `ID ${id} não está na lista colada.`);
-                    continue;
-                }
+                if(!gabarito) { renderError(container, file.name, `ID ${id} não está na lista.`); continue; }
 
                 try {
-                    // 3. Processa Imagem
-                    const imgData = await processImageV72(file, key);
-                    
-                    // 4. Compara
-                    compareAndRender(container, id, gabarito, imgData);
-
-                } catch(e) {
-                    renderError(container, file.name, e.message);
-                }
+                    const imgData = await processImageV73(file, key);
+                    compareAndRenderV73(container, id, gabarito, imgData);
+                } catch(e) { renderError(container, file.name, e.message); }
             }
-
             document.getElementById('loading').classList.add('hidden');
             files = [];
             dropZone.innerHTML = `<i class="fa-solid fa-check text-green-500 text-2xl"></i>`;
         }
 
-        // --- CÉREBRO DE LISTA (V71) ---
-        function parseListV72(txt) {
+        // --- LIST PARSER (Mesmo da V71 - Funcionando bem) ---
+        function parseListV73(txt) {
             const map = {};
             const lines = txt.split('\n');
             let currentItem = null;
-
-            // Multilinha Merge
             lines.forEach(line => {
-                line = line.trim();
-                if(!line) return;
+                line = line.trim(); if(!line) return;
                 const idMatch = line.match(/^(\d+)\s*-\s*(.+)/);
                 if (idMatch) {
-                    if (currentItem) processListItem(map, currentItem);
+                    if (currentItem) processListBlock(map, currentItem);
                     currentItem = { id: idMatch[1], text: line };
-                } else if (currentItem) {
-                    currentItem.text += " " + line;
-                }
+                } else if (currentItem) currentItem.text += " " + line;
             });
-            if (currentItem) processListItem(map, currentItem);
+            if (currentItem) processListBlock(map, currentItem);
             return map;
         }
 
-        function processListItem(map, item) {
+        function processListBlock(map, item) {
             const text = item.text.replace(/\s+/g, ' ').trim();
-            
-            // Extração de Dados da Lista (Baseada na V71 Blindada)
             let title = text.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/, '').trim() || text;
             
             let basePrice = null;
@@ -188,11 +162,9 @@
             const priceRegex = /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;
             let match;
             while ((match = priceRegex.exec(text)) !== null) {
-                const val = parseFloat(match[1].replace('.','').replace(',','.'));
-                pricesFound.push({ val, index: match.index, assigned: false });
+                pricesFound.push({ val: parseFloat(match[1].replace('.','').replace(',','.')), index: match.index, assigned: false });
             }
 
-            // Base VIP (Antes de RED ou depois de Travessão)
             const redMatch = text.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);
             if (redMatch) {
                 const val = parseFloat(redMatch[1].replace('.','').replace(',','.'));
@@ -207,43 +179,31 @@
                 }
             }
 
-            // Ofertas da Lista
             const triggers = [
-                { key: "CARTÃO", type: "NOSSO CARTÃO" },
-                { key: "SAVE", type: "SAVE GANHE" },
-                { key: "EMBALAGEM", type: "EMBALAGEM" },
-                { key: "SAI POR", type: "EMBALAGEM" },
-                { key: "UNIDADE", type: "EMBALAGEM" }
+                { k: "CARTÃO", t: "NOSSO CARTÃO" }, { k: "SAVE", t: "SAVE GANHE" },
+                { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "SAI POR", t: "EMBALAGEM" },
+                { k: "UNIDADE", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }
             ];
 
             pricesFound.forEach(p => {
                 if(p.assigned) return;
-                const context = text.substring(Math.max(0, p.index - 80), p.index).toUpperCase();
+                const ctx = text.substring(Math.max(0, p.index - 80), p.index).toUpperCase();
                 let bestT = null, minD = 9999;
                 triggers.forEach(t => {
-                    const idx = context.lastIndexOf(t.key);
-                    if(idx !== -1 && (context.length - idx) < minD) { minD = context.length - idx; bestT = t; }
+                    const idx = ctx.lastIndexOf(t.k);
+                    if(idx !== -1 && (ctx.length - idx) < minD) { minD = ctx.length - idx; bestT = t; }
                 });
-                if(bestT && minD < 60) {
-                    offers.push({ type: bestT.type, val: p.val });
-                    p.assigned = true;
-                }
+                if(bestT && minD < 60) { offers.push({ type: bestT.t, val: p.val }); p.assigned = true; }
             });
 
-            if(!basePrice) {
-                const left = pricesFound.find(p => !p.assigned);
-                if(left) basePrice = left.val;
-            }
-
+            if(!basePrice) { const l = pricesFound.find(p => !p.assigned); if(l) basePrice = l.val; }
             map[item.id] = { title, basePrice, offers };
         }
 
-        // --- CÉREBRO DE IMAGEM (V60) ---
-        async function processImageV72(file, key) {
+        // --- IMAGE PARSER V73 (CORRETOR OCR) ---
+        async function processImageV73(file, key) {
             const base64 = await new Promise(r => { 
-                const reader = new FileReader(); 
-                reader.onload = () => r(reader.result.split(',')[1]); 
-                reader.readAsDataURL(file); 
+                const reader = new FileReader(); reader.onload = () => r(reader.result.split(',')[1]); reader.readAsDataURL(file); 
             });
 
             const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
@@ -254,147 +214,129 @@
             const text = json.responses[0]?.fullTextAnnotation?.text || "";
             const clean = text.replace(/\r/g, '');
 
-            // Parser de Imagem
+            // 1. CORREÇÃO DE OCR (Troca O por 0 em contextos numéricos)
+            // Procura padrões como "26,5O"
+            const correctedText = clean.replace(/(\d+)[,.](\d{1,2})[Oo]/g, "$1,$20")
+                                       .replace(/[Oo](\d{2})\b/g, "0$1"); // Ex: O5,90
+
+            const pricesFound = [];
+            // Regex melhorada: aceita espaço "26 50" se tiver R$ antes
+            // Regex padrão: XX,XX ou XX.XX
+            const pRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g;
+            
+            let m;
+            while ((m = pRegex.exec(correctedText)) !== null) {
+                const val = parseFloat(m[0].replace('.','').replace(',','.'));
+                
+                // Filtro de Ano Inteligente:
+                // Se for entre 2020 e 2030, SÓ ignora se for inteiro (ex: 2024 ok ignorar, 20,24 é preço)
+                const isYear = (val >= 2020 && val <= 2030 && Number.isInteger(val));
+                
+                if(!isYear || correctedText.includes('$'+m[0]) || correctedText.includes('$ '+m[0])) {
+                    pricesFound.push({ val, index: m.index });
+                }
+            }
+            
+            // Debug: Salva todos os números crus
+            const allRawNumbers = pricesFound.map(p => p.val);
+
+            // Logica Base (Acima de Comprar)
             let basePrice = null;
             const offers = [];
-            
-            // Preços
-            const pricesFound = [];
-            const pRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})/g;
-            let m;
-            while ((m = pRegex.exec(clean)) !== null) {
-                const val = parseFloat(m[0].replace('.','').replace(',','.'));
-                if(val > 2020 && !clean.includes('$'+m[0])) continue; // Filtra ano
-                pricesFound.push({ val, index: m.index });
-            }
-
-            // Lógica de Imagem (Base acima de Comprar ou Maior)
-            const buyIdx = clean.toUpperCase().indexOf("COMPRAR");
+            const buyIdx = correctedText.toUpperCase().indexOf("COMPRAR");
             let baseFound = false;
 
             if(buyIdx !== -1) {
                 const candidates = pricesFound.filter(p => p.index < buyIdx);
                 if(candidates.length) {
-                    const p = candidates[candidates.length -1];
+                    const p = candidates[candidates.length - 1];
                     basePrice = p.val;
                     baseFound = true;
-                    // Remove da lista para não virar oferta
                     pricesFound.splice(pricesFound.indexOf(p), 1);
                 }
             }
 
-            // Ofertas da Imagem
             const iTriggers = [
                 { k: "SAVE", t: "SAVE GANHE" }, { k: "CARTÃO", t: "NOSSO CARTÃO" },
                 { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }, { k: "A PARTIR", t: "EMBALAGEM" }
             ];
 
             pricesFound.forEach(p => {
-                const ctx = clean.substring(Math.max(0, p.index - 60), p.index).toUpperCase().replace(/\n/g,' ');
+                const ctx = correctedText.substring(Math.max(0, p.index - 60), p.index).toUpperCase().replace(/\n/g,' ');
                 let foundT = null;
                 for(const t of iTriggers) { if(ctx.includes(t.k)) { foundT = t.t; break; } }
-
                 if(foundT) offers.push({ type: foundT, val: p.val });
-                else if(!baseFound) { basePrice = p.val; baseFound = true; } // Fallback
+                else if(!baseFound) { basePrice = p.val; baseFound = true; }
             });
 
-            return { basePrice, offers };
+            return { basePrice, offers, rawText: correctedText, allRawNumbers };
         }
 
-        // --- COMPARADOR E RENDER ---
-        function compareAndRender(container, id, gabarito, imagem) {
+        function compareAndRenderV73(container, id, gabarito, imagem) {
             const rows = [];
             let errorCount = 0;
 
-            // 1. Comparar Base
             if (gabarito.basePrice) {
                 if (imagem.basePrice) {
-                    const diff = Math.abs(gabarito.basePrice - imagem.basePrice);
-                    if (diff < 0.05) {
-                        rows.push(rowHtml("PREÇO BASE", gabarito.basePrice, imagem.basePrice, "OK"));
-                    } else {
-                        rows.push(rowHtml("PREÇO BASE", gabarito.basePrice, imagem.basePrice, "ERRO"));
-                        errorCount++;
-                    }
-                } else {
-                    rows.push(rowHtml("PREÇO BASE", gabarito.basePrice, null, "SUMIU"));
-                    errorCount++;
-                }
+                    if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
+                    else { rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "ERRO")); errorCount++; }
+                } else { rows.push(rowHtml("BASE", gabarito.basePrice, null, "SUMIU")); errorCount++; }
             }
 
-            // 2. Comparar Ofertas
             gabarito.offers.forEach(req => {
-                // Tenta achar match na imagem pelo TIPO e PREÇO
-                const perfectMatch = imagem.offers.find(o => o.type === req.type && Math.abs(o.val - req.val) < 0.05);
+                const match = imagem.offers.find(o => o.type === req.type && Math.abs(o.val - req.val) < 0.05) ||
+                              imagem.offers.find(o => Math.abs(o.val - req.val) < 0.05); // Fallback valor
                 
-                if (perfectMatch) {
-                    rows.push(rowHtml(req.type, req.val, req.val, "OK"));
+                if (match) {
+                    if(match.type === req.type) rows.push(rowHtml(req.type, req.val, match.val, "OK"));
+                    else { rows.push(rowHtml(req.type, req.val, match.val, "WARN", `Achado como ${match.type}`)); errorCount++; }
                 } else {
-                    // Tenta achar só pelo PREÇO (Tipo errado)
-                    const valMatch = imagem.offers.find(o => Math.abs(o.val - req.val) < 0.05);
-                    if (valMatch) {
-                        rows.push(rowHtml(req.type, req.val, valMatch.val, "WARN", `Achado como ${valMatch.type}`));
-                        errorCount++; // Considera erro leve
-                    } else {
-                        rows.push(rowHtml(req.type, req.val, null, "SUMIU"));
-                        errorCount++;
-                    }
+                    rows.push(rowHtml(req.type, req.val, null, "SUMIU"));
+                    errorCount++;
                 }
             });
 
-            const status = errorCount === 0 ? "APROVADO" : `${errorCount} DIVERGÊNCIA(S)`;
+            const status = errorCount === 0 ? "APROVADO" : `${errorCount} ERRO(S)`;
             const badgeClass = errorCount === 0 ? "badge-pass" : "badge-fail";
-
             const div = document.createElement('div');
             div.className = "result-card animate-fade-in";
+            
+            // Debug ID
+            const debugId = `debug-${id}`;
+            
             div.innerHTML = `
                 <div class="card-header">
                     <span class="font-bold text-sm text-slate-700">${gabarito.title} (ID ${id})</span>
                     <span class="badge ${badgeClass}">${status}</span>
                 </div>
                 <table class="comp-table">
-                    <thead><tr><th>Item</th><th>Esperado (Lista)</th><th>Encontrado (Imagem)</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead>
                     <tbody>${rows.join('')}</tbody>
                 </table>
+                <div class="text-center p-2 border-t border-slate-100">
+                    <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-blue-500 hover:underline">
+                        <i class="fa-solid fa-microscope"></i> Ver Detalhes (Debug)
+                    </button>
+                </div>
+                <div id="${debugId}" class="debug-panel">
+                    <strong>Números lidos na imagem:</strong> ${imagem.allRawNumbers.join(', ')}<br>
+                    <strong>Texto bruto OCR:</strong><br>${imagem.rawText.substring(0, 200)}...
+                </div>
             `;
             container.prepend(div);
         }
 
-        function rowHtml(label, exp, found, status, obs = "") {
+        function rowHtml(label, exp, found, status, obs="") {
             let icon, stClass, valHtml;
             const expFmt = fmt(exp);
-            
-            if (status === "OK") {
-                icon = '<i class="fa-solid fa-check-circle"></i>';
-                stClass = 'status-ok';
-                valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`;
-            } else if (status === "ERRO") {
-                icon = '<i class="fa-solid fa-circle-xmark"></i>';
-                stClass = 'status-err';
-                valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`;
-            } else if (status === "WARN") {
-                icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
-                stClass = 'status-warn';
-                valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[10px] block">${obs}</span>`;
-            } else {
-                icon = '<i class="fa-solid fa-eye-slash"></i>';
-                stClass = 'status-err';
-                valHtml = `<span class="text-xs text-slate-400 italic">Não encontrado</span>`;
-            }
-
-            return `
-                <tr>
-                    <td class="font-bold text-slate-600">${label}</td>
-                    <td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td>
-                    <td>${valHtml}</td>
-                    <td class="${stClass}">${icon} ${status}</td>
-                </tr>
-            `;
+            if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; }
+            else if (status === "ERRO") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; }
+            else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; }
+            else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="text-xs text-slate-400">Não lido</span>`; }
+            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-purple-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
         }
 
-        function renderError(c, title, msg) {
-            c.innerHTML += `<div class="p-4 mb-2 bg-red-100 text-red-800 rounded text-sm border border-red-200"><strong>${title}:</strong> ${msg}</div>`;
-        }
+        function renderError(c, t, m) { c.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs rounded mb-2"><strong>${t}:</strong> ${m}</div>`; }
         const fmt = n => n.toLocaleString('pt-BR', {minimumFractionDigits: 2});
     </script>
 </body>
