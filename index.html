@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V79 - Preço e Título</title>
+    <title>Auditor V80 - Visual Diff</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #1e293b; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        
+        /* HEADER FIXO - CINZA ESCURO */
+        .header { background: #1f2937; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
         .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .drop-zone:hover { border-color: #3b82f6; background: #eff6ff; }
+        .drop-zone:hover { border-color: #2563eb; background: #eff6ff; }
 
         .result-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .card-header { padding: 12px 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
@@ -23,8 +25,12 @@
         .comp-table tr:last-child td { border-bottom: none; }
 
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
-        .text-title { font-size: 12px; line-height: 1.4; color: #334155; display: block; max-width: 250px; }
         
+        /* DIFF TEXT STYLES */
+        .diff-found { color: #16a34a; font-weight: bold; } /* Verde para achado */
+        .diff-missing { color: #dc2626; text-decoration: line-through; opacity: 0.7; } /* Vermelho riscado para faltante */
+        .diff-extra { color: #6b7280; font-size: 11px; font-style: italic; } /* Cinza para texto extra da imagem */
+
         .status-ok { color: #16a34a; font-weight: bold; }
         .status-err { color: #dc2626; font-weight: bold; }
         .status-warn { color: #d97706; font-weight: bold; }
@@ -32,6 +38,7 @@
         .bg-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
         .bg-miss { background: #f3f4f6; color: #9ca3af; border: 1px dashed #d1d5db; }
+        .bg-ref { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
 
         .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
         .badge-pass { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
@@ -39,7 +46,7 @@
 
         .debug-panel { font-size: 10px; color: #6b7280; background: #f9fafb; padding: 8px; border-top: 1px solid #e2e8f0; display: none; }
         
-        .api-select { background: #334155; border: 1px solid #475569; color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; outline: none; }
+        .api-select { background: #374151; border: 1px solid #4b5563; color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; outline: none; }
         .api-select:focus { border-color: #3b82f6; }
     </style>
 </head>
@@ -47,10 +54,10 @@
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-spell-check"></i></div>
+            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-robot"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V79</h1>
-                <p class="text-[10px] text-blue-200">Comparador de Título + Preço</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V80</h1>
+                <p class="text-[10px] text-gray-400">Visual Diff & Title Cleaning</p>
             </div>
         </div>
         
@@ -166,7 +173,7 @@
                     if (mode === 'vision') imgData = await processImageVision(file, apiKeyInput.value.trim());
                     else imgData = await processImageFreeOCR(file);
                     
-                    compareAndRenderV79(container, id, gabarito, imgData, mode);
+                    compareAndRenderV80(container, id, gabarito, imgData, mode);
                 } catch(e) { renderError(container, file.name, e.message); }
             }
             document.getElementById('loading').classList.add('hidden');
@@ -180,7 +187,7 @@
             });
             const json = await res.json();
             const text = json.responses[0]?.fullTextAnnotation?.text || "";
-            return extractPricesFromText(text, 80);
+            return extractPricesFromTextV80(text, 80);
         }
 
         async function processImageFreeOCR(file) {
@@ -200,19 +207,27 @@
             if (json.IsErroredOnProcessing) throw new Error("Free OCR Error: " + json.ErrorMessage);
             
             const text = json.ParsedResults && json.ParsedResults[0] ? json.ParsedResults[0].ParsedText : "";
-            return extractPricesFromText(text, 150);
+            return extractPricesFromTextV80(text, 150);
         }
 
-        // --- CORE LÓGICO ---
-        function extractPricesFromText(rawText, lookBackChars) {
+        // --- CORE LÓGICO V80 ---
+        function extractPricesFromTextV80(rawText, lookBackChars) {
             let clean = rawText.replace(/\r/g, '').replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, (match) => {
                 return match.replace(/S/g, '5').replace(/[O]/g, '0').replace(/B/g, '8').replace(/[lI]/g, '1').replace(/Z/g, '2');
             });
 
-            // *** NOVA LÓGICA DE TÍTULO V79 ***
-            // Pega tudo antes do primeiro "R$" ou "Número,Número"
-            const titleMatch = clean.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s);
-            const extractedTitle = titleMatch ? titleMatch[1].replace(/\n/g, ' ').trim() : "Não identificado";
+            // *** TÍTULO COM FAXINA ***
+            // 1. Pega tudo antes do primeiro preço
+            let extractedTitle = clean.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s)?.[1] || "";
+            
+            // 2. Faxina: Corta se encontrar palavras de oferta
+            const garbage = ["SAVE", "GANHE", "NOSSO", "CLUBE", "OFERTA", "CLIENTE", "LEVANDO", "CARTÃO"];
+            garbage.forEach(g => {
+                const idx = extractedTitle.toUpperCase().indexOf(g);
+                if(idx !== -1) extractedTitle = extractedTitle.substring(0, idx);
+            });
+            
+            extractedTitle = extractedTitle.replace(/\n/g, ' ').trim();
 
             const pricesFound = [];
             const pRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g;
@@ -262,20 +277,21 @@
             return { title: extractedTitle, basePrice, offers, rawText: clean, rawNumbers };
         }
 
-        // --- COMPARADOR V79 (Com Título) ---
-        function compareAndRenderV79(container, id, gabarito, imagem, mode) {
+        // --- COMPARADOR V80 ---
+        function compareAndRenderV80(container, id, gabarito, imagem, mode) {
             const rows = [];
             let errorCount = 0;
 
-            // 1. COMPARAÇÃO DE TÍTULO (NOVO)
+            // 1. TÍTULO: VISUAL DIFF
+            const titleDiffHtml = generateTitleDiff(gabarito.title, imagem.title);
+            // Lógica de Status do Título (Baseado em % de acerto)
             const sim = checkTitleSimilarity(gabarito.title, imagem.title);
-            let titleStatus = "OK";
-            if (sim < 0.4) { titleStatus = "ERRO"; errorCount++; } // Menos de 40% de match = Erro
-            else if (sim < 0.7) { titleStatus = "WARN"; } // Entre 40% e 70% = Alerta
-            
-            rows.push(rowTitleHtml(gabarito.title, imagem.title, titleStatus, Math.round(sim * 100)));
+            const titleStatus = sim < 0.4 ? "ERRO" : (sim < 0.7 ? "WARN" : "OK");
+            if (titleStatus === "ERRO") errorCount++;
 
-            // 2. COMPARAÇÃO DE PREÇOS
+            rows.push(rowTitleHtml(titleDiffHtml, titleStatus, Math.round(sim * 100)));
+
+            // 2. PREÇOS
             if (gabarito.basePrice) {
                 if (imagem.basePrice) {
                     if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
@@ -315,41 +331,52 @@
                     <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-blue-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button>
                 </div>
                 <div id="${debugId}" class="debug-panel">
+                    <strong>Raw Title:</strong> ${imagem.title}<br>
                     <strong>RAW Text:</strong> ${imagem.rawText.substring(0, 150)}...
                 </div>
             `;
             container.prepend(div);
         }
 
-        // --- ALGORITMO DE SIMILARIDADE ---
+        // --- GERADOR DE DIFF DO TÍTULO ---
+        function generateTitleDiff(expected, found) {
+            const expTokens = expected.split(/\s+/);
+            const foundClean = found.toLowerCase();
+            
+            return expTokens.map(word => {
+                const wClean = word.toLowerCase().replace(/[^\w]/g,'');
+                if(wClean.length < 2) return word; // Ignora palavras muito curtas
+                
+                if (foundClean.includes(wClean)) {
+                    return `<span class="diff-found">${word}</span>`;
+                } else {
+                    return `<span class="diff-missing">${word}</span>`;
+                }
+            }).join(' ');
+        }
+
+        function rowTitleHtml(diffHtml, status, pct) {
+            let icon, stClass;
+            if(status === "OK") { icon='✔'; stClass='status-ok'; }
+            else if(status === "WARN") { icon='⚠'; stClass='status-warn'; }
+            else { icon='✖'; stClass='status-err'; }
+
+            return `<tr>
+                <td class="font-bold text-slate-600">TÍTULO</td>
+                <td colspan="2"><div class="text-[12px] leading-snug">${diffHtml}</div></td>
+                <td class="${stClass}"><div class="flex flex-col items-center"><span>${icon} ${status}</span><span class="text-[9px] text-gray-400">(${pct}%)</span></div></td>
+            </tr>`;
+        }
+
+        // --- MANTER OUTRAS FUNÇÕES ---
         function checkTitleSimilarity(exp, fnd) {
-            // Remove palavras curtas e simbolos
             const tokenize = str => str.toLowerCase().replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
             const expTokens = tokenize(exp);
             const fndText = fnd.toLowerCase();
-            
             if(expTokens.length === 0) return 0;
-
             let matches = 0;
-            expTokens.forEach(t => {
-                if(fndText.includes(t)) matches++;
-            });
-
+            expTokens.forEach(t => { if(fndText.includes(t)) matches++; });
             return matches / expTokens.length;
-        }
-
-        function rowTitleHtml(exp, found, status, pct) {
-            let icon, stClass, bgClass;
-            if(status === "OK") { icon='✔'; stClass='status-ok'; bgClass='bg-ok'; }
-            else if(status === "WARN") { icon='⚠'; stClass='status-warn'; bgClass='bg-ref'; }
-            else { icon='✖'; stClass='status-err'; bgClass='bg-err'; }
-
-            return `<tr>
-                <td class="font-bold text-slate-600">TÍTULO PRODUTO</td>
-                <td><span class="text-title">${exp}</span></td>
-                <td><span class="text-title font-bold text-slate-600">${found}</span><span class="text-[9px] text-gray-400">(${pct}% match)</span></td>
-                <td class="${stClass}">${icon} ${status}</td>
-            </tr>`;
         }
 
         function rowHtml(label, exp, found, status, obs="") {
@@ -362,7 +389,6 @@
             return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass}">${icon} ${status}</td></tr>`;
         }
 
-        // --- AUXILIARES E PARSERS ANTIGOS (Mantidos) ---
         function toBase64(file) { return new Promise((r,j) => { const reader = new FileReader(); reader.onload=()=>r(reader.result.split(',')[1]); reader.onerror=j; reader.readAsDataURL(file); }); }
         function compressImage(b64) { return new Promise(r => { const i=new Image(); i.src="data:image/jpeg;base64,"+b64; i.onload=()=>{ const c=document.createElement('canvas'); c.width=1000; c.height=i.height*(1000/i.width); c.getContext('2d').drawImage(i,0,0,c.width,c.height); r(c.toDataURL('image/jpeg',0.7).split(',')[1]); }}); }
         function parseListV76(txt) { const map={}; const lines=txt.split('\n'); let cur=null; lines.forEach(l=>{ l=l.trim(); if(!l)return; const m=l.match(/^(\d+)\s*-\s*(.+)/); if(m){ if(cur)processListBlock(map,cur); cur={id:m[1],text:l}; }else if(cur)cur.text+=" "+l; }); if(cur)processListBlock(map,cur); return map; }
