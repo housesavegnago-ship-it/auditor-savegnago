@@ -3,86 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extrator V54 - Organizador Savegnago</title>
+    <title>Auditor V55 - Semântico Final</title>
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2910/2910768.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f1f5f9; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { background: #0f172a; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; }
+        .header { background: #0f172a; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 20; }
         
-        .drop-zone { border: 2px dashed #94a3b8; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .drop-zone:hover { border-color: #3b82f6; background: #eff6ff; }
+        .drop-zone { border: 2px dashed #94a3b8; border-radius: 8px; background: #f8fafc; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .drop-zone:hover { border-color: #ef4444; background: #fef2f2; }
 
-        .result-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .card-header { padding: 12px 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .result-card { background: white; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .card-header { padding: 10px 15px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         
-        /* Tipografia de Dados */
-        .data-label { font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-        
-        .title-box { font-size: 14px; color: #1e293b; font-weight: 600; line-height: 1.4; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 8px; }
-        
-        .base-price-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px; border-radius: 6px; display: inline-block; min-width: 120px; text-align: center; }
-        .base-val { font-size: 18px; font-weight: 800; color: #166534; font-family: monospace; }
-        
-        .offer-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
-        .offer-type { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-        .offer-val { font-size: 14px; font-weight: 700; color: #334155; font-family: monospace; }
+        .audit-table { width: 100%; text-align: left; font-size: 13px; border-collapse: separate; border-spacing: 0; }
+        .audit-table th { background: #f8fafc; color: #64748b; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding: 8px 12px; font-size: 11px; text-transform: uppercase; }
+        .audit-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        .audit-table tr:last-child td { border-bottom: none; }
 
-        /* Cores de Ofertas */
-        .type-save { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .type-card { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
-        .type-client { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
-        .type-pack { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
-        .type-other { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-
-        .raw-text { font-family: monospace; font-size: 10px; color: #94a3b8; margin-top: 10px; background: #f8fafc; padding: 8px; border-radius: 4px; white-space: pre-wrap; max-height: 100px; overflow-y: auto; }
+        .price-box { font-family: monospace; font-weight: bold; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .p-green { color: #166534; background: #dcfce7; border: 1px solid #bbf7d0; }
+        .p-red { color: #991b1b; background: #fee2e2; border: 1px solid #fecaca; text-decoration: line-through; opacity: 0.7; }
+        .p-blue { color: #1e40af; background: #dbeafe; border: 1px solid #bfdbfe; }
+        .arrow-right { color: #dc2626; margin: 0 8px; font-size: 14px; }
+        
+        .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 12px; text-transform: uppercase; }
+        .bg-ok { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .bg-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .bg-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+        
+        .detected-title { font-weight: bold; color: #334155; display: block; margin-bottom: 4px; font-size: 14px; }
     </style>
 </head>
 <body class="text-slate-800">
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-database"></i></div>
+            <div class="bg-violet-600 p-1.5 rounded text-white"><i class="fa-solid fa-list-check"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Extrator V54</h1>
-                <p class="text-[10px] text-slate-400">Organizador Inteligente (Sem Lista)</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V55</h1>
+                <p class="text-[10px] text-slate-400">Auditoria Semântica Final</p>
             </div>
         </div>
         <div class="flex gap-2">
             <input type="password" id="apiKey" class="bg-slate-800 border border-slate-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
-            <button onclick="saveKey()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
+            <button onclick="saveKey()" class="bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden">
-        <div class="w-[30%] bg-white border-r border-slate-200 flex flex-col p-4 shadow-xl z-10">
-            <div class="h-full">
+        <div class="w-[35%] bg-white border-r border-slate-200 flex flex-col p-4 gap-4 shadow-xl z-10">
+            <div class="flex-1 flex flex-col">
+                <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
+                    1. LISTA GABARITO (Com IDs)
+                    <span class="text-violet-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                </label>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-violet-500 outline-none resize-none" placeholder="12 - Cerveja Skol&#10;R$ 4,99&#10;Nesta embalagem R$ 4,89&#10;&#10;15 - Feijão..."></textarea>
+            </div>
+            
+            <div class="h-32">
                 <div id="dropZone" class="drop-zone">
-                    <i class="fa-solid fa-file-import text-4xl text-slate-300 mb-3"></i>
-                    <div class="text-sm font-bold text-slate-600">ARRASTE AS IMAGENS</div>
-                    <div class="text-xs text-slate-400 mt-1">Extração automática de dados</div>
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-300 mb-2"></i>
+                    <div class="text-xs font-bold text-slate-500">ARRASTE AS IMAGENS</div>
+                    <div class="text-[10px] text-slate-400">Nome: P12.jpg, P15.png...</div>
                     <input type="file" id="fileInput" multiple accept="image/*" class="hidden">
                 </div>
             </div>
+
+            <button onclick="processQueue()" class="bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
+                <i class="fa-solid fa-check-double"></i> AUDITAR AGORA
+            </button>
         </div>
 
-        <div class="w-[70%] bg-slate-50 relative flex flex-col">
+        <div class="w-[65%] bg-slate-50 relative flex flex-col">
             <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
-                <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-                <div class="text-sm font-bold text-blue-900 animate-pulse">Lendo estrutura do encarte...</div>
-            </div>
-
-            <div class="p-4 border-b border-slate-200 bg-white shadow-sm flex justify-between items-center">
-                <span class="font-bold text-xs text-slate-600">DADOS EXTRAÍDOS</span>
-                <button onclick="document.getElementById('resultsArea').innerHTML=''" class="text-[10px] text-red-500 hover:underline">LIMPAR TELA</button>
+                <div class="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mb-3"></div>
+                <div class="text-sm font-bold text-violet-900 animate-pulse">Lendo e Organizando...</div>
             </div>
 
             <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
                 <div class="text-center mt-20 text-slate-400 text-sm italic">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Arraste as imagens para começar.
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e arraste as imagens.
                 </div>
             </div>
         </div>
@@ -97,34 +101,111 @@
             alert("Chave salva!");
         }
 
+        let files = [];
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
 
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = e => processFiles(Array.from(e.target.files));
-        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#3b82f6'; };
-        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#94a3b8'; processFiles(Array.from(e.dataTransfer.files)); };
+        fileInput.onchange = e => handleFiles(Array.from(e.target.files));
+        dropZone.ondragover = e => { e.preventDefault(); dropZone.style.borderColor = '#8b5cf6'; };
+        dropZone.ondrop = e => { e.preventDefault(); dropZone.style.borderColor = '#94a3b8'; handleFiles(Array.from(e.dataTransfer.files)); };
 
-        async function processFiles(files) {
+        function handleFiles(newFiles) {
+            files = newFiles;
+            dropZone.innerHTML = `<div class="text-violet-600 font-bold text-sm">${files.length} Arquivos</div>`;
+        }
+
+        async function processQueue() {
             const key = apiKeyInput.value.trim();
-            if(!key) return alert("Falta API Key!");
+            const listTxt = document.getElementById('listInput').value;
             
+            if(!key) return alert("Falta a API Key!");
+            if(!listTxt) return alert("Falta a Lista!");
+            if(files.length === 0) return alert("Faltam Imagens!");
+
+            const listMap = parseList(listTxt);
+            if(Object.keys(listMap).length === 0) return alert("Lista sem IDs (Ex: '12 - Produto').");
+
             document.getElementById('loading').classList.remove('hidden');
             const container = document.getElementById('resultsArea');
-            if(container.innerText.includes('Arraste')) container.innerHTML = '';
+            container.innerHTML = '';
 
             for (const file of files) {
                 try {
-                    await extractData(file, key, container);
+                    await analyzeFile(file, key, listMap, container);
                 } catch (err) {
-                    container.innerHTML = `<div class="p-3 bg-red-100 text-red-800 text-xs mb-4 rounded">Erro ${file.name}: ${err.message}</div>` + container.innerHTML;
+                    container.innerHTML += `<div class="p-3 bg-red-100 text-red-800 text-xs mb-2 rounded">Erro em ${file.name}: ${err.message}</div>`;
                 }
             }
             document.getElementById('loading').classList.add('hidden');
+            files = [];
+            dropZone.innerHTML = `<i class="fa-solid fa-check text-green-500 text-2xl"></i>`;
         }
 
-        async function extractData(file, key, container) {
-            // 1. OCR
+        // --- CÉREBRO: ORGANIZADOR SEMÂNTICO (Extraído da V54) ---
+        function organizeData(fullText) {
+            const text = fullText.replace(/\r/g, '');
+            
+            // 1. Título
+            const titleMatch = text.match(/^(.*?)(?=\d+\s*(?:kg|g|ml|l|un)|R\$|\d+[.,]\d{2})/is);
+            const title = titleMatch ? titleMatch[1].replace(/\n/g, ' ').trim() : "Título não identificado";
+
+            // 2. Preços e Posições
+            const pricesFound = [];
+            const priceRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})/g;
+            let match;
+            while ((match = priceRegex.exec(text)) !== null) {
+                const val = parseFloat(match[0].replace('.','').replace(',','.'));
+                if(val >= 2020 && val <= 2030 && !text.includes('$' + match[0])) continue;
+                pricesFound.push({ val: val, index: match.index });
+            }
+
+            // 3. Identificar Ofertas (Gatilhos)
+            const offers = [];
+            const offerTriggers = [
+                { key: "SAVE GANHE", type: "SAVE GANHE" },
+                { key: "SAVEGANHE", type: "SAVE GANHE" },
+                { key: "CARTÃO", type: "CARTÃO" },
+                { key: "CARTAO", type: "CARTÃO" },
+                { key: "CLIENTE", type: "CLIENTE" },
+                { key: "EMBALAGEM", type: "EMBALAGEM" },
+                { key: "PROMOÇÃO", type: "PROMOÇÃO" },
+                { key: "LEVANDO", type: "LEVANDO" }
+            ];
+
+            // 4. Classificar Preços (Base vs Oferta)
+            // Se tiver gatilho antes => Oferta. Se não => Base.
+            const classifiedPrices = [];
+
+            pricesFound.forEach(p => {
+                // Olha 60 caracteres antes
+                const context = text.substring(Math.max(0, p.index - 60), p.index).toUpperCase().replace(/\n/g, ' ');
+                let type = "BASE"; // Default
+
+                for (const t of offerTriggers) {
+                    if (context.includes(t.key)) {
+                        type = t.type;
+                        break;
+                    }
+                }
+                
+                // Se for Base, mas já tivermos uma Base (e essa for menor), pode ser erro ou outra oferta.
+                // Mas vamos manter simples: Tudo sem gatilho é Base Candidata.
+                classifiedPrices.push({ type: type, val: p.val });
+            });
+
+            return { title, items: classifiedPrices };
+        }
+
+        async function analyzeFile(file, key, listMap, container) {
+            // 1. ID Check
+            const idMatch = file.name.match(/[Pp]0*(\d+)/);
+            if(!idMatch) { renderIgnored(container, file.name, "Sem ID no nome"); return; }
+            const id = idMatch[1];
+            const target = listMap[id];
+            if(!target) { renderIgnored(container, file.name, `ID ${id} fora da lista`); return; }
+
+            // 2. OCR Google
             const base64 = await toBase64(file);
             const apiRes = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, {
                 method: 'POST',
@@ -133,170 +214,159 @@
             const data = await apiRes.json();
             const fullText = data.responses[0]?.fullTextAnnotation?.text || "";
 
-            // 2. LÓGICA DE ORGANIZAÇÃO (O "EXTRATOR")
-            const info = parseSavegnagoLayout(fullText);
+            // 3. ORGANIZAR DADOS
+            const organized = organizeData(fullText);
 
-            // 3. RENDERIZAÇÃO
-            renderCard(container, file.name, info, fullText);
-        }
-
-        function parseSavegnagoLayout(text) {
-            const result = {
-                title: "Não identificado",
-                basePrice: null,
-                offers: []
-            };
-
-            // A. Extração do Título
-            // Regra: Do início até achar unidade (kg, g, ml) ou o primeiro R$
-            const cleanText = text.replace(/\r/g, '');
-            const titleMatch = cleanText.match(/^(.*?)(?=\d+\s*(?:kg|g|ml|l|un)|R\$|\d+[.,]\d{2})/is);
-            if (titleMatch) result.title = titleMatch[1].replace(/\n/g, ' ').trim();
-
-            // B. Encontrar todos os preços e suas posições
-            const prices = [];
-            const priceRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})/g;
-            let match;
-            while ((match = priceRegex.exec(cleanText)) !== null) {
-                const val = parseFloat(match[0].replace('.','').replace(',','.'));
-                // Filtra anos
-                if(val >= 2020 && val <= 2030 && !cleanText.includes('$' + match[0])) continue;
-                
-                prices.push({
-                    val: val,
-                    index: match.index,
-                    str: match[0]
-                });
-            }
-
-            // C. Identificar Preço Base (Gatilho: "COMPRAR")
-            // Procura "COMPRAR". O preço IMEDIATAMENTE ANTES é a base.
-            const buyIndex = cleanText.toUpperCase().indexOf("COMPRAR");
+            // 4. COMPARAR COM A LISTA
+            let reportRows = [];
+            let errorCount = 0;
             
-            if (buyIndex !== -1) {
-                // Filtra preços que aparecem antes da palavra COMPRAR
-                const candidates = prices.filter(p => p.index < buyIndex);
-                if (candidates.length > 0) {
-                    // O último dessa lista é o mais próximo do botão
-                    const baseP = candidates[candidates.length - 1];
-                    result.basePrice = baseP.val;
-                    // Remove esse preço da lista geral para não duplicar como oferta
-                    const idxToRemove = prices.indexOf(baseP);
-                    if (idxToRemove > -1) prices.splice(idxToRemove, 1);
-                }
-            } else {
-                // Se não tem botão comprar, assume que o maior preço ou o último sem oferta é a base?
-                // Por segurança, se não tem "Comprar", deixamos Base como null ou pegamos o último preço solto.
-                // Vamos deixar null para ser fiel à regra "Acima do botão comprar".
-            }
+            // Clone dos itens da imagem para ir consumindo
+            let availableItems = [...organized.items];
 
-            // D. Identificar Ofertas (Gatilhos de Texto)
-            // Regra: Se o texto antes do preço contém a palavra chave
-            const offerTriggers = [
-                { key: "SAVE GANHE", type: "SAVE GANHE", css: "type-save" },
-                { key: "SAVEGANHE", type: "SAVE GANHE", css: "type-save" },
-                { key: "NOSSO CARTÃO", type: "CARTÃO", css: "type-card" },
-                { key: "CARTÃO", type: "CARTÃO", css: "type-card" },
-                { key: "CLIENTE CAMPEÃO", type: "CLIENTE", css: "type-client" },
-                { key: "CLIENTE", type: "CLIENTE", css: "type-client" },
-                { key: "EMBALAGEM", type: "EMBALAGEM", css: "type-pack" },
-                { key: "PROMOÇÃO", type: "PROMOÇÃO", css: "type-pack" },
-                { key: "A PARTIR", type: "A PARTIR", css: "type-pack" }
-            ];
+            target.prices.forEach(req => {
+                // Tenta achar MATCH SEMÂNTICO primeiro (Tipo igual e Preço Igual)
+                // Ex: Lista pede "Cartão" R$ 10. Imagem tem "Cartão" R$ 10.
+                let matchIdx = availableItems.findIndex(item => 
+                    Math.abs(item.val - req.val) < 0.05 && 
+                    (req.context.toUpperCase().includes(item.type) || (req.context.toUpperCase().includes("BASE") && item.type === "BASE"))
+                );
 
-            prices.forEach(p => {
-                // Analisa os 50 caracteres antes do preço
-                const context = cleanText.substring(Math.max(0, p.index - 60), p.index).toUpperCase().replace(/\n/g, ' ');
-                
-                let foundType = null;
-                let foundCss = "type-other";
-
-                for (const t of offerTriggers) {
-                    if (context.includes(t.key)) {
-                        foundType = t.type;
-                        foundCss = t.css;
-                        break;
-                    }
+                // Se não achou por tipo, tenta achar só por PREÇO (fallback)
+                if (matchIdx === -1) {
+                    matchIdx = availableItems.findIndex(item => Math.abs(item.val - req.val) < 0.05);
                 }
 
-                if (foundType) {
-                    result.offers.push({ type: foundType, val: p.val, css: foundCss });
+                if (matchIdx !== -1) {
+                    // SUCESSO
+                    const item = availableItems[matchIdx];
+                    availableItems.splice(matchIdx, 1);
+                    reportRows.push(`
+                        <tr>
+                            <td class="font-bold text-slate-700 w-1/3">${req.context}</td>
+                            <td class="w-1/3"><span class="price-box p-green">R$ ${fmt(req.val)}</span></td>
+                            <td class="w-1/3 text-green-700 font-bold text-xs"><i class="fa-solid fa-check"></i> OK (${item.type})</td>
+                        </tr>
+                    `);
                 } else {
-                    // Se sobrou preço e não temos Base ainda, pode ser que este seja a Base (caso sem botão comprar)
-                    if (result.basePrice === null) {
-                        result.basePrice = p.val;
-                    } else {
-                        // Ou é um preço solto desconhecido
-                         result.offers.push({ type: "OUTRO PREÇO", val: p.val, css: "type-other" });
+                    // ERRO - DIVERGÊNCIA
+                    errorCount++;
+                    
+                    // Tenta achar o candidato mais provável na sobra
+                    let candidate = null;
+                    
+                    // Prioridade 1: Mesmo Tipo, Preço Diferente
+                    let bestIdx = availableItems.findIndex(item => 
+                         (req.context.toUpperCase().includes(item.type) || (req.context.toUpperCase().includes("BASE") && item.type === "BASE"))
+                    );
+
+                    // Prioridade 2: Qualquer sobra (se só tiver 1 sobrando)
+                    if (bestIdx === -1 && availableItems.length === 1) bestIdx = 0;
+                    
+                    // Prioridade 3: Mais próximo matematicamente
+                    if (bestIdx === -1 && availableItems.length > 0) {
+                        let minDiff = 999999;
+                        availableItems.forEach((p, i) => {
+                            const diff = Math.abs(p.val - req.val);
+                            if(diff < minDiff) { minDiff = diff; bestIdx = i; }
+                        });
                     }
+
+                    if (bestIdx !== -1) {
+                        candidate = availableItems[bestIdx];
+                        availableItems.splice(bestIdx, 1);
+                    }
+
+                    let comparisonHtml = "";
+                    if (candidate) {
+                        comparisonHtml = `
+                            <div class="flex items-center mt-1">
+                                <span class="price-box p-red" title="Lista">R$ ${fmt(req.val)}</span>
+                                <i class="fa-solid fa-arrow-right arrow-right"></i>
+                                <span class="price-box p-blue" title="Imagem">R$ ${fmt(candidate.val)}</span>
+                            </div>
+                            <div class="text-[10px] text-red-600 font-bold mt-1 uppercase">
+                                Encontrado como ${candidate.type}
+                            </div>
+                        `;
+                    } else {
+                        comparisonHtml = `
+                            <div class="price-box p-red">R$ ${fmt(req.val)}</div>
+                            <div class="text-[10px] text-red-500 mt-1">Valor sumiu da imagem</div>
+                        `;
+                    }
+
+                    reportRows.push(`
+                        <tr class="bg-red-50">
+                            <td class="font-bold text-red-900 w-1/3">${req.context}</td>
+                            <td class="w-2/3" colspan="2">${comparisonHtml}</td>
+                        </tr>
+                    `);
                 }
             });
 
-            return result;
+            const badge = errorCount === 0 ? "APROVADO" : `${errorCount} ERRO(S)`;
+            const bgClass = errorCount === 0 ? "bg-ok" : "bg-err";
+
+            const content = `
+                <div class="mb-3">
+                    <span class="detected-title"><i class="fa-solid fa-tag text-slate-300"></i> ${organized.title}</span>
+                </div>
+                <table class="audit-table">
+                    <thead><tr><th>Item da Lista</th><th>Análise</th><th>Status</th></tr></thead>
+                    <tbody>${reportRows.join('')}</tbody>
+                </table>
+            `;
+
+            renderCard(container, `${target.name} (ID ${id})`, badge, bgClass, content);
         }
 
-        function renderCard(container, fileName, info, raw) {
+        function renderCard(container, title, badge, bgClass, content) {
             const div = document.createElement('div');
             div.className = "result-card animate-fade-in";
-            
-            // HTML das ofertas
-            let offersHtml = "";
-            if (info.offers.length > 0) {
-                info.offers.forEach(o => {
-                    offersHtml += `
-                        <div class="offer-row">
-                            <span class="offer-type ${o.css}">${o.type}</span>
-                            <span class="offer-val">R$ ${fmt(o.val)}</span>
-                        </div>
-                    `;
-                });
-            } else {
-                offersHtml = `<div class="text-xs text-slate-400 italic py-2">Nenhuma oferta especial detectada.</div>`;
-            }
-
-            // HTML da Base
-            let baseHtml = "";
-            if (info.basePrice) {
-                baseHtml = `
-                    <div class="base-price-box">
-                        <div class="data-label text-green-700">PREÇO BASE</div>
-                        <div class="base-val">R$ ${fmt(info.basePrice)}</div>
-                    </div>
-                `;
-            } else {
-                baseHtml = `
-                    <div class="base-price-box bg-slate-100 border-slate-300">
-                        <div class="data-label text-slate-500">PREÇO BASE</div>
-                        <div class="text-sm font-bold text-slate-400">NÃO ACHADO</div>
-                    </div>
-                `;
-            }
-
             div.innerHTML = `
                 <div class="card-header">
-                    <span class="font-bold text-xs text-slate-500"><i class="fa-regular fa-image mr-1"></i>${fileName}</span>
+                    <span class="font-bold text-sm text-slate-700 truncate mr-2">${title}</span>
+                    <span class="badge ${bgClass} shrink-0">${badge}</span>
                 </div>
-                <div class="p-4">
-                    <div class="data-label">PRODUTO IDENTIFICADO</div>
-                    <div class="title-box">${info.title}</div>
-                    
-                    <div class="flex gap-4 mb-4 items-start">
-                        ${baseHtml}
-                        <div class="flex-1 bg-slate-50 p-2 rounded border border-slate-100">
-                            <div class="data-label mb-1">OFERTAS & CONDIÇÕES</div>
-                            ${offersHtml}
-                        </div>
-                    </div>
-
-                    <details>
-                        <summary class="text-[10px] text-blue-500 cursor-pointer hover:underline">Ver texto bruto lido pelo robô</summary>
-                        <div class="raw-text">${raw}</div>
-                    </details>
-                </div>
+                <div class="p-4">${content}</div>
             `;
             container.prepend(div);
         }
 
+        function renderIgnored(container, title, msg) {
+             renderCard(container, title, "IGNORADO", "bg-warn", `<div class="text-xs text-slate-500">${msg}</div>`);
+        }
+
+        function parseList(txt) {
+            const map = {};
+            let currentId = null;
+            let currentName = "";
+            txt.split('\n').forEach(line => {
+                line = line.trim();
+                if(!line) return;
+                const idMatch = line.match(/^(\d+)\s*-\s*(.+)/);
+                if(idMatch) {
+                    currentId = idMatch[1];
+                    currentName = idMatch[2];
+                    map[currentId] = { name: currentName, prices: [] };
+                    return;
+                }
+                if(currentId) {
+                    const prices = line.match(/(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*,\d{2})/g);
+                    if(prices) {
+                        prices.forEach(pStr => {
+                            const val = parseFloat(pStr.replace(/[R$\s]/g,'').replace('.','').replace(',','.'));
+                            let desc = line.replace(pStr, '').replace('R$', '').trim();
+                            if(desc.length < 2) desc = "Preço Base";
+                            map[currentId].prices.push({ val, context: desc });
+                        });
+                    }
+                }
+            });
+            return map;
+        }
+        
         function toBase64(file) {
             return new Promise((r, j) => {
                 const reader = new FileReader();
