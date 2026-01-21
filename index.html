@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V83 - Controle de Cota</title>
+    <title>Auditor V84 - ID Universal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
@@ -25,10 +25,14 @@
 
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
         
+        /* DIFF TEXT STYLES */
         .diff-word { display: inline-block; margin-right: 4px; }
         .diff-found { color: #16a34a; font-weight: bold; } 
         .diff-missing { color: #dc2626; text-decoration: line-through; opacity: 0.6; } 
         
+        /* LINHA DE TITULO DA LISTA */
+        .list-title-text { font-weight: 600; color: #1e293b; font-size: 12px; }
+
         .status-ok { color: #16a34a; font-weight: bold; }
         .status-err { color: #dc2626; font-weight: bold; }
         .status-warn { color: #d97706; font-weight: bold; }
@@ -61,13 +65,12 @@
         <div class="flex items-center gap-3">
             <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-robot"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V83</h1>
-                <p class="text-[10px] text-gray-400">Contador de Cota Diária</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V84</h1>
+                <p class="text-[10px] text-gray-400">ID Universal</p>
             </div>
         </div>
         
         <div class="flex items-center gap-4">
-            
             <div class="usage-box" title="Estimativa de uso neste computador hoje">
                 <span class="usage-label">USO DIÁRIO (Local)</span>
                 <span id="usageCounter" class="usage-val">0 / 1000</span>
@@ -142,35 +145,19 @@
         function updateUsageDisplay() {
             const today = new Date().toDateString();
             const storedDate = localStorage.getItem('usage_date');
-            
-            // Se mudou o dia, zera
-            if (storedDate !== today) {
-                localStorage.setItem('usage_date', today);
-                localStorage.setItem('usage_count', '0');
-            }
-
+            if (storedDate !== today) { localStorage.setItem('usage_date', today); localStorage.setItem('usage_count', '0'); }
             const count = parseInt(localStorage.getItem('usage_count') || '0');
             const limit = 1000;
             const pct = Math.min((count / limit) * 100, 100);
-
             usageCounter.innerText = `${count} / ${limit}`;
             usageBar.style.width = `${pct}%`;
-            
-            if(pct > 90) usageCounter.style.color = '#ef4444'; // Vermelho se > 90%
-            else usageCounter.style.color = '#10b981';
+            if(pct > 90) usageCounter.style.color = '#ef4444'; else usageCounter.style.color = '#10b981';
         }
-
-        function incrementUsage() {
-            const count = parseInt(localStorage.getItem('usage_count') || '0');
-            localStorage.setItem('usage_count', count + 1);
-            updateUsageDisplay();
-        }
-
-        // Inicializa UI
+        function incrementUsage() { const count = parseInt(localStorage.getItem('usage_count') || '0'); localStorage.setItem('usage_count', count + 1); updateUsageDisplay(); }
         if(localStorage.getItem('vision_key')) apiKeyInput.value = localStorage.getItem('vision_key');
         updateUsageDisplay();
 
-        function saveKey() { localStorage.setItem('vision_key', apiKeyInput.value.trim()); alert("Chave Vision Salva neste computador!"); }
+        function saveKey() { localStorage.setItem('vision_key', apiKeyInput.value.trim()); alert("Chave Vision Salva!"); }
         function toggleApiKeyInput() { visionContainer.style.display = (apiSelector.value === 'vision') ? 'flex' : 'none'; }
         toggleApiKeyInput();
 
@@ -190,12 +177,31 @@
             document.getElementById('resultsArea').innerHTML = `<div class="text-center mt-20 text-slate-400 text-sm italic"><i class="fa-solid fa-check mr-2 text-green-500"></i> Pronto.</div>`;
         }
 
+        // --- DETECTOR UNIVERSAL DE ID V84 ---
+        function extractIdFromFilename(filename) {
+            // 1. Tenta padrão explícito P1, p01
+            let match = filename.match(/[Pp]0*(\d+)/);
+            if (match) return match[1];
+
+            // 2. Tenta separadores (-1, _1, " 1") antes da extensão
+            // Ex: "oferta-1.jpg", "foto_5.png", "item 10.jpeg"
+            match = filename.match(/[-_\s]0*(\d+)\./);
+            if (match) return match[1];
+
+            // 3. Tenta número solto no final do arquivo (antes do ponto)
+            // Ex: "imagem15.jpg", "1.jpg"
+            match = filename.match(/0*(\d+)\.[a-zA-Z0-9]+$/);
+            if (match) return match[1];
+
+            return null;
+        }
+
         async function runAudit() {
             const listTxt = document.getElementById('listInput').value;
             const mode = apiSelector.value;
 
             if(!listTxt.trim() || files.length === 0) return alert("Faltam dados!");
-            if(mode === 'vision' && !apiKeyInput.value.trim()) return alert("ATENÇÃO: A API Key não está salva neste computador. Cole a chave e clique em SALVAR.");
+            if(mode === 'vision' && !apiKeyInput.value.trim()) return alert("Salve a API Key do Vision!");
 
             const listData = parseListV76(listTxt);
             if(Object.keys(listData).length === 0) return alert("Lista inválida.");
@@ -206,17 +212,19 @@
             container.innerHTML = '';
 
             for(const file of files) {
-                const idMatch = file.name.match(/[Pp]0*(\d+)/);
-                if(!idMatch) { renderError(container, file.name, "Sem ID no arquivo"); continue; }
-                const id = idMatch[1];
+                // *** NOVA CHAMADA DE ID ***
+                const id = extractIdFromFilename(file.name);
+                
+                if(!id) { renderError(container, file.name, "ID não encontrado no nome do arquivo (Use: P1, -1, _1 ou 1.jpg)"); continue; }
+                
                 const gabarito = listData[id];
-                if(!gabarito) { renderError(container, file.name, `ID ${id} não está na lista.`); continue; }
+                if(!gabarito) { renderError(container, file.name, `ID ${id} identificado, mas não está na lista.`); continue; }
 
                 try {
                     let imgData;
                     if (mode === 'vision') {
                         imgData = await processImageVision(file, apiKeyInput.value.trim());
-                        incrementUsage(); // Conta 1 uso do Google Vision
+                        incrementUsage();
                     } else {
                         imgData = await processImageFreeOCR(file);
                     }
@@ -227,7 +235,7 @@
             document.getElementById('loading').classList.add('hidden');
         }
 
-        // --- ENGINES (Mantidos V79) ---
+        // --- ENGINES ---
         async function processImageVision(file, key) {
             const base64 = await toBase64(file);
             const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, { method: 'POST', body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] }) });
@@ -250,7 +258,7 @@
             return extractPricesFromTextV82(json.ParsedResults?.[0]?.ParsedText || "", 150);
         }
 
-        // --- CORE LÓGICO V82 (Mantido) ---
+        // --- CORE LÓGICO ---
         function extractPricesFromTextV82(rawText, lookBackChars) {
             let clean = rawText.replace(/\r/g, '').replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, (match) => match.replace(/S/g,'5').replace(/[O]/g,'0').replace(/B/g,'8').replace(/[lI]/g,'1').replace(/Z/g,'2'));
             let extractedTitle = clean.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s)?.[1] || "";
@@ -276,7 +284,7 @@
             return { title: extractedTitle, basePrice, offers, rawText: clean, rawNumbers: pricesFound };
         }
 
-        // --- RENDER V82 (Mantido) ---
+        // --- RENDER ---
         function compareAndRenderV82(container, id, gabarito, imagem, mode) {
             const rows = [];
             let errorCount = 0;
@@ -312,7 +320,7 @@
             container.prepend(div);
         }
 
-        // --- RENDERIZADORES AUXILIARES ---
+        // --- AUXILIARES ---
         function generateTitleDiffV82(expected, found) {
             const expTokens = expected.split(/\s+/);
             const foundClean = found.toLowerCase();
