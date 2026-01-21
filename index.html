@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V82 - Título Duplo</title>
+    <title>Auditor V83 - Controle de Cota</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
         .header { background: #1f2937; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         
         .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
@@ -24,14 +25,10 @@
 
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
         
-        /* DIFF TEXT STYLES */
         .diff-word { display: inline-block; margin-right: 4px; }
         .diff-found { color: #16a34a; font-weight: bold; } 
         .diff-missing { color: #dc2626; text-decoration: line-through; opacity: 0.6; } 
         
-        /* LINHA DE TITULO DA LISTA */
-        .list-title-text { font-weight: 600; color: #1e293b; font-size: 12px; }
-
         .status-ok { color: #16a34a; font-weight: bold; }
         .status-err { color: #dc2626; font-weight: bold; }
         .status-warn { color: #d97706; font-weight: bold; }
@@ -49,6 +46,13 @@
         
         .api-select { background: #374151; border: 1px solid #4b5563; color: white; font-size: 12px; padding: 4px 8px; border-radius: 4px; outline: none; }
         .api-select:focus { border-color: #3b82f6; }
+
+        /* COUNTER BOX */
+        .usage-box { background: #111827; border: 1px solid #374151; border-radius: 6px; padding: 4px 10px; display: flex; flex-direction: column; min-width: 120px; }
+        .usage-label { font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+        .usage-val { font-size: 12px; font-weight: bold; color: #10b981; font-family: monospace; }
+        .progress-bg { height: 3px; background: #374151; width: 100%; margin-top: 2px; border-radius: 2px; }
+        .progress-fill { height: 100%; background: #10b981; border-radius: 2px; transition: width 0.3s; }
     </style>
 </head>
 <body class="text-slate-800">
@@ -57,13 +61,20 @@
         <div class="flex items-center gap-3">
             <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-robot"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V82</h1>
-                <p class="text-[10px] text-gray-400">Comparador Visual Completo</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V83</h1>
+                <p class="text-[10px] text-gray-400">Contador de Cota Diária</p>
             </div>
         </div>
         
-        <div class="flex items-center gap-3">
-            <div class="flex flex-col items-end">
+        <div class="flex items-center gap-4">
+            
+            <div class="usage-box" title="Estimativa de uso neste computador hoje">
+                <span class="usage-label">USO DIÁRIO (Local)</span>
+                <span id="usageCounter" class="usage-val">0 / 1000</span>
+                <div class="progress-bg"><div id="usageBar" class="progress-fill" style="width: 0%"></div></div>
+            </div>
+
+            <div class="flex flex-col items-end border-l border-gray-700 pl-4">
                 <span class="text-[10px] text-gray-400 font-bold mb-1">MOTOR OCR:</span>
                 <select id="apiSelector" class="api-select" onchange="toggleApiKeyInput()">
                     <option value="vision">Google Vision (Padrão)</option>
@@ -72,7 +83,7 @@
             </div>
 
             <div id="visionKeyContainer" class="flex gap-2">
-                <input type="password" id="apiKey" class="bg-gray-800 border border-gray-700 text-white text-xs p-1.5 rounded w-32" placeholder="API Key Vision...">
+                <input type="password" id="apiKey" class="bg-gray-800 border border-gray-700 text-white text-xs p-1.5 rounded w-32 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Cole sua API Key aqui...">
                 <button onclick="saveKey()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
             </div>
         </div>
@@ -124,10 +135,42 @@
         const apiKeyInput = document.getElementById('apiKey');
         const apiSelector = document.getElementById('apiSelector');
         const visionContainer = document.getElementById('visionKeyContainer');
+        const usageCounter = document.getElementById('usageCounter');
+        const usageBar = document.getElementById('usageBar');
 
+        // --- SISTEMA DE COTA DIÁRIA ---
+        function updateUsageDisplay() {
+            const today = new Date().toDateString();
+            const storedDate = localStorage.getItem('usage_date');
+            
+            // Se mudou o dia, zera
+            if (storedDate !== today) {
+                localStorage.setItem('usage_date', today);
+                localStorage.setItem('usage_count', '0');
+            }
+
+            const count = parseInt(localStorage.getItem('usage_count') || '0');
+            const limit = 1000;
+            const pct = Math.min((count / limit) * 100, 100);
+
+            usageCounter.innerText = `${count} / ${limit}`;
+            usageBar.style.width = `${pct}%`;
+            
+            if(pct > 90) usageCounter.style.color = '#ef4444'; // Vermelho se > 90%
+            else usageCounter.style.color = '#10b981';
+        }
+
+        function incrementUsage() {
+            const count = parseInt(localStorage.getItem('usage_count') || '0');
+            localStorage.setItem('usage_count', count + 1);
+            updateUsageDisplay();
+        }
+
+        // Inicializa UI
         if(localStorage.getItem('vision_key')) apiKeyInput.value = localStorage.getItem('vision_key');
-        
-        function saveKey() { localStorage.setItem('vision_key', apiKeyInput.value.trim()); alert("Chave Vision Salva!"); }
+        updateUsageDisplay();
+
+        function saveKey() { localStorage.setItem('vision_key', apiKeyInput.value.trim()); alert("Chave Vision Salva neste computador!"); }
         function toggleApiKeyInput() { visionContainer.style.display = (apiSelector.value === 'vision') ? 'flex' : 'none'; }
         toggleApiKeyInput();
 
@@ -152,7 +195,7 @@
             const mode = apiSelector.value;
 
             if(!listTxt.trim() || files.length === 0) return alert("Faltam dados!");
-            if(mode === 'vision' && !apiKeyInput.value.trim()) return alert("Salve a API Key do Vision!");
+            if(mode === 'vision' && !apiKeyInput.value.trim()) return alert("ATENÇÃO: A API Key não está salva neste computador. Cole a chave e clique em SALVAR.");
 
             const listData = parseListV76(listTxt);
             if(Object.keys(listData).length === 0) return alert("Lista inválida.");
@@ -171,8 +214,12 @@
 
                 try {
                     let imgData;
-                    if (mode === 'vision') imgData = await processImageVision(file, apiKeyInput.value.trim());
-                    else imgData = await processImageFreeOCR(file);
+                    if (mode === 'vision') {
+                        imgData = await processImageVision(file, apiKeyInput.value.trim());
+                        incrementUsage(); // Conta 1 uso do Google Vision
+                    } else {
+                        imgData = await processImageFreeOCR(file);
+                    }
                     
                     compareAndRenderV82(container, id, gabarito, imgData, mode);
                 } catch(e) { renderError(container, file.name, e.message); }
@@ -180,7 +227,7 @@
             document.getElementById('loading').classList.add('hidden');
         }
 
-        // --- ENGINES (Mantidos) ---
+        // --- ENGINES (Mantidos V79) ---
         async function processImageVision(file, key) {
             const base64 = await toBase64(file);
             const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, { method: 'POST', body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] }) });
@@ -203,16 +250,12 @@
             return extractPricesFromTextV82(json.ParsedResults?.[0]?.ParsedText || "", 150);
         }
 
-        // --- CORE LÓGICO V82 ---
+        // --- CORE LÓGICO V82 (Mantido) ---
         function extractPricesFromTextV82(rawText, lookBackChars) {
             let clean = rawText.replace(/\r/g, '').replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, (match) => match.replace(/S/g,'5').replace(/[O]/g,'0').replace(/B/g,'8').replace(/[lI]/g,'1').replace(/Z/g,'2'));
-            
-            // TITULO: Pega tudo antes do primeiro preço (R$ ou XX,XX)
             let extractedTitle = clean.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s)?.[1] || "";
-            // Faxina de Palavras Proibidas
             ["SAVE", "GANHE", "NOSSO", "CLUBE", "OFERTA", "CLIENTE", "LEVANDO", "CARTÃO"].forEach(g => { const idx = extractedTitle.toUpperCase().indexOf(g); if(idx !== -1) extractedTitle = extractedTitle.substring(0, idx); });
             extractedTitle = extractedTitle.replace(/\n/g, ' ').trim();
-
             const pricesFound = [];
             const pRegex = /(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g;
             let m;
@@ -220,11 +263,9 @@
                 const val = parseFloat(m[0].replace('.','').replace(',','.'));
                 if(!(val >= 2020 && val <= 2030 && Number.isInteger(val))) pricesFound.push({ val, index: m.index });
             }
-
             let basePrice = null; const offers = []; let baseFound = false;
             const buyIdx = clean.toUpperCase().indexOf("COMPRAR");
             if(buyIdx !== -1) { const c = pricesFound.filter(p => p.index < buyIdx); if(c.length) { const p = c[c.length - 1]; basePrice = p.val; baseFound = true; pricesFound.splice(pricesFound.indexOf(p), 1); } }
-            
             const iTriggers = [{ k: "SAVE", t: "SAVE GANHE" }, { k: "CARTÃO", t: "NOSSO CARTÃO" }, { k: "EMBALAGEM", t: "EMBALAGEM" }, { k: "LEVANDO", t: "EMBALAGEM" }, { k: "A PARTIR", t: "EMBALAGEM" }, { k: "UNIDADE", t: "EMBALAGEM" }];
             pricesFound.forEach(p => {
                 const ctx = clean.substring(Math.max(0, p.index - lookBackChars), p.index).toUpperCase().replace(/\n/g,' ');
@@ -235,27 +276,21 @@
             return { title: extractedTitle, basePrice, offers, rawText: clean, rawNumbers: pricesFound };
         }
 
-        // --- RENDER V82 (DUPLA LINHA) ---
+        // --- RENDER V82 (Mantido) ---
         function compareAndRenderV82(container, id, gabarito, imagem, mode) {
             const rows = [];
             let errorCount = 0;
-
             const sim = checkTitleSimilarity(gabarito.title, imagem.title);
             const titleStatus = sim < 0.4 ? "ERRO" : (sim < 0.7 ? "WARN" : "OK");
             if (titleStatus === "ERRO") errorCount++;
-            
             const titleDiffHtml = generateTitleDiffV82(gabarito.title, imagem.title);
-            
-            // DUPLA LINHA DE TÍTULO NA TABELA
             rows.push(rowTitleDouble(gabarito.title, titleDiffHtml, titleStatus, Math.round(sim * 100)));
-
             if (gabarito.basePrice) {
                 if (imagem.basePrice) {
                     if (Math.abs(gabarito.basePrice - imagem.basePrice) < 0.05) rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "OK"));
                     else { rows.push(rowHtml("BASE", gabarito.basePrice, imagem.basePrice, "DIVERGENTE")); errorCount++; }
                 } else { rows.push(rowHtml("BASE", gabarito.basePrice, null, "SUMIU")); errorCount++; }
             }
-
             gabarito.offers.forEach(req => {
                 const matchType = imagem.offers.find(o => o.type === req.type);
                 if (matchType) {
@@ -267,35 +302,17 @@
                     else { rows.push(rowHtml(req.type, req.val, null, "SUMIU")); errorCount++; }
                 }
             });
-
             const status = errorCount === 0 ? "APROVADO" : "REPROVADO";
             const badgeClass = errorCount === 0 ? "badge-pass" : "badge-fail";
             const div = document.createElement('div');
             div.className = "result-card animate-fade-in";
             const debugId = `debug-${id}`;
             const engineLabel = mode === 'vision' ? 'Vision' : 'Free OCR';
-            
-            div.innerHTML = `
-                <div class="card-header">
-                    <div><span class="font-bold text-sm text-slate-700">ID ${id}</span> <span class="text-[9px] text-gray-400">(${engineLabel})</span></div>
-                    <span class="badge ${badgeClass}">${status}</span>
-                </div>
-                <table class="comp-table">
-                    <thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead>
-                    <tbody>${rows.join('')}</tbody>
-                </table>
-                <div class="text-center p-2 border-t border-slate-100">
-                    <button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-blue-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button>
-                </div>
-                <div id="${debugId}" class="debug-panel">
-                    <strong>Raw OCR Title:</strong> ${imagem.title}<br>
-                    <strong>RAW Text:</strong> ${imagem.rawText.substring(0, 150)}...
-                </div>
-            `;
+            div.innerHTML = `<div class="card-header"><div><span class="font-bold text-sm text-slate-700">ID ${id}</span> <span class="text-[9px] text-gray-400">(${engineLabel})</span></div><span class="badge ${badgeClass}">${status}</span></div><table class="comp-table"><thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead><tbody>${rows.join('')}</tbody></table><div class="text-center p-2 border-t border-slate-100"><button onclick="document.getElementById('${debugId}').style.display = 'block'" class="text-[10px] text-blue-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button></div><div id="${debugId}" class="debug-panel"><strong>Raw OCR Title:</strong> ${imagem.title}<br><strong>RAW Text:</strong> ${imagem.rawText.substring(0, 150)}...</div>`;
             container.prepend(div);
         }
 
-        // --- RENDERIZADORES AUXILIARES V82 ---
+        // --- RENDERIZADORES AUXILIARES ---
         function generateTitleDiffV82(expected, found) {
             const expTokens = expected.split(/\s+/);
             const foundClean = found.toLowerCase();
@@ -306,37 +323,12 @@
                 else return `<span class="diff-word diff-missing">${word}</span>`;
             }).join(' ');
         }
-
         function rowTitleDouble(expected, diffHtml, status, pct) {
             let icon, stClass;
             if(status === "OK") { icon='✔'; stClass='status-ok'; } else if(status === "WARN") { icon='⚠'; stClass='status-warn'; } else { icon='✖'; stClass='status-err'; }
-            
-            return `
-                <tr>
-                    <td class="font-bold text-slate-600 align-top pt-3">TÍTULO (LISTA)</td>
-                    <td colspan="2"><span class="list-title-text">${expected}</span></td>
-                    <td rowspan="2" class="${stClass} align-middle border-l border-slate-100 pl-2">
-                        <div class="flex flex-col items-center"><span>${icon} ${status}</span><span class="text-[9px] text-gray-400">(${pct}%)</span></div>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="font-bold text-slate-600 align-top pb-3 text-[10px]">TÍTULO (IMG)</td>
-                    <td colspan="2" class="pb-3"><div class="text-[12px] leading-snug">${diffHtml}</div></td>
-                </tr>
-            `;
+            return `<tr><td class="font-bold text-slate-600 align-top pt-3">TÍTULO (LISTA)</td><td colspan="2"><span class="list-title-text">${expected}</span></td><td rowspan="2" class="${stClass} align-middle border-l border-slate-100 pl-2"><div class="flex flex-col items-center"><span>${icon} ${status}</span><span class="text-[9px] text-gray-400">(${pct}%)</span></div></td></tr><tr><td class="font-bold text-slate-600 align-top pb-3 text-[10px]">TÍTULO (IMG)</td><td colspan="2" class="pb-3"><div class="text-[12px] leading-snug">${diffHtml}</div></td></tr>`;
         }
-
-        function rowHtml(label, exp, found, status, obs="") {
-            let icon, stClass, valHtml;
-            const expFmt = fmt(exp);
-            if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; }
-            else if (status === "DIVERGENTE") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; }
-            else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; }
-            else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-miss">---</span>`; }
-            return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass} border-l border-slate-100 pl-2">${icon} ${status}</td></tr>`;
-        }
-
-        // --- MANTER PARSERS V76 ---
+        function rowHtml(label, exp, found, status, obs="") { let icon, stClass, valHtml; const expFmt = fmt(exp); if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; } else if (status === "DIVERGENTE") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; } else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; } else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-miss">---</span>`; } return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass} border-l border-slate-100 pl-2">${icon} ${status}</td></tr>`; }
         function checkTitleSimilarity(exp, fnd) { const t=s=>s.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).filter(w=>w.length>2); const eT=t(exp); const fT=fnd.toLowerCase(); if(eT.length===0)return 0; let m=0; eT.forEach(t=>{if(fT.includes(t))m++}); return m/eT.length; }
         function toBase64(f){return new Promise((r,j)=>{const d=new FileReader();d.onload=()=>r(d.result.split(',')[1]);d.onerror=j;d.readAsDataURL(f)})}
         function compressImage(b){return new Promise(r=>{const i=new Image();i.src="data:image/jpeg;base64,"+b;i.onload=()=>{const c=document.createElement('canvas');c.width=1000;c.height=i.height*(1000/i.width);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',0.7).split(',')[1])}})}
