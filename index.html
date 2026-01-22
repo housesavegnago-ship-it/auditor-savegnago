@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V90 - Auto ID</title>
+    <title>Auditor V91 - Relatório PDF</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -47,8 +49,8 @@
 <body class="text-slate-800">
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 p-1.5 rounded text-white"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-            <div><h1 class="font-bold text-lg leading-none">Auditor V90</h1><p class="text-[10px] text-indigo-300">Auto-ID & Smart Match</p></div>
+            <div class="bg-red-600 p-1.5 rounded text-white"><i class="fa-solid fa-file-pdf"></i></div>
+            <div><h1 class="font-bold text-lg leading-none">Auditor V91</h1><p class="text-[10px] text-red-200">Relatório PDF</p></div>
         </div>
         <div class="flex items-center gap-4">
             <div class="usage-box"><span class="usage-label">USO DIÁRIO</span><span id="usageCounter" class="usage-val">0 / 1000</span><div class="progress-bg"><div id="usageBar" class="progress-fill" style="width: 0%"></div></div></div>
@@ -58,26 +60,33 @@
     </header>
     <div class="flex flex-1 overflow-hidden">
         <div class="w-[35%] bg-white border-r border-slate-200 flex flex-col p-4 gap-4 shadow-xl z-10">
-            <div class="flex-1 flex flex-col"><label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">1. GABARITO<span class="text-indigo-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span></label><textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea></div>
+            <div class="flex-1 flex flex-col"><label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">1. GABARITO<span class="text-red-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span></label><textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-red-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea></div>
             <div class="h-32"><div id="dropZone" class="drop-zone"><i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i><div class="text-xs font-bold text-slate-600">2. ARRASTE IMAGENS</div><input type="file" id="fileInput" multiple accept="image/*" class="hidden"></div></div>
-            <div class="flex gap-2"><button onclick="runAudit()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2"><i class="fa-solid fa-play"></i> AUDITAR</button><button onclick="clearImages()" class="w-16 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center" title="Limpar"><i class="fa-solid fa-trash-can"></i></button></div>
+            <div class="flex gap-2">
+                <button onclick="runAudit()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2"><i class="fa-solid fa-play"></i> AUDITAR</button>
+                <button onclick="clearImages()" class="w-16 bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center" title="Limpar"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            <button onclick="generatePDF()" class="mt-2 w-full bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2"><i class="fa-solid fa-file-pdf"></i> BAIXAR RELATÓRIO PDF</button>
         </div>
         <div class="w-[65%] bg-slate-50 relative flex flex-col">
-            <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center"><div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div><div id="loadingText" class="text-sm font-bold text-indigo-900 animate-pulse">Iniciando...</div></div>
+            <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center"><div class="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin mb-3"></div><div id="loadingText" class="text-sm font-bold text-red-900 animate-pulse">Iniciando...</div></div>
             <div id="resultsArea" class="flex-1 overflow-y-auto p-6"><div class="text-center mt-20 text-slate-400 text-sm italic"><i class="fa-solid fa-arrow-left mr-2"></i> Cole a lista e arraste as imagens.</div></div>
         </div>
     </div>
     <script>
         const apiKeyInput=document.getElementById('apiKey'),apiSelector=document.getElementById('apiSelector'),visionContainer=document.getElementById('visionKeyContainer'),btnUnlock=document.getElementById('btnUnlock'),btnSaveKey=document.getElementById('btnSaveKey'),usageCounter=document.getElementById('usageCounter'),usageBar=document.getElementById('usageBar'),ADMIN_PASS="Savegna@2212*",FREE_OCR_KEY='K87864832788957';
         let files=[];const dropZone=document.getElementById('dropZone'),fileInput=document.getElementById('fileInput');
+        // Store report data globally for PDF generation
+        let reportData = [];
+
         function updateUsageDisplay(){const t=new Date().toDateString(),s=localStorage.getItem('usage_date');if(s!==t){localStorage.setItem('usage_date',t);localStorage.setItem('usage_count','0')}const c=parseInt(localStorage.getItem('usage_count')||'0'),l=1000,p=Math.min((c/l)*100,100);usageCounter.innerText=`${c} / ${l}`;usageBar.style.width=`${p}%`;usageCounter.style.color=p>90?'#ef4444':'#10b981'}
         function incrementUsage(){const c=parseInt(localStorage.getItem('usage_count')||'0');localStorage.setItem('usage_count',c+1);updateUsageDisplay()}
         if(localStorage.getItem('vision_key'))apiKeyInput.value=localStorage.getItem('vision_key');updateUsageDisplay();
         function toggleApiKeyInput(){visionContainer.style.display=(apiSelector.value==='vision')?'flex':'none'}toggleApiKeyInput();
         function unlockKey(){if(prompt("Senha Admin:")===ADMIN_PASS){apiKeyInput.disabled=false;apiKeyInput.classList.remove('input-locked');apiKeyInput.classList.add('input-unlocked');apiKeyInput.placeholder="Nova chave";btnUnlock.classList.add('hidden');btnSaveKey.classList.remove('hidden');apiKeyInput.focus()}else alert("Senha incorreta!")}
         function saveKey(){const k=apiKeyInput.value.trim();if(!k)return alert("Vazio!");localStorage.setItem('vision_key',k);alert("Salvo!");apiKeyInput.disabled=true;apiKeyInput.classList.add('input-locked');apiKeyInput.classList.remove('input-unlocked');btnUnlock.classList.remove('hidden');btnSaveKey.classList.add('hidden')}
-        dropZone.onclick=()=>fileInput.click();fileInput.onchange=e=>{files=Array.from(e.target.files);dropZone.innerHTML=`<div class="text-indigo-600 font-bold">${files.length} Arq</div>`};dropZone.ondragover=e=>{e.preventDefault();dropZone.style.borderColor='#4f46e5'};dropZone.ondrop=e=>{e.preventDefault();dropZone.style.borderColor='#9ca3af';files=Array.from(e.dataTransfer.files);dropZone.innerHTML=`<div class="text-indigo-600 font-bold">${files.length} Arq</div>`};
-        function clearImages(){files=[];fileInput.value='';dropZone.innerHTML=`<i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i><div class="text-xs font-bold text-slate-600">2. ARRASTE IMAGENS</div><input type="file" id="fileInput" multiple accept="image/*" class="hidden">`;document.getElementById('resultsArea').innerHTML=''}
+        dropZone.onclick=()=>fileInput.click();fileInput.onchange=e=>{files=Array.from(e.target.files);dropZone.innerHTML=`<div class="text-red-600 font-bold">${files.length} Arq</div>`};dropZone.ondragover=e=>{e.preventDefault();dropZone.style.borderColor='#ef4444'};dropZone.ondrop=e=>{e.preventDefault();dropZone.style.borderColor='#9ca3af';files=Array.from(e.dataTransfer.files);dropZone.innerHTML=`<div class="text-red-600 font-bold">${files.length} Arq</div>`};
+        function clearImages(){files=[];fileInput.value='';dropZone.innerHTML=`<i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i><div class="text-xs font-bold text-slate-600">2. ARRASTE IMAGENS</div><input type="file" id="fileInput" multiple accept="image/*" class="hidden">`;document.getElementById('resultsArea').innerHTML=''; reportData = [];}
         function extractId(f){let m=f.match(/[Pp]0*(\d+)/);if(m)return m[1];m=f.match(/[-_\s]0*(\d+)\./);if(m)return m[1];m=f.match(/0*(\d+)\.[a-zA-Z0-9]+$/);return m?m[1]:null}
         
         function levenshtein(a, b) {
@@ -93,13 +102,14 @@
             if(!l.trim()||!files.length)return alert("Faltam dados!");
             if(m==='vision'&&!apiKeyInput.value.trim())return alert("Sem API Key!");
             
-            const listData=parseListV86(l); // Usa lógica V86 para parsear lista
+            const listData=parseListV86(l);
             if(!Object.keys(listData).length)return alert("Lista inválida!");
             
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('loadingText').innerText=m==='vision'?"Vision...":"Free OCR...";
             const container=document.getElementById('resultsArea');
             container.innerHTML='';
+            reportData = []; // Clear old report data
 
             for(const f of files){
                 const fileId = extractId(f.name);
@@ -109,48 +119,149 @@
                     else { imgData = await procFree(f); }
                 } catch(e) { renderError(container, f.name, e.message); continue; }
 
-                // *** AUTO-ID MATCHING V90 ***
                 let matchedId = fileId;
                 let isAutoCorrected = false;
                 let bestSim = 0;
                 let bestMatchId = null;
 
-                // 1. Verifica se o ID do arquivo existe e se bate com o texto
                 if(fileId && listData[fileId]) {
                     const sim = checkSim(listData[fileId].title, imgData.title);
-                    if(sim > 0.4) {
-                        matchedId = fileId; // Match aceitável
-                    } else {
-                        // Match ruim, vamos procurar outro melhor
-                        bestSim = sim;
-                    }
+                    if(sim > 0.4) matchedId = fileId; else bestSim = sim;
                 }
 
-                // 2. Se não tem ID ou o match foi ruim, varre a lista toda
                 if(!matchedId || bestSim < 0.4) {
                     for(const [lid, item] of Object.entries(listData)) {
                         const s = checkSim(item.title, imgData.title);
-                        if(s > bestSim && s > 0.4) { // Só troca se for melhor e > 40%
-                            bestSim = s;
-                            bestMatchId = lid;
-                        }
+                        if(s > bestSim && s > 0.4) { bestSim = s; bestMatchId = lid; }
                     }
-                    if(bestMatchId) {
-                        matchedId = bestMatchId;
-                        isAutoCorrected = true;
-                    }
+                    if(bestMatchId) { matchedId = bestMatchId; isAutoCorrected = true; }
                 }
 
-                if(!matchedId || !listData[matchedId]) {
-                    renderError(container, f.name, `Não foi possível identificar o produto na lista.`);
-                    continue;
-                }
+                if(!matchedId || !listData[matchedId]) { renderError(container, f.name, `Não identificado`); continue; }
 
-                renderV90(container, matchedId, listData[matchedId], imgData, m, isAutoCorrected, f.name);
+                // Store data for report
+                const auditResult = compareData(listData[matchedId], imgData);
+                reportData.push({ id: matchedId, file: f.name, gabarito: listData[matchedId], imagem: imgData, result: auditResult, corrected: isAutoCorrected });
+
+                renderV90(container, matchedId, listData[matchedId], imgData, m, isAutoCorrected, f.name, auditResult);
             }
             document.getElementById('loading').classList.add('hidden');
         }
         
+        // --- PDF GENERATOR V91 ---
+        function generatePDF() {
+            if (reportData.length === 0) return alert("Nenhum dado auditado para gerar relatório. Execute a auditoria primeiro.");
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(18);
+            doc.setTextColor(220, 38, 38); // Red
+            doc.text("Relatório de Auditoria de Ofertas", 14, 22);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 28);
+            
+            const tableRows = [];
+            
+            reportData.forEach(item => {
+                // Row 1: ID and Title Check
+                let titleStatus = item.result.titleStatus;
+                let statusText = titleStatus === "OK" ? "APROVADO" : (titleStatus === "WARN" ? "ATENÇÃO" : "ERRO");
+                
+                tableRows.push([{ content: `ID: ${item.id} ${item.corrected ? '(Auto-Corrigido)' : ''}`, colSpan: 4, styles: { fillColor: [243, 244, 246], fontStyle: 'bold' } }]);
+                
+                tableRows.push([
+                    'TÍTULO',
+                    item.gabarito.title,
+                    item.imagem.title,
+                    statusText
+                ]);
+
+                // Price Rows
+                item.result.prices.forEach(p => {
+                    let pStatus = p.status;
+                    let pVal = p.found ? `R$ ${fmt(p.found)}` : '---';
+                    tableRows.push([
+                        p.label,
+                        `R$ ${fmt(p.expected)}`,
+                        pVal,
+                        pStatus
+                    ]);
+                });
+                
+                // Separator
+                tableRows.push([{ content: "", colSpan: 4, styles: { cellPadding: 1, fillColor: [255, 255, 255] } }]);
+            });
+
+            doc.autoTable({
+                head: [['ITEM', 'ESPERADO (LISTA)', 'ENCONTRADO (IMG)', 'STATUS']],
+                body: tableRows,
+                startY: 35,
+                theme: 'grid',
+                headStyles: { fillColor: [31, 41, 55] },
+                columnStyles: {
+                    0: { fontStyle: 'bold', width: 30 },
+                    3: { fontStyle: 'bold', width: 25, halign: 'center' }
+                },
+                didParseCell: function(data) {
+                    if (data.column.index === 3) {
+                        if (data.cell.raw === 'ERRO' || data.cell.raw === 'DIVERGENTE' || data.cell.raw === 'SUMIU') {
+                            data.cell.styles.textColor = [220, 38, 38];
+                        } else if (data.cell.raw === 'OK' || data.cell.raw === 'APROVADO') {
+                            data.cell.styles.textColor = [22, 163, 74];
+                        } else {
+                            data.cell.styles.textColor = [217, 119, 6]; // Warn
+                        }
+                    }
+                }
+            });
+
+            doc.save("Relatorio_Auditoria.pdf");
+        }
+
+        // --- CORE COMPARISON LOGIC ---
+        function compareData(g, i) {
+            const sim = checkSim(g.title, i.title);
+            const ts = sim < 0.4 ? "ERRO" : (sim < 0.6 ? "WARN" : "OK");
+            
+            const prices = [];
+            let errorCount = (ts === "ERRO" ? 1 : 0);
+
+            // Base Price
+            if(g.basePrice){
+                if(i.basePrice){
+                    if(Math.abs(g.basePrice-i.basePrice)<0.05) prices.push({label: "BASE", expected: g.basePrice, found: i.basePrice, status: "OK"});
+                    else {
+                        // Rescue
+                        const rescue = i.rawNumbers.find(rn => Math.abs(rn.v - g.basePrice) < 0.05);
+                        if(rescue) prices.push({label: "BASE", expected: g.basePrice, found: rescue.v, status: "WARN (Recuperado)"});
+                        else { prices.push({label: "BASE", expected: g.basePrice, found: i.basePrice, status: "DIVERGENTE"}); errorCount++; }
+                    }
+                } else {
+                    const rescue = i.rawNumbers.find(rn => Math.abs(rn.v - g.basePrice) < 0.05);
+                    if(rescue) prices.push({label: "BASE", expected: g.basePrice, found: rescue.v, status: "WARN (Recuperado)"});
+                    else { prices.push({label: "BASE", expected: g.basePrice, found: null, status: "SUMIU"}); errorCount++; }
+                }
+            }
+
+            // Offers
+            g.offers.forEach(rq => {
+                const mt = i.offers.find(o => o.type === rq.type);
+                if(mt){
+                    if(Math.abs(mt.val - rq.val) < 0.05) prices.push({label: rq.type, expected: rq.val, found: mt.val, status: "OK"});
+                    else { prices.push({label: rq.type, expected: rq.val, found: mt.val, status: "DIVERGENTE"}); errorCount++; }
+                } else {
+                    const matchVal = i.rawNumbers.find(rn => Math.abs(rn.v - rq.val) < 0.05);
+                    if(matchVal) prices.push({label: rq.type, expected: rq.val, found: matchVal.v, status: "WARN (Solto)"});
+                    else { prices.push({label: rq.type, expected: rq.val, found: null, status: "SUMIU"}); errorCount++; }
+                }
+            });
+
+            return { titleStatus: ts, titleSim: Math.round(sim*100), prices: prices, errorCount: errorCount };
+        }
+
         async function procVision(f,k){const b=await toBase64(f),r=await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${k}`,{method:'POST',body:JSON.stringify({requests:[{image:{content:b},features:[{type:"TEXT_DETECTION"}]}]})}),j=await r.json();return extractV90(j.responses[0]?.fullTextAnnotation?.text||"",80)}
         async function procFree(f){let b=await toBase64(f);if(f.size>900*1024)b=await compress(b);const d=new FormData();d.append("base64Image","data:image/jpeg;base64,"+b);d.append("language","por");d.append("apikey",FREE_OCR_KEY);d.append("OCREngine","2");d.append("scale","true");const r=await fetch("https://api.ocr.space/parse/image",{method:'POST',body:d}),j=await r.json();if(j.IsErroredOnProcessing)throw new Error(j.ErrorMessage);return extractV90(j.ParsedResults?.[0]?.ParsedText||"",150)}
         function toBase64(f){return new Promise((r,j)=>{const d=new FileReader();d.onload=()=>r(d.result.split(',')[1]);d.onerror=j;d.readAsDataURL(f)})}
@@ -159,36 +270,26 @@
         function parseListV86(t){const m={};const l=t.split('\n');let c=null;l.forEach(x=>{x=x.trim();if(!x)return;const r=x.match(/^(\d+)\s*-\s*(.+)/);if(r){if(c)processListBlock(m,c);c={id:r[1],text:x}}else if(c)c.text+=" "+x});if(c)processListBlock(m,c);return m}
         function processListBlock(m,i){const t=i.text.replace(/\s+/g,' ').trim();let ti=t.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/,'').trim()||t;["SAVE","GANHE","NOSSO","CLUBE","OFERTA","CLIENTE","LEVANDO","CARTÃO","COMPRE","A PARTIR"].forEach(g=>{const ix=ti.toUpperCase().indexOf(g);if(ix!==-1)ti=ti.substring(0,ix)});let bp=null;const o=[];const p=[];const rx=/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;let x;while((x=rx.exec(t))!==null)p.push({v:parseFloat(x[1].replace('.','').replace(',','.')),i:x.index,a:false});const rm=t.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);if(rm){const v=parseFloat(rm[1].replace('.','').replace(',','.'));const k=p.find(n=>Math.abs(n.v-v)<0.001);if(k){bp=k.v;k.a=true}}else{const dm=t.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);if(dm){const v=parseFloat(dm[1].replace('.','').replace(',','.'));const k=p.find(n=>Math.abs(n.v-v)<0.001);if(k){bp=k.v;k.a=true}}}const tr=[{k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"SAVE",t:"SAVE GANHE"},{k:"EMBALAGEM",t:"EMBALAGEM"},{k:"LEVANDO",t:"EMBALAGEM"},{k:"A PARTIR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},{k:"COMPRE",t:"EMBALAGEM"},{k:"PAGUE",t:"EMBALAGEM"}];p.forEach(n=>{if(n.a)return;const cx=t.substring(Math.max(0,n.i-80),n.i).toUpperCase();let bt=null,md=9999;tr.forEach(k=>{const ix=cx.lastIndexOf(k.k);if(ix!==-1&&(cx.length-ix)<md){md=cx.length-ix;bt=k.t}});if(bt&&md<80){o.push({type:bt,val:n.v});n.a=true}});if(!bp){const l=p.find(n=>!n.a);if(l)bp=l.v}m[i.id]={title:ti.trim(),basePrice:bp,offers:o}}
 
-        // --- EXTRACTOR V90 (NOVO FAXINEIRO) ---
         function extractV90(r,lb){
             let cl = r.replace(/\r/g,'');
             cl = cl.replace(/Levenus|Levenns|Lavenus/gi, "Levando");
             cl = cl.replace(/unideles|unLilade|unlunde|uni\w*de/gi, "unidade");
-            
-            // CORREÇÃO PREÇOS 05, 08 (Confusão com R$)
-            cl = cl.replace(/\b05(\d{1,2}[,.]\d{2})/g, "R$ $1"); // 054,99 -> R$ 4,99
-            cl = cl.replace(/\b08(\d{1,2}[,.]\d{2})/g, "R$ $1"); // 083,99 -> R$ 3,99
-            cl = cl.replace(/\b(\d{2})\s+(\d{1,2}[,.]\d{2})/g, "R$ $2"); // 23 4,83 -> R$ 4,83
-            
+            cl = cl.replace(/\b05(\d{1,2}[,.]\d{2})/g, "R$ $1"); 
+            cl = cl.replace(/\b08(\d{1,2}[,.]\d{2})/g, "R$ $1"); 
+            cl = cl.replace(/\b(\d{2})\s+(\d{1,2}[,.]\d{2})/g, "R$ $2"); 
             cl = cl.replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, m => m.replace(/S/g,'5').replace(/[O]/g,'0').replace(/B/g,'8').replace(/[lI]/g,'1').replace(/Z/g,'2'));
-            
             let ti=cl.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s)?.[1]||"";
-            // Fallback: Se não achou preço pra cortar, pega as primeiras 100 letras
             if(ti.length < 3) ti = cl.substring(0, 100); 
-            
             ["SAVE","GANHE","NOSSO","CLUBE","OFERTA","CLIENTE","LEVANDO","CARTÃO"].forEach(g=>{const ix=ti.toUpperCase().indexOf(g);if(ix!==-1)ti=ti.substring(0,ix)});
-            
             const pf=[];
             const rx=/(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g; let m;
             while((m=rx.exec(cl))!==null){
                 const v=parseFloat(m[0].replace('.','').replace(',','.'));
                 if(!(v>=2020&&v<=2030&&Number.isInteger(v)) && v < 5000) pf.push({v,i:m.index,a:false});
             }
-            
             let bp=null;const o=[];let bf=false;
             const bi=cl.toUpperCase().indexOf("COMPRAR");
             if(bi!==-1){const c=pf.filter(n=>n.i<bi);if(c.length){const k=c[c.length-1];bp=k.v;bf=true;k.a=true}}
-            
             const tr=[{k:"SAVE",t:"SAVE GANHE"},{k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"EMBALAGEM",t:"EMBALAGEM"},{k:"LEVANDO",t:"EMBALAGEM"},{k:"A PARTIR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},{k:"COMPRE",t:"EMBALAGEM"},{k:"PAGUE",t:"EMBALAGEM"}];
             pf.forEach(n=>{
                 if(n.a) return; 
@@ -203,52 +304,27 @@
 
         function genDiff(e,f){const et=e.split(/\s+/),fc=f.toLowerCase();return et.map(w=>{const c=w.toLowerCase().replace(/[^\w]/g,'');if(c.length<2)return `<span class="diff-word text-gray-400">${w}</span>`;return fc.includes(c)?`<span class="diff-word diff-found">${w}</span>`:`<span class="diff-word diff-missing">${w}</span>`}).join(' ')}
         
-        function renderV90(c,id,g,i,m,corrected,fname){
-            const r=[];let ec=0;
-            const sim=checkSim(g.title,i.title);
-            const ts=sim<0.4?"ERRO":(sim<0.6?"WARN":"OK");
-            if(ts==="ERRO")ec++;
-            
-            r.push(rowTitle(g.title,genDiff(g.title,i.title),ts,Math.round(sim*100)));
-            
-            if(g.basePrice){
-                if(i.basePrice){
-                    if(Math.abs(g.basePrice-i.basePrice)<0.05)r.push(rowPrice("BASE",g.basePrice,i.basePrice,"OK"));
-                    else{
-                        const rescue = i.rawNumbers.find(rn => Math.abs(rn.v - g.basePrice) < 0.05);
-                        if(rescue) r.push(rowPrice("BASE",g.basePrice,rescue.v,"WARN","Recuperado (OCR Ruim)"));
-                        else { r.push(rowPrice("BASE",g.basePrice,i.basePrice,"DIVERGENTE")); ec++; }
-                    }
-                }else{
-                    const rescue = i.rawNumbers.find(rn => Math.abs(rn.v - g.basePrice) < 0.05);
-                    if(rescue) r.push(rowPrice("BASE",g.basePrice,rescue.v,"WARN","Recuperado (OCR Ruim)"));
-                    else { r.push(rowPrice("BASE",g.basePrice,null,"SUMIU")); ec++; }
-                }
-            }
-            
-            g.offers.forEach(rq=>{
-                const mt=i.offers.find(o=>o.type===rq.type);
-                if(mt){if(Math.abs(mt.val-rq.val)<0.05)r.push(rowPrice(rq.type,rq.val,mt.val,"OK"));else{r.push(rowPrice(rq.type,rq.val,mt.val,"DIVERGENTE"));ec++}}
-                else{
-                    const matchVal = i.rawNumbers.find(rn => Math.abs(rn.v - rq.val) < 0.05);
-                    if(matchVal){ r.push(rowPrice(rq.type,rq.val,matchVal.v,"WARN",`Achado solto (Sem trigger)`)); } 
-                    else { r.push(rowPrice(rq.type,rq.val,null,"SUMIU")); ec++; }
-                }
-            });
-            const st=ec===0?"APROVADO":"REPROVADO",bc=ec===0?"badge-pass":"badge-fail",did=`db-${id}`;
+        function renderV90(c,id,g,i,m,corrected,fname, res){
+            const bc=res.errorCount===0?"badge-pass":"badge-fail";
+            const st=res.errorCount===0?"APROVADO":"REPROVADO";
+            const did=`db-${id}`;
             const div=document.createElement('div');div.className="result-card animate-fade-in";
-            
             let headerHtml = `<div><span class="font-bold text-sm text-slate-700">ID ${id}</span> <span class="text-[9px] text-gray-400">(${m})</span></div>`;
             if(corrected) {
-                headerHtml = `<div><span class="font-bold text-sm text-amber-700"><i class="fa-solid fa-triangle-exclamation"></i> ID CORRIGIDO: ${id}</span> <div class="text-[9px] text-amber-600">Arquivo orig: "${fname}" não batia.</div></div>`;
+                headerHtml = `<div><span class="font-bold text-sm text-amber-700"><i class="fa-solid fa-triangle-exclamation"></i> ID CORRIGIDO: ${id}</span> <div class="text-[9px] text-amber-600">Arquivo orig: "${fname}"</div></div>`;
                 div.style.border = "1px solid #fcd34d";
             }
+            const rows = [];
+            rows.push(rowTitle(g.title,genDiff(g.title,i.title),res.titleStatus,res.titleSim));
+            res.prices.forEach(p => rows.push(rowPrice(p.label,p.expected,p.found,p.status)));
 
-            div.innerHTML=`<div class="card-header">${headerHtml}<span class="badge ${bc}">${st}</span></div><table class="comp-table"><thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead><tbody>${r.join('')}</tbody></table><div class="text-center p-2 border-t border-slate-100"><button onclick="document.getElementById('${did}').style.display='block'" class="text-[10px] text-indigo-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button></div><div id="${did}" class="debug-panel"><strong>Raw Title:</strong> ${i.title}<br><strong>Clean Text:</strong> ${i.rawText.substring(0,250)}...</div>`;
+            div.innerHTML=`<div class="card-header">${headerHtml}<span class="badge ${bc}">${st}</span></div><table class="comp-table"><thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead><tbody>${rows.join('')}</tbody></table><div class="text-center p-2 border-t border-slate-100"><button onclick="document.getElementById('${did}').style.display='block'" class="text-[10px] text-indigo-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button></div><div id="${did}" class="debug-panel"><strong>Raw Title:</strong> ${i.title}<br><strong>Clean Text:</strong> ${i.rawText.substring(0,250)}...</div>`;
             c.prepend(div);
         }
+        
         function rowTitle(e,d,s,p){let i,c;if(s==="OK"){i='✔';c='status-ok'}else if(s==="WARN"){i='⚠';c='status-warn'}else{i='✖';c='status-err'}return `<tr><td class="font-bold text-slate-600 align-top pt-3">TÍTULO</td><td colspan="2"><span class="list-title-text">${e}</span></td><td rowspan="2" class="${c} align-middle border-l pl-2"><div class="flex flex-col items-center"><span>${i} ${s}</span><span class="text-[9px] text-gray-400">(${p}%)</span></div></td></tr><tr><td class="font-bold text-slate-600 align-top pb-3 text-[10px]">IMG</td><td colspan="2" class="pb-3"><div class="text-[12px] leading-snug">${d}</div></td></tr>`}
-        function rowPrice(l,e,f,s,o=""){let i,c,v;const ef=fmt(e);if(s==="OK"){i='✔';c='status-ok';v=`<span class="price-tag bg-ok">R$ ${fmt(f)}</span>`}else if(s==="DIVERGENTE"){i='✖';c='status-err';v=`<span class="price-tag bg-err">R$ ${fmt(f)}</span>`}else if(s==="WARN"){i='⚠';c='status-warn';v=`<span class="price-tag bg-ref">R$ ${fmt(f)}</span> <span class="text-[9px]">${o}</span>`}else{i='✖';c='status-err';v=`<span class="price-tag bg-miss">---</span>`}return `<tr><td class="font-bold text-slate-600">${l}</td><td><span class="font-mono font-bold text-blue-800">R$ ${ef}</span></td><td>${v}</td><td class="${c} border-l pl-2">${i} ${s}</td></tr>`}
+        function rowPrice(l,e,f,s){let i,c,v;const ef=fmt(e); if(!f && f!==0) v='<span class="price-tag bg-miss">---</span>'; else v=`<span class="price-tag ${s.includes('OK')?'bg-ok':(s.includes('WARN')?'bg-ref':'bg-err')}">R$ ${fmt(f)}</span>`;
+        if(s==="OK"){i='✔';c='status-ok'}else if(s.includes("WARN")){i='⚠';c='status-warn'}else{i='✖';c='status-err'}return `<tr><td class="font-bold text-slate-600">${l}</td><td><span class="font-mono font-bold text-blue-800">R$ ${ef}</span></td><td>${v}</td><td class="${c} border-l pl-2 text-xs">${i} ${s}</td></tr>`}
         function renderError(c,t,m){c.innerHTML+=`<div class="p-3 bg-red-100 text-red-800 text-xs rounded mb-2"><strong>${t}:</strong> ${m}</div>`}
         const fmt=n=>n.toLocaleString('pt-BR',{minimumFractionDigits:2});
     </script>
