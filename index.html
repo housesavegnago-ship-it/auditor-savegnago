@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V86 - Especialista Atacado</title>
+    <title>Auditor V87 - Fuzzy Logic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
@@ -40,13 +40,14 @@
         .progress-fill { height: 100%; background: #10b981; border-radius: 2px; transition: width 0.3s; }
         .input-locked { background-color: #374151; color: #9ca3af; cursor: not-allowed; }
         .input-unlocked { background-color: #1f2937; color: white; border-color: #3b82f6; }
+        .list-title-text { font-weight: 600; color: #1e293b; font-size: 12px; }
     </style>
 </head>
 <body class="text-slate-800">
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-box-open"></i></div>
-            <div><h1 class="font-bold text-lg leading-none">Auditor V86</h1><p class="text-[10px] text-gray-400">Especialista Atacado</p></div>
+            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-brain"></i></div>
+            <div><h1 class="font-bold text-lg leading-none">Auditor V87</h1><p class="text-[10px] text-gray-400">Lógica Fuzzy + Limpeza de Ruído</p></div>
         </div>
         <div class="flex items-center gap-4">
             <div class="usage-box"><span class="usage-label">USO DIÁRIO</span><span id="usageCounter" class="usage-val">0 / 1000</span><div class="progress-bg"><div id="usageBar" class="progress-fill" style="width: 0%"></div></div></div>
@@ -77,13 +78,30 @@
         dropZone.onclick=()=>fileInput.click();fileInput.onchange=e=>{files=Array.from(e.target.files);dropZone.innerHTML=`<div class="text-blue-600 font-bold">${files.length} Arq</div>`};dropZone.ondragover=e=>{e.preventDefault();dropZone.style.borderColor='#2563eb'};dropZone.ondrop=e=>{e.preventDefault();dropZone.style.borderColor='#9ca3af';files=Array.from(e.dataTransfer.files);dropZone.innerHTML=`<div class="text-blue-600 font-bold">${files.length} Arq</div>`};
         function clearImages(){files=[];fileInput.value='';dropZone.innerHTML=`<i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i><div class="text-xs font-bold text-slate-600">2. ARRASTE IMAGENS</div><input type="file" id="fileInput" multiple accept="image/*" class="hidden">`;document.getElementById('resultsArea').innerHTML=''}
         function extractId(f){let m=f.match(/[Pp]0*(\d+)/);if(m)return m[1];m=f.match(/[-_\s]0*(\d+)\./);if(m)return m[1];m=f.match(/0*(\d+)\.[a-zA-Z0-9]+$/);return m?m[1]:null}
-        async function runAudit(){const l=document.getElementById('listInput').value,m=apiSelector.value;if(!l.trim()||!files.length)return alert("Faltam dados!");if(m==='vision'&&!apiKeyInput.value.trim())return alert("Sem API Key!");const d=parseListV86(l);if(!Object.keys(d).length)return alert("Lista inválida!");document.getElementById('loading').classList.remove('hidden');document.getElementById('loadingText').innerText=m==='vision'?"Vision...":"Free OCR...";const c=document.getElementById('resultsArea');c.innerHTML='';for(const f of files){const id=extractId(f.name);if(!id){renderError(c,f.name,"Sem ID");continue}const g=d[id];if(!g){renderError(c,f.name,`ID ${id} não listado`);continue}try{let i;if(m==='vision'){i=await procVision(f,apiKeyInput.value.trim());incrementUsage()}else i=await procFree(f);renderV86(c,id,g,i,m)}catch(e){renderError(c,f.name,e.message)}}document.getElementById('loading').classList.add('hidden')}
-        async function procVision(f,k){const b=await toBase64(f),r=await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${k}`,{method:'POST',body:JSON.stringify({requests:[{image:{content:b},features:[{type:"TEXT_DETECTION"}]}]})}),j=await r.json();return extractV86(j.responses[0]?.fullTextAnnotation?.text||"",80)}
-        async function procFree(f){let b=await toBase64(f);if(f.size>900*1024)b=await compress(b);const d=new FormData();d.append("base64Image","data:image/jpeg;base64,"+b);d.append("language","por");d.append("apikey",FREE_OCR_KEY);d.append("OCREngine","2");d.append("scale","true");const r=await fetch("https://api.ocr.space/parse/image",{method:'POST',body:d}),j=await r.json();if(j.IsErroredOnProcessing)throw new Error(j.ErrorMessage);return extractV86(j.ParsedResults?.[0]?.ParsedText||"",150)}
+        
+        // --- LEVENSHTEIN (FUZZY LOGIC) ---
+        function levenshtein(a, b) {
+            if(a.length === 0) return b.length; 
+            if(b.length === 0) return a.length;
+            const matrix = [];
+            for(let i = 0; i <= b.length; i++){ matrix[i] = [i]; }
+            for(let j = 0; j <= a.length; j++){ matrix[0][j] = j; }
+            for(let i = 1; i <= b.length; i++){
+                for(let j = 1; j <= a.length; j++){
+                    if(b.charAt(i-1) == a.charAt(j-1)){ matrix[i][j] = matrix[i-1][j-1]; }
+                    else { matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, Math.min(matrix[i][j-1] + 1, matrix[i-1][j] + 1)); }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        async function runAudit(){const l=document.getElementById('listInput').value,m=apiSelector.value;if(!l.trim()||!files.length)return alert("Faltam dados!");if(m==='vision'&&!apiKeyInput.value.trim())return alert("Sem API Key!");const d=parseListV86(l);if(!Object.keys(d).length)return alert("Lista inválida!");document.getElementById('loading').classList.remove('hidden');document.getElementById('loadingText').innerText=m==='vision'?"Vision...":"Free OCR...";const c=document.getElementById('resultsArea');c.innerHTML='';for(const f of files){const id=extractId(f.name);if(!id){renderError(c,f.name,"Sem ID");continue}const g=d[id];if(!g){renderError(c,f.name,`ID ${id} não listado`);continue}try{let i;if(m==='vision'){i=await procVision(f,apiKeyInput.value.trim());incrementUsage()}else i=await procFree(f);renderV87(c,id,g,i,m)}catch(e){renderError(c,f.name,e.message)}}document.getElementById('loading').classList.add('hidden')}
+        
+        async function procVision(f,k){const b=await toBase64(f),r=await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${k}`,{method:'POST',body:JSON.stringify({requests:[{image:{content:b},features:[{type:"TEXT_DETECTION"}]}]})}),j=await r.json();return extractV87(j.responses[0]?.fullTextAnnotation?.text||"",80)}
+        async function procFree(f){let b=await toBase64(f);if(f.size>900*1024)b=await compress(b);const d=new FormData();d.append("base64Image","data:image/jpeg;base64,"+b);d.append("language","por");d.append("apikey",FREE_OCR_KEY);d.append("OCREngine","2");d.append("scale","true");const r=await fetch("https://api.ocr.space/parse/image",{method:'POST',body:d}),j=await r.json();if(j.IsErroredOnProcessing)throw new Error(j.ErrorMessage);return extractV87(j.ParsedResults?.[0]?.ParsedText||"",150)}
         function toBase64(f){return new Promise((r,j)=>{const d=new FileReader();d.onload=()=>r(d.result.split(',')[1]);d.onerror=j;d.readAsDataURL(f)})}
         function compress(b){return new Promise(r=>{const i=new Image();i.src="data:image/jpeg;base64,"+b;i.onload=()=>{const c=document.createElement('canvas');c.width=1000;c.height=i.height*(1000/i.width);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',0.7).split(',')[1])}})}
         
-        // --- LOGICA V86: ATACADO & PREÇOS ---
         function parseListV86(t){
             const m={};const l=t.split('\n');let c=null;
             l.forEach(x=>{
@@ -96,24 +114,16 @@
         function processListBlock(m,i){
             const t=i.text.replace(/\s+/g,' ').trim();
             let ti=t.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/,'').trim()||t;
-            // Limpa titulo
             ["SAVE","GANHE","NOSSO","CLUBE","OFERTA","CLIENTE","LEVANDO","CARTÃO","COMPRE","A PARTIR"].forEach(g=>{const ix=ti.toUpperCase().indexOf(g);if(ix!==-1)ti=ti.substring(0,ix)});
             
             let bp=null; const o=[]; const p=[];
             const rx=/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi; let x;
             while((x=rx.exec(t))!==null)p.push({v:parseFloat(x[1].replace('.','').replace(',','.')),i:x.index,a:false});
-            
-            // Base antes do RED
             const rm=t.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);
             if(rm){const v=parseFloat(rm[1].replace('.','').replace(',','.'));const k=p.find(n=>Math.abs(n.v-v)<0.001);if(k){bp=k.v;k.a=true}}
             else{const dm=t.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);if(dm){const v=parseFloat(dm[1].replace('.','').replace(',','.'));const k=p.find(n=>Math.abs(n.v-v)<0.001);if(k){bp=k.v;k.a=true}}}
             
-            // Ofertas com Qtde (V86)
-            const tr=[
-                {k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"SAVE",t:"SAVE GANHE"},{k:"EMBALAGEM",t:"EMBALAGEM"},
-                {k:"LEVANDO",t:"EMBALAGEM"},{k:"A PARTIR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},
-                {k:"COMPRE",t:"EMBALAGEM"},{k:"PAGUE",t:"EMBALAGEM"} // Novos triggers atacado
-            ];
+            const tr=[{k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"SAVE",t:"SAVE GANHE"},{k:"EMBALAGEM",t:"EMBALAGEM"},{k:"LEVANDO",t:"EMBALAGEM"},{k:"A PARTIR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},{k:"COMPRE",t:"EMBALAGEM"},{k:"PAGUE",t:"EMBALAGEM"}];
             p.forEach(n=>{
                 if(n.a)return;
                 const cx=t.substring(Math.max(0,n.i-80),n.i).toUpperCase();
@@ -125,8 +135,18 @@
             m[i.id]={title:ti.trim(),basePrice:bp,offers:o}
         }
 
-        function extractV86(r,lb){
-            let cl=r.replace(/\r/g,'').replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g,m=>m.replace(/S/g,'5').replace(/[O]/g,'0').replace(/B/g,'8').replace(/[lI]/g,'1').replace(/Z/g,'2'));
+        // --- EXTRACTOR V87 (FUZZY + CLEAN) ---
+        function extractV87(r,lb){
+            // 1. FAXINA DE RUÍDO (85, B5, 55, 15 viram nada se seguidos de preço)
+            // Substitui "85 3,99" por "3,99"
+            let cl = r.replace(/\r/g,'');
+            
+            // Corrige Garranchos em numeros
+            cl = cl.replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, m => m.replace(/S/g,'5').replace(/[O]/g,'0').replace(/B/g,'8').replace(/[lI]/g,'1').replace(/Z/g,'2'));
+            
+            // Remove Prefixo de R$ ruim (85, 55, etc)
+            cl = cl.replace(/\b(85|55|15|B5|HS|K\$)\s*(\d+[,.]\d{2})/g, "$2");
+
             let ti=cl.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s)?.[1]||"";
             ["SAVE","GANHE","NOSSO","CLUBE","OFERTA","CLIENTE","LEVANDO","CARTÃO"].forEach(g=>{const ix=ti.toUpperCase().indexOf(g);if(ix!==-1)ti=ti.substring(0,ix)});
             
@@ -134,7 +154,8 @@
             const rx=/(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g; let m;
             while((m=rx.exec(cl))!==null){
                 const v=parseFloat(m[0].replace('.','').replace(',','.'));
-                if(!(v>=2020&&v<=2030&&Number.isInteger(v)))pf.push({v,i:m.index});
+                // Filtro de ano e numeros absurdos (>2000)
+                if(!(v>=2020&&v<=2030&&Number.isInteger(v)) && v < 5000) pf.push({v,i:m.index});
             }
             
             let bp=null;const o=[];let bf=false;
@@ -146,22 +167,41 @@
                 const cx=cl.substring(Math.max(0,n.i-lb),n.i).toUpperCase().replace(/\n/g,' ');
                 let bt=null,md=9999;
                 tr.forEach(k=>{const ix=cx.lastIndexOf(k.k);if(ix!==-1){const d=cx.length-ix;if(d<md){md=d;bt=k.t}}});
-                if(bt&&md<120)o.push({type:bt,val:n.v}); // Contexto maior (120) para pegar "Levando..."
+                if(bt&&md<120)o.push({type:bt,val:n.v});
                 else if(!bf){bp=n.v;bf=true}
             });
             return {title:ti.trim(),basePrice:bp,offers:o,rawText:cl,rawNumbers:pf}
         }
 
-        function checkSim(e,f){const t=s=>s.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).filter(w=>w.length>2);const et=t(e),ft=f.toLowerCase();if(!et.length)return 0;let m=0;et.forEach(x=>{if(ft.includes(x))m++});return m/et.length}
+        function checkSimV87(e,f){
+            const clean = s => s.toLowerCase().replace(/[^\w\s]/g,'').trim();
+            const ec = clean(e);
+            const fc = clean(f);
+            if(!ec || !fc) return 0;
+            
+            const dist = levenshtein(ec, fc);
+            const len = Math.max(ec.length, fc.length);
+            return 1 - (dist / len); // % de similaridade (0 a 1)
+        }
+
         function genDiff(e,f){const et=e.split(/\s+/),fc=f.toLowerCase();return et.map(w=>{const c=w.toLowerCase().replace(/[^\w]/g,'');if(c.length<2)return `<span class="diff-word text-gray-400">${w}</span>`;return fc.includes(c)?`<span class="diff-word diff-found">${w}</span>`:`<span class="diff-word diff-missing">${w}</span>`}).join(' ')}
         
-        function renderV86(c,id,g,i,m){
+        function renderV87(c,id,g,i,m){
             const r=[];let ec=0;
-            const sim=checkSim(g.title,i.title);const ts=sim<0.4?"ERRO":(sim<0.7?"WARN":"OK");if(ts==="ERRO")ec++;
+            // Fuzzy Match com Tolerancia de 60%
+            const sim=checkSimV87(g.title,i.title);
+            const ts=sim<0.4?"ERRO":(sim<0.6?"WARN":"OK");
+            if(ts==="ERRO")ec++;
+            
             r.push(rowTitle(g.title,genDiff(g.title,i.title),ts,Math.round(sim*100)));
             
-            if(g.basePrice){if(i.basePrice){if(Math.abs(g.basePrice-i.basePrice)<0.05)r.push(rowPrice("BASE",g.basePrice,i.basePrice,"OK"));else{r.push(rowPrice("BASE",g.basePrice,i.basePrice,"DIVERGENTE"));ec++}}else{r.push(rowPrice("BASE",g.basePrice,null,"SUMIU"));ec++}}
-            
+            // Preços (Mesma logica)
+            if(g.basePrice){
+                if(i.basePrice){
+                    if(Math.abs(g.basePrice-i.basePrice)<0.05)r.push(rowPrice("BASE",g.basePrice,i.basePrice,"OK"));
+                    else{r.push(rowPrice("BASE",g.basePrice,i.basePrice,"DIVERGENTE"));ec++}
+                }else{r.push(rowPrice("BASE",g.basePrice,null,"SUMIU"));ec++}
+            }
             g.offers.forEach(rq=>{
                 const mt=i.offers.find(o=>o.type===rq.type);
                 if(mt){if(Math.abs(mt.val-rq.val)<0.05)r.push(rowPrice(rq.type,rq.val,mt.val,"OK"));else{r.push(rowPrice(rq.type,rq.val,mt.val,"DIVERGENTE"));ec++}}
@@ -169,7 +209,7 @@
             });
             const st=ec===0?"APROVADO":"REPROVADO",bc=ec===0?"badge-pass":"badge-fail",did=`db-${id}`;
             const div=document.createElement('div');div.className="result-card animate-fade-in";
-            div.innerHTML=`<div class="card-header"><div><span class="font-bold text-sm text-slate-700">ID ${id}</span> <span class="text-[9px] text-gray-400">(${m})</span></div><span class="badge ${bc}">${st}</span></div><table class="comp-table"><thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead><tbody>${r.join('')}</tbody></table><div class="text-center p-2 border-t border-slate-100"><button onclick="document.getElementById('${did}').style.display='block'" class="text-[10px] text-blue-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button></div><div id="${did}" class="debug-panel"><strong>Title:</strong> ${i.title}<br><strong>Raw:</strong> ${i.rawText.substring(0,150)}...</div>`;
+            div.innerHTML=`<div class="card-header"><div><span class="font-bold text-sm text-slate-700">ID ${id}</span> <span class="text-[9px] text-gray-400">(${m})</span></div><span class="badge ${bc}">${st}</span></div><table class="comp-table"><thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead><tbody>${r.join('')}</tbody></table><div class="text-center p-2 border-t border-slate-100"><button onclick="document.getElementById('${did}').style.display='block'" class="text-[10px] text-blue-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug</button></div><div id="${did}" class="debug-panel"><strong>Raw Title:</strong> ${i.title}<br><strong>Clean Text:</strong> ${i.rawText.substring(0,150)}...</div>`;
             c.prepend(div);
         }
         function rowTitle(e,d,s,p){let i,c;if(s==="OK"){i='✔';c='status-ok'}else if(s==="WARN"){i='⚠';c='status-warn'}else{i='✖';c='status-err'}return `<tr><td class="font-bold text-slate-600 align-top pt-3">TÍTULO</td><td colspan="2"><span class="list-title-text">${e}</span></td><td rowspan="2" class="${c} align-middle border-l pl-2"><div class="flex flex-col items-center"><span>${i} ${s}</span><span class="text-[9px] text-gray-400">(${p}%)</span></div></td></tr><tr><td class="font-bold text-slate-600 align-top pb-3 text-[10px]">IMG</td><td colspan="2" class="pb-3"><div class="text-[12px] leading-snug">${d}</div></td></tr>`}
