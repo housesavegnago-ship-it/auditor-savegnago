@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V84 - ID Universal</title>
+    <title>Auditor V85 - Cofre de API</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
@@ -30,7 +30,6 @@
         .diff-found { color: #16a34a; font-weight: bold; } 
         .diff-missing { color: #dc2626; text-decoration: line-through; opacity: 0.6; } 
         
-        /* LINHA DE TITULO DA LISTA */
         .list-title-text { font-weight: 600; color: #1e293b; font-size: 12px; }
 
         .status-ok { color: #16a34a; font-weight: bold; }
@@ -57,16 +56,20 @@
         .usage-val { font-size: 12px; font-weight: bold; color: #10b981; font-family: monospace; }
         .progress-bg { height: 3px; background: #374151; width: 100%; margin-top: 2px; border-radius: 2px; }
         .progress-fill { height: 100%; background: #10b981; border-radius: 2px; transition: width 0.3s; }
+
+        /* LOCKED INPUT STYLE */
+        .input-locked { background-color: #374151; color: #9ca3af; cursor: not-allowed; }
+        .input-unlocked { background-color: #1f2937; color: white; border-color: #3b82f6; }
     </style>
 </head>
 <body class="text-slate-800">
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-robot"></i></div>
+            <div class="bg-blue-600 p-1.5 rounded text-white"><i class="fa-solid fa-shield-halved"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V84</h1>
-                <p class="text-[10px] text-gray-400">ID Universal</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V85</h1>
+                <p class="text-[10px] text-gray-400">Proteção de Chave</p>
             </div>
         </div>
         
@@ -85,9 +88,16 @@
                 </select>
             </div>
 
-            <div id="visionKeyContainer" class="flex gap-2">
-                <input type="password" id="apiKey" class="bg-gray-800 border border-gray-700 text-white text-xs p-1.5 rounded w-32 focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Cole sua API Key aqui...">
-                <button onclick="saveKey()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
+            <div id="visionKeyContainer" class="flex gap-2 items-center">
+                <input type="password" id="apiKey" disabled class="input-locked border border-gray-700 text-xs p-1.5 rounded w-32 focus:outline-none transition" placeholder="Chave Protegida">
+                
+                <button id="btnUnlock" onclick="unlockKey()" class="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold px-3 py-1.5 rounded" title="Clique para alterar a chave">
+                    <i class="fa-solid fa-lock"></i>
+                </button>
+
+                <button id="btnSaveKey" onclick="saveKey()" class="hidden bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded">
+                    SALVAR
+                </button>
             </div>
         </div>
     </header>
@@ -138,10 +148,50 @@
         const apiKeyInput = document.getElementById('apiKey');
         const apiSelector = document.getElementById('apiSelector');
         const visionContainer = document.getElementById('visionKeyContainer');
+        const btnUnlock = document.getElementById('btnUnlock');
+        const btnSaveKey = document.getElementById('btnSaveKey');
         const usageCounter = document.getElementById('usageCounter');
         const usageBar = document.getElementById('usageBar');
 
-        // --- SISTEMA DE COTA DIÁRIA ---
+        const ADMIN_PASS = "Savegna@2212*";
+
+        // --- SISTEMA DE SENHA ---
+        function unlockKey() {
+            const pass = prompt("Digite a senha de administrador para alterar a chave:");
+            if (pass === ADMIN_PASS) {
+                // Destrava
+                apiKeyInput.disabled = false;
+                apiKeyInput.classList.remove('input-locked');
+                apiKeyInput.classList.add('input-unlocked');
+                apiKeyInput.placeholder = "Cole a nova chave";
+                
+                // Troca botões
+                btnUnlock.classList.add('hidden');
+                btnSaveKey.classList.remove('hidden');
+                apiKeyInput.focus();
+            } else {
+                alert("Senha incorreta! Acesso negado.");
+            }
+        }
+
+        function saveKey() {
+            const newKey = apiKeyInput.value.trim();
+            if(!newKey) return alert("A chave não pode estar vazia!");
+            
+            localStorage.setItem('vision_key', newKey);
+            alert("Chave Vision Atualizada e Protegida!");
+            
+            // Trava de novo
+            apiKeyInput.disabled = true;
+            apiKeyInput.classList.add('input-locked');
+            apiKeyInput.classList.remove('input-unlocked');
+            apiKeyInput.placeholder = "Chave Protegida";
+            
+            btnUnlock.classList.remove('hidden');
+            btnSaveKey.classList.add('hidden');
+        }
+
+        // --- SISTEMA DE COTA ---
         function updateUsageDisplay() {
             const today = new Date().toDateString();
             const storedDate = localStorage.getItem('usage_date');
@@ -154,10 +204,13 @@
             if(pct > 90) usageCounter.style.color = '#ef4444'; else usageCounter.style.color = '#10b981';
         }
         function incrementUsage() { const count = parseInt(localStorage.getItem('usage_count') || '0'); localStorage.setItem('usage_count', count + 1); updateUsageDisplay(); }
-        if(localStorage.getItem('vision_key')) apiKeyInput.value = localStorage.getItem('vision_key');
+        
+        // Inicializa
+        if(localStorage.getItem('vision_key')) {
+            apiKeyInput.value = localStorage.getItem('vision_key');
+        }
         updateUsageDisplay();
 
-        function saveKey() { localStorage.setItem('vision_key', apiKeyInput.value.trim()); alert("Chave Vision Salva!"); }
         function toggleApiKeyInput() { visionContainer.style.display = (apiSelector.value === 'vision') ? 'flex' : 'none'; }
         toggleApiKeyInput();
 
@@ -177,22 +230,14 @@
             document.getElementById('resultsArea').innerHTML = `<div class="text-center mt-20 text-slate-400 text-sm italic"><i class="fa-solid fa-check mr-2 text-green-500"></i> Pronto.</div>`;
         }
 
-        // --- DETECTOR UNIVERSAL DE ID V84 ---
+        // --- ID DETECTOR ---
         function extractIdFromFilename(filename) {
-            // 1. Tenta padrão explícito P1, p01
             let match = filename.match(/[Pp]0*(\d+)/);
             if (match) return match[1];
-
-            // 2. Tenta separadores (-1, _1, " 1") antes da extensão
-            // Ex: "oferta-1.jpg", "foto_5.png", "item 10.jpeg"
             match = filename.match(/[-_\s]0*(\d+)\./);
             if (match) return match[1];
-
-            // 3. Tenta número solto no final do arquivo (antes do ponto)
-            // Ex: "imagem15.jpg", "1.jpg"
             match = filename.match(/0*(\d+)\.[a-zA-Z0-9]+$/);
             if (match) return match[1];
-
             return null;
         }
 
@@ -201,7 +246,9 @@
             const mode = apiSelector.value;
 
             if(!listTxt.trim() || files.length === 0) return alert("Faltam dados!");
-            if(mode === 'vision' && !apiKeyInput.value.trim()) return alert("Salve a API Key do Vision!");
+            
+            // Check se tem chave antes de rodar
+            if(mode === 'vision' && !apiKeyInput.value.trim()) return alert("Erro: Nenhuma API Key configurada. Clique no cadeado para adicionar.");
 
             const listData = parseListV76(listTxt);
             if(Object.keys(listData).length === 0) return alert("Lista inválida.");
@@ -212,11 +259,8 @@
             container.innerHTML = '';
 
             for(const file of files) {
-                // *** NOVA CHAMADA DE ID ***
                 const id = extractIdFromFilename(file.name);
-                
-                if(!id) { renderError(container, file.name, "ID não encontrado no nome do arquivo (Use: P1, -1, _1 ou 1.jpg)"); continue; }
-                
+                if(!id) { renderError(container, file.name, "ID não encontrado no nome do arquivo"); continue; }
                 const gabarito = listData[id];
                 if(!gabarito) { renderError(container, file.name, `ID ${id} identificado, mas não está na lista.`); continue; }
 
@@ -228,7 +272,6 @@
                     } else {
                         imgData = await processImageFreeOCR(file);
                     }
-                    
                     compareAndRenderV82(container, id, gabarito, imgData, mode);
                 } catch(e) { renderError(container, file.name, e.message); }
             }
@@ -240,6 +283,7 @@
             const base64 = await toBase64(file);
             const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${key}`, { method: 'POST', body: JSON.stringify({ requests: [{ image: { content: base64 }, features: [{ type: "TEXT_DETECTION" }] }] }) });
             const json = await res.json();
+            if(json.error) throw new Error("Erro API Vision: " + json.error.message);
             return extractPricesFromTextV82(json.responses[0]?.fullTextAnnotation?.text || "", 80);
         }
 
@@ -336,7 +380,8 @@
             if(status === "OK") { icon='✔'; stClass='status-ok'; } else if(status === "WARN") { icon='⚠'; stClass='status-warn'; } else { icon='✖'; stClass='status-err'; }
             return `<tr><td class="font-bold text-slate-600 align-top pt-3">TÍTULO (LISTA)</td><td colspan="2"><span class="list-title-text">${expected}</span></td><td rowspan="2" class="${stClass} align-middle border-l border-slate-100 pl-2"><div class="flex flex-col items-center"><span>${icon} ${status}</span><span class="text-[9px] text-gray-400">(${pct}%)</span></div></td></tr><tr><td class="font-bold text-slate-600 align-top pb-3 text-[10px]">TÍTULO (IMG)</td><td colspan="2" class="pb-3"><div class="text-[12px] leading-snug">${diffHtml}</div></td></tr>`;
         }
-        function rowHtml(label, exp, found, status, obs="") { let icon, stClass, valHtml; const expFmt = fmt(exp); if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; } else if (status === "DIVERGENTE") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; } else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; } else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-miss">---</span>`; } return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass} border-l border-slate-100 pl-2">${icon} ${status}</td></tr>`; }
+        function rowHtml(label, exp, found, status, obs="") { let icon, stClass, valHtml; const expFmt = fmt(exp); if (status === "OK") { icon = '✔'; stClass = 'status-ok'; valHtml = `<span class="price-tag bg-ok">R$ ${fmt(found)}</span>`; } else if (status === "DIVERGENTE") { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-err">R$ ${fmt(found)}</span>`; } else if (status === "WARN") { icon = '⚠'; stClass = 'status-warn'; valHtml = `<span class="price-tag bg-ref">R$ ${fmt(found)}</span> <span class="text-[9px]">${obs}</span>`; } else { icon = '✖'; stClass = 'status-err'; valHtml = `<span class="price-tag bg-miss">---</span>`; } return `<tr><td class="font-bold text-slate-600">${label}</td><td><span class="font-mono font-bold text-blue-800">R$ ${expFmt}</span></td><td>${valHtml}</td><td class="${stClass} border-l border-slate-100 pl-2">${icon} ${status}</td></tr>`;
+        }
         function checkTitleSimilarity(exp, fnd) { const t=s=>s.toLowerCase().replace(/[^\w\s]/g,'').split(/\s+/).filter(w=>w.length>2); const eT=t(exp); const fT=fnd.toLowerCase(); if(eT.length===0)return 0; let m=0; eT.forEach(t=>{if(fT.includes(t))m++}); return m/eT.length; }
         function toBase64(f){return new Promise((r,j)=>{const d=new FileReader();d.onload=()=>r(d.result.split(',')[1]);d.onerror=j;d.readAsDataURL(f)})}
         function compressImage(b){return new Promise(r=>{const i=new Image();i.src="data:image/jpeg;base64,"+b;i.onload=()=>{const c=document.createElement('canvas');c.width=1000;c.height=i.height*(1000/i.width);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',0.7).split(',')[1])}})}
