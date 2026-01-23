@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditor V98 - Gemini Pure</title>
+    <title>Auditor V99 - Universal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -12,11 +12,11 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* HEADER GEMINI PURO (ESCURO/ROXO) */
-        .header { background: linear-gradient(135deg, #0f172a 0%, #312e81 100%); color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        /* HEADER ESCURO COM DETALHE LARANJA */
+        .header { background: #111827; color: white; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 20; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-bottom: 2px solid #f97316; }
         
         .drop-zone { border: 2px dashed #cbd5e1; border-radius: 8px; background: #f1f5f9; transition: 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
-        .drop-zone:hover { border-color: #6366f1; background: #eef2ff; }
+        .drop-zone:hover { border-color: #f97316; background: #fff7ed; }
 
         .result-card { background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .card-header { padding: 12px 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
@@ -26,6 +26,10 @@
         .comp-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         
         .price-tag { font-family: monospace; font-weight: 800; font-size: 14px; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+        .diff-word { display: inline-block; margin-right: 4px; }
+        .diff-found { color: #16a34a; font-weight: bold; } 
+        .diff-missing { color: #dc2626; text-decoration: line-through; opacity: 0.6; } 
+        
         .status-ok { color: #16a34a; font-weight: bold; }
         .status-err { color: #dc2626; font-weight: bold; }
         .status-warn { color: #d97706; font-weight: bold; }
@@ -41,25 +45,24 @@
 
         .debug-panel { font-size: 10px; color: #6b7280; background: #f9fafb; padding: 8px; border-top: 1px solid #e2e8f0; display: none; }
         
-        .usage-box { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 10px; display: flex; flex-direction: column; min-width: 120px; }
-        .usage-label { font-size: 9px; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.5px; }
-        .usage-val { font-size: 12px; font-weight: bold; color: #4ade80; font-family: monospace; }
-        .progress-bg { height: 3px; background: rgba(0,0,0,0.3); width: 100%; margin-top: 2px; border-radius: 2px; }
-        .progress-fill { height: 100%; background: #4ade80; border-radius: 2px; transition: width 0.3s; }
+        .usage-box { background: #374151; border: 1px solid #4b5563; border-radius: 6px; padding: 4px 10px; display: flex; flex-direction: column; min-width: 120px; }
+        .usage-label { font-size: 9px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; }
+        .usage-val { font-size: 12px; font-weight: bold; color: #fb923c; font-family: monospace; }
+        .progress-bg { height: 3px; background: #1f2937; width: 100%; margin-top: 2px; border-radius: 2px; }
+        .progress-fill { height: 100%; background: #fb923c; border-radius: 2px; transition: width 0.3s; }
 
-        .input-locked { background-color: rgba(0,0,0,0.2); color: #a5b4fc; cursor: not-allowed; border-color: rgba(255,255,255,0.1); }
-        .input-unlocked { background-color: white; color: #1e3a8a; border-color: #3b82f6; }
-        .list-title-text { font-weight: 600; color: #1e293b; font-size: 12px; }
+        .input-locked { background-color: #374151; color: #9ca3af; cursor: not-allowed; border-color: #4b5563; }
+        .input-unlocked { background-color: #fff; color: #111827; border-color: #f97316; }
     </style>
 </head>
 <body class="text-slate-800">
 
     <header class="header">
         <div class="flex items-center gap-3">
-            <div class="bg-indigo-500 p-1.5 rounded text-white shadow-lg"><i class="fa-solid fa-brain"></i></div>
+            <div class="bg-orange-500 p-1.5 rounded text-white shadow-lg"><i class="fa-solid fa-rocket"></i></div>
             <div>
-                <h1 class="font-bold text-lg leading-none">Auditor V98</h1>
-                <p class="text-[10px] text-indigo-200">Gemini 2.0 Flash (Pure)</p>
+                <h1 class="font-bold text-lg leading-none">Auditor V99</h1>
+                <p class="text-[10px] text-orange-200">Universal (Proxy Anti-Block)</p>
             </div>
         </div>
         
@@ -67,9 +70,10 @@
             <div class="usage-box"><span class="usage-label">USO DIÁRIO</span><span id="usageCounter" class="usage-val">0 / 1500</span><div class="progress-bg"><div id="usageBar" class="progress-fill" style="width: 0%"></div></div></div>
             
             <div id="visionKeyContainer" class="flex gap-2 items-center">
+                <button onclick="testConnection()" class="text-[10px] text-orange-400 underline hover:text-orange-300 mr-2">Testar Conexão</button>
                 <input type="password" id="apiKey" disabled class="input-locked border text-xs p-1.5 rounded w-32" placeholder="Chave Protegida">
-                <button id="btnUnlock" onclick="unlockKey()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded border border-indigo-400"><i class="fa-solid fa-lock"></i></button>
-                <button id="btnSaveKey" onclick="saveKey()" class="hidden bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
+                <button id="btnUnlock" onclick="unlockKey()" class="bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold px-3 py-1.5 rounded border border-gray-600"><i class="fa-solid fa-lock"></i></button>
+                <button id="btnSaveKey" onclick="saveKey()" class="hidden bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded">SALVAR</button>
             </div>
         </div>
     </header>
@@ -79,9 +83,9 @@
             <div class="flex-1 flex flex-col">
                 <label class="text-xs font-bold text-slate-500 mb-1 flex justify-between">
                     1. GABARITO (LISTA)
-                    <span class="text-indigo-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
+                    <span class="text-orange-600 cursor-pointer hover:underline" onclick="document.getElementById('listInput').value = ''">Limpar</span>
                 </label>
-                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea>
+                <textarea id="listInput" class="flex-1 border rounded-lg p-3 text-xs font-mono bg-slate-50 focus:ring-2 focus:ring-orange-500 outline-none resize-none" placeholder="Cole a lista aqui..."></textarea>
             </div>
             
             <div class="h-32">
@@ -93,22 +97,22 @@
             </div>
 
             <div class="flex gap-2">
-                <button onclick="runAudit()" class="flex-1 bg-indigo-700 hover:bg-indigo-600 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
-                    <i class="fa-solid fa-bolt"></i> AUDITAR COM IA
+                <button onclick="runAudit()" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-play"></i> AUDITAR
                 </button>
-                <button onclick="clearImages()" class="w-16 bg-gray-600 hover:bg-gray-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center" title="Limpar">
+                <button onclick="clearImages()" class="w-16 bg-red-600 hover:bg-red-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center" title="Limpar">
                     <i class="fa-solid fa-trash-can"></i>
                 </button>
             </div>
-            <button onclick="generatePDF()" class="mt-2 w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
+            <button onclick="generatePDF()" class="mt-2 w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg font-bold shadow transition text-sm flex justify-center items-center gap-2">
                 <i class="fa-solid fa-file-pdf"></i> BAIXAR RELATÓRIO PDF
             </button>
         </div>
 
         <div class="w-[65%] bg-slate-50 relative flex flex-col">
             <div id="loading" class="hidden absolute inset-0 bg-white/90 z-50 flex flex-col items-center justify-center">
-                <div class="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
-                <div id="loadingText" class="text-sm font-bold text-indigo-900 animate-pulse">Gemini analisando ofertas...</div>
+                <div class="w-10 h-10 border-4 border-orange-200 border-t-orange-600 rounded-full animate-spin mb-3"></div>
+                <div id="loadingText" class="text-sm font-bold text-orange-900 animate-pulse">Processando...</div>
             </div>
 
             <div id="resultsArea" class="flex-1 overflow-y-auto p-6">
@@ -122,13 +126,13 @@
     <script>
         const apiKeyInput=document.getElementById('apiKey'),visionContainer=document.getElementById('visionKeyContainer'),btnUnlock=document.getElementById('btnUnlock'),btnSaveKey=document.getElementById('btnSaveKey'),usageCounter=document.getElementById('usageCounter'),usageBar=document.getElementById('usageBar'),ADMIN_PASS="Savegna@2212*";
         
-        // --- CONFIGURAÇÃO DA CHAVE ---
         const DEFAULT_KEY = 'AIzaSyBWiycPM19I4WCSqbksuM7Sy_hAshKFjZc';
+        const FREE_OCR_KEY='K87864832788957';
         
         let files=[];const dropZone=document.getElementById('dropZone'),fileInput=document.getElementById('fileInput');
         let reportData = [];
 
-        function updateUsageDisplay(){const t=new Date().toDateString(),s=localStorage.getItem('usage_date');if(s!==t){localStorage.setItem('usage_date',t);localStorage.setItem('usage_count','0')}const c=parseInt(localStorage.getItem('usage_count')||'0'),l=1500,p=Math.min((c/l)*100,100);usageCounter.innerText=`${c} / ${l}`;usageBar.style.width=`${p}%`;usageCounter.style.color=p>90?'#ef4444':'#4ade80'}
+        function updateUsageDisplay(){const t=new Date().toDateString(),s=localStorage.getItem('usage_date');if(s!==t){localStorage.setItem('usage_date',t);localStorage.setItem('usage_count','0')}const c=parseInt(localStorage.getItem('usage_count')||'0'),l=1500,p=Math.min((c/l)*100,100);usageCounter.innerText=`${c} / ${l}`;usageBar.style.width=`${p}%`;usageCounter.style.color=p>90?'#ef4444':'#fb923c'}
         function incrementUsage(){const c=parseInt(localStorage.getItem('usage_count')||'0');localStorage.setItem('usage_count',c+1);updateUsageDisplay()}
         
         const savedKey = localStorage.getItem('vision_key');
@@ -139,9 +143,9 @@
         function saveKey(){const k=apiKeyInput.value.trim();if(!k)return alert("Vazio!");localStorage.setItem('vision_key',k);alert("Chave Salva!");apiKeyInput.disabled=true;apiKeyInput.classList.add('input-locked');apiKeyInput.classList.remove('input-unlocked');btnUnlock.classList.remove('hidden');btnSaveKey.classList.add('hidden')}
         
         dropZone.onclick=()=>fileInput.click();
-        fileInput.onchange=e=>{files=Array.from(e.target.files);dropZone.innerHTML=`<div class="text-indigo-600 font-bold text-lg">${files.length} Arquivos</div>`};
-        dropZone.ondragover=e=>{e.preventDefault();dropZone.style.borderColor='#6366f1'};
-        dropZone.ondrop=e=>{e.preventDefault();dropZone.style.borderColor='#9ca3af';files=Array.from(e.dataTransfer.files);dropZone.innerHTML=`<div class="text-indigo-600 font-bold text-lg">${files.length} Arquivos</div>`};
+        fileInput.onchange=e=>{files=Array.from(e.target.files);dropZone.innerHTML=`<div class="text-orange-600 font-bold text-lg">${files.length} Arquivos</div>`};
+        dropZone.ondragover=e=>{e.preventDefault();dropZone.style.borderColor='#f97316'};
+        dropZone.ondrop=e=>{e.preventDefault();dropZone.style.borderColor='#9ca3af';files=Array.from(e.dataTransfer.files);dropZone.innerHTML=`<div class="text-orange-600 font-bold text-lg">${files.length} Arquivos</div>`};
 
         function clearImages(){files=[];fileInput.value='';dropZone.innerHTML=`<i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i><div class="text-xs font-bold text-slate-600">2. ARRASTE IMAGENS</div><input type="file" id="fileInput" multiple accept="image/*" class="hidden">`;document.getElementById('resultsArea').innerHTML=''; reportData = [];}
         function extractId(f){let m=f.match(/[Pp]0*(\d+)/);if(m)return m[1];m=f.match(/[-_\s]0*(\d+)\./);if(m)return m[1];m=f.match(/0*(\d+)\.[a-zA-Z0-9]+$/);return m?m[1]:null}
@@ -153,6 +157,14 @@
             return matrix[b.length][a.length];
         }
         function checkSim(e,f){const c=s=>s.toLowerCase().replace(/[^\w\s]/g,'').trim();const ec=c(e),fc=c(f);if(!ec||!fc)return 0;const d=levenshtein(ec,fc);const l=Math.max(ec.length,fc.length);return 1-(d/l)}
+
+        async function testConnection() {
+            try {
+                const url = `https://corsproxy.io/?` + encodeURIComponent(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeyInput.value.trim()}`);
+                const res = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: "Teste" }] }] }) });
+                if(res.ok) alert("Conexão com Gemini OK (via Proxy)!"); else alert("Erro no teste. Verifique a chave.");
+            } catch(e) { alert("Falha na conexão: " + e.message); }
+        }
 
         async function runAudit(){
             const l=document.getElementById('listInput').value;
@@ -171,12 +183,21 @@
             for(const f of files){
                 const fileId = extractId(f.name);
                 let imgData;
+                let usedEngine = "Gemini";
+                
                 try {
+                    // Tenta Gemini primeiro (via Proxy)
                     imgData = await procGemini(f, apiKey);
                     incrementUsage();
                 } catch(e) { 
-                    renderError(container, f.name, `Erro Gemini: ${e.message} (Verifique se a rede permite acesso à API do Google)`); 
-                    continue; 
+                    console.warn("Gemini falhou, tentando Free OCR...", e);
+                    try {
+                        imgData = await procFree(f);
+                        usedEngine = "Free OCR (Backup)";
+                    } catch(e2) {
+                        renderError(container, f.name, `Falha total: ${e.message} / ${e2.message}`);
+                        continue;
+                    }
                 }
 
                 let matchedId = fileId;
@@ -202,7 +223,7 @@
                 const auditResult = compareData(listData[matchedId], imgData);
                 reportData.push({ id: matchedId, file: f.name, gabarito: listData[matchedId], imagem: imgData, result: auditResult, corrected: isAutoCorrected });
 
-                renderV98(container, matchedId, listData[matchedId], imgData, isAutoCorrected, f.name, auditResult);
+                renderV99(container, matchedId, listData[matchedId], imgData, isAutoCorrected, f.name, auditResult, usedEngine);
             }
             document.getElementById('loading').classList.add('hidden');
         }
@@ -211,14 +232,14 @@
             if (reportData.length === 0) return alert("Nenhum dado auditado.");
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.setFontSize(18); doc.setTextColor(79, 70, 229); // Indigo
-            doc.text("Relatório de Auditoria (Gemini Pure)", 14, 22);
+            doc.setFontSize(18); doc.setTextColor(234, 88, 12);
+            doc.text("Relatório de Auditoria (Universal)", 14, 22);
             doc.setFontSize(10); doc.setTextColor(100);
             doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, 28);
             const tableRows = [];
             reportData.forEach(item => {
                 let statusText = item.result.titleStatus === "OK" ? "APROVADO" : (item.result.titleStatus === "WARN" ? "ATENÇÃO" : "ERRO");
-                tableRows.push([{ content: `ID: ${item.id} ${item.corrected ? '(Auto-Corrigido)' : ''}`, colSpan: 4, styles: { fillColor: [238, 242, 255], fontStyle: 'bold' } }]);
+                tableRows.push([{ content: `ID: ${item.id} ${item.corrected ? '(Auto-Corrigido)' : ''}`, colSpan: 4, styles: { fillColor: [255, 237, 213], fontStyle: 'bold' } }]);
                 tableRows.push(['TÍTULO', item.gabarito.title, item.imagem.title, statusText]);
                 item.result.prices.forEach(p => {
                     let pVal = p.found ? `R$ ${fmt(p.found)}` : '---';
@@ -229,7 +250,7 @@
             doc.autoTable({
                 head: [['ITEM', 'ESPERADO', 'ENCONTRADO', 'STATUS']],
                 body: tableRows, startY: 35, theme: 'grid',
-                headStyles: { fillColor: [49, 46, 129] },
+                headStyles: { fillColor: [154, 52, 18] },
                 didParseCell: function(data) {
                     if (data.column.index === 3) {
                         if (data.cell.raw.includes('ERRO') || data.cell.raw.includes('DIVERGENTE') || data.cell.raw.includes('SUMIU')) data.cell.styles.textColor = [220, 38, 38];
@@ -238,7 +259,7 @@
                     }
                 }
             });
-            doc.save("Relatorio_Auditoria_Gemini.pdf");
+            doc.save("Relatorio_Auditoria.pdf");
         }
 
         function compareData(g, i) {
@@ -257,11 +278,8 @@
             }
 
             g.offers.forEach(rq => {
-                // Tenta achar oferta pelo tipo (ex: EMBALAGEM)
                 let match = i.offers.find(o => o.type === rq.type);
-                // Se nao achou, tenta achar pelo valor (pode ter vindo como outro tipo)
                 if (!match) match = i.offers.find(o => Math.abs(o.val - rq.val) < 0.05);
-
                 if(match){
                     if(Math.abs(match.val - rq.val) < 0.05) prices.push({label: rq.type, expected: rq.val, found: match.val, status: "OK"});
                     else { prices.push({label: rq.type, expected: rq.val, found: match.val, status: "DIVERGENTE"}); errorCount++; }
@@ -272,32 +290,22 @@
             return { titleStatus: ts, titleSim: Math.round(sim*100), prices: prices, errorCount: errorCount };
         }
 
-        // --- GEMINI 2.0 PURE ENGINE ---
+        // --- GEMINI VIA PROXY ---
         async function procGemini(file, key) {
             const base64 = await toBase64(file);
-            // Prompt Super Otimizado para Varejo
-            const prompt = `Você é um auditor de preços de supermercado. Analise esta imagem com precisão extrema.
-            Identifique o NOME DO PRODUTO (corrija erros de OCR, ex: 'Budimber' -> 'Budweiser').
-            Identifique os PREÇOS. 
-            - 'basePrice': Preço unitário principal (o maior destaque ou preço padrão).
-            - 'offers': Lista de ofertas condicionais (ex: "Leve 12 pague X", "A partir de 3 un", "Clube", "Cartão").
-            
-            Retorne APENAS este JSON (sem markdown):
-            {
-              "title": "Nome Corrigido do Produto",
-              "basePrice": 0.00,
-              "offers": [
-                { "type": "EMBALAGEM", "val": 0.00 }
-              ]
-            }
-            Se houver dúvida, 'basePrice' é o preço de 1 unidade. Ofertas de atacado vão em 'offers'.`;
+            const prompt = `Analise esta imagem de oferta de supermercado.
+            Identifique o NOME DO PRODUTO (corrija erros de OCR).
+            Identifique os PREÇOS: 'basePrice' (unitário) e 'offers' (condicionais).
+            Retorne APENAS este JSON:
+            { "title": "Nome Produto", "basePrice": 0.00, "offers": [{ "type": "EMBALAGEM", "val": 0.00 }] }`;
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
-            const payload = {
-                contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: file.type || "image/jpeg", data: base64 } }] }]
-            };
+            // USANDO PROXY "corsproxy.io" para evitar bloqueio do GitHub
+            const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+            const proxyUrl = `https://corsproxy.io/?` + encodeURIComponent(targetUrl);
 
-            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            const payload = { contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: file.type || "image/jpeg", data: base64 } }] }] };
+
+            const response = await fetch(proxyUrl, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
             const json = await response.json();
             
             if (json.error) throw new Error(json.error.message);
@@ -307,23 +315,57 @@
             try {
                 const data = JSON.parse(txt);
                 return { title: data.title || "Desconhecido", basePrice: data.basePrice, offers: data.offers || [], rawText: JSON.stringify(data) };
-            } catch(e) {
-                throw new Error("Erro ao processar resposta do Gemini (JSON inválido).");
-            }
+            } catch(e) { throw new Error("JSON inválido do Gemini."); }
         }
 
+        async function procFree(f){let b=await toBase64(f);if(f.size>900*1024)b=await compress(b);const d=new FormData();d.append("base64Image","data:image/jpeg;base64,"+b);d.append("language","por");d.append("apikey",FREE_OCR_KEY);d.append("OCREngine","2");d.append("scale","true");const r=await fetch("https://api.ocr.space/parse/image",{method:'POST',body:d}),j=await r.json();if(j.IsErroredOnProcessing)throw new Error(j.ErrorMessage);return extractV94(j.ParsedResults?.[0]?.ParsedText||"",150)}
         function toBase64(f){return new Promise((r,j)=>{const d=new FileReader();d.onload=()=>r(d.result.split(',')[1]);d.onerror=j;d.readAsDataURL(f)})}
+        function compress(b){return new Promise(r=>{const i=new Image();i.src="data:image/jpeg;base64,"+b;i.onload=()=>{const c=document.createElement('canvas');c.width=1000;c.height=i.height*(1000/i.width);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',0.7).split(',')[1])}})}
         function parseListV86(t){const m={};const l=t.split('\n');let c=null;l.forEach(x=>{x=x.trim();if(!x)return;const r=x.match(/^(\d+)\s*-\s*(.+)/);if(r){if(c)processListBlock(m,c);c={id:r[1],text:x}}else if(c)c.text+=" "+x});if(c)processListBlock(m,c);return m}
         function processListBlock(m,i){const t=i.text.replace(/\s+/g,' ').trim();let ti=t.match(/^(.*?)(?=\s\(red|–\s*R\$|R\$)/i)?.[1]?.replace(/^\d+\s*-\s*/,'').trim()||t;["SAVE","GANHE","NOSSO","CLUBE","OFERTA","CLIENTE","LEVANDO","CARTÃO","COMPRE","A PARTIR"].forEach(g=>{const ix=ti.toUpperCase().indexOf(g);if(ix!==-1)ti=ti.substring(0,ix)});let bp=null;const o=[];const p=[];const rx=/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/gi;let x;while((x=rx.exec(t))!==null)p.push({v:parseFloat(x[1].replace('.','').replace(',','.')),i:x.index,a:false});const rm=t.match(/R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})\s*\(red/i);if(rm){const v=parseFloat(rm[1].replace('.','').replace(',','.'));const k=p.find(n=>Math.abs(n.v-v)<0.001);if(k){bp=k.v;k.a=true}}else{const dm=t.match(/–\s*R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/);if(dm){const v=parseFloat(dm[1].replace('.','').replace(',','.'));const k=p.find(n=>Math.abs(n.v-v)<0.001);if(k){bp=k.v;k.a=true}}}const tr=[{k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"SAVE",t:"SAVE GANHE"},{k:"EMBALAGEM",t:"EMBALAGEM"},{k:"LEVANDO",t:"EMBALAGEM"},{k:"A PARTIR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},{k:"COMPRE",t:"EMBALAGEM"},{k:"PAGUE",t:"EMBALAGEM"}];p.forEach(n=>{if(n.a)return;const cx=t.substring(Math.max(0,n.i-80),n.i).toUpperCase();let bt=null,md=9999;tr.forEach(k=>{const ix=cx.lastIndexOf(k.k);if(ix!==-1&&(cx.length-ix)<md){md=cx.length-ix;bt=k.t}});if(bt&&md<80){o.push({type:bt,val:n.v});n.a=true}});if(!bp){const l=p.find(n=>!n.a);if(l)bp=l.v}m[i.id]={title:ti.trim(),basePrice:bp,offers:o}}
+        
+        function extractV94(r,lb){
+            let cl = r.replace(/\r/g,'');
+            cl = cl.replace(/Levenus|Levenns|Lavenus/gi, "Levando");
+            cl = cl.replace(/unideles|unLilade|unlunde|uni\w*de/gi, "unidade");
+            cl = cl.replace(/\b05\s*(\d{1,2}[,.]\d{2})/g, "R$ $1"); 
+            cl = cl.replace(/\b23\s*(\d{1,2}[,.]\d{2})/g, "R$ $1");
+            cl = cl.replace(/([0-9SBOlIZ]{1,3})[,.]([0-9SBOlIZ]{2})\b/g, m => m.replace(/S/g,'5').replace(/[O]/g,'0').replace(/B/g,'8').replace(/[lI]/g,'1').replace(/Z/g,'2'));
+            let ti=cl.match(/^(.*?)(?=R\$|\d+[,.]\d{2})/s)?.[1]||"";
+            if(ti.length < 3) ti = cl.substring(0, 100); 
+            ["SAVE","GANHE","NOSSO","CLUBE","OFERTA","CLIENTE","LEVANDO","CARTÃO"].forEach(g=>{const ix=ti.toUpperCase().indexOf(g);if(ix!==-1)ti=ti.substring(0,ix)});
+            ti = ti.replace(/([|_.])/g, ' '); 
+            let words = ti.split(/\s+/);
+            ti = words.filter((w, i) => w.length > 2 && w !== words[i-1]).join(' ');
+            const brands = { "Coron": "Corona", "Carona": "Corona", "Forana": "Corona", "Stela": "Stella", "Stola": "Stella", "Brama": "Brahma", "Bhrama": "Brahma", "Budimber": "Budweiser", "Budweis": "Budweiser" };
+            Object.keys(brands).forEach(b => { ti = ti.replace(new RegExp(b, "gi"), brands[b]); });
+            const pf=[];
+            const rx=/(\d{1,3}(?:\.\d{3})*)[,.](\d{2})\b/g; let m;
+            while((m=rx.exec(cl))!==null){ const v=parseFloat(m[0].replace('.','').replace(',','.')); if(!(v>=2020&&v<=2030&&Number.isInteger(v)) && v < 5000) pf.push({v,i:m.index,a:false}); }
+            let bp=null;const o=[];let bf=false;
+            const bi=cl.toUpperCase().indexOf("COMPRAR");
+            if(bi!==-1){const c=pf.filter(n=>n.i<bi);if(c.length){const k=c[c.length-1];bp=k.v;bf=true;k.a=true}}
+            const tr=[{k:"SAVE",t:"SAVE GANHE"},{k:"CARTÃO",t:"NOSSO CARTÃO"},{k:"EMBALAGEM",t:"EMBALAGEM"},{k:"LEVANDO",t:"EMBALAGEM"},{k:"A PARTIR",t:"EMBALAGEM"},{k:"UNIDADE",t:"EMBALAGEM"},{k:"COMPRE",t:"EMBALAGEM"},{k:"PAGUE",t:"EMBALAGEM"}, {k:"POR",t:"EMBALAGEM"}];
+            pf.forEach(n=>{
+                if(n.a) return;
+                const windowStart = Math.max(0, n.i - 150);
+                const cx = cl.substring(windowStart, n.i).toUpperCase();
+                let bt=null, md=9999;
+                tr.forEach(k=>{const ix = cx.lastIndexOf(k.k); if(ix !== -1) { const dist = cx.length - (ix + k.k.length); if(dist < 60) { if(dist < md) { md = dist; bt = k.t; } } }});
+                if(bt){ o.push({type:bt,val:n.v}); n.a=true; }
+                else if(!bf){ bp=n.v; bf=true; n.a=true; }
+            });
+            return {title:ti.trim(),basePrice:bp,offers:o,rawText:cl,rawNumbers:pf.map(p=>p.v)}
+        }
 
         function genDiff(e,f){const et=e.split(/\s+/),fc=f.toLowerCase();return et.map(w=>{const c=w.toLowerCase().replace(/[^\w]/g,'');if(c.length<2)return `<span class="diff-word text-gray-400">${w}</span>`;return fc.includes(c)?`<span class="diff-word diff-found">${w}</span>`:`<span class="diff-word diff-missing">${w}</span>`}).join(' ')}
         
-        function renderV98(c,id,g,i,corrected,fname, res){
+        function renderV99(c,id,g,i,corrected,fname, res, engine){
             const bc=res.errorCount===0?"badge-pass":"badge-fail";
             const st=res.errorCount===0?"APROVADO":"REPROVADO";
             const did=`db-${id}`;
             const div=document.createElement('div');div.className="result-card animate-fade-in";
-            let headerHtml = `<div><span class="font-bold text-sm text-slate-700">ID ${id}</span> <span class="text-[9px] text-gray-400">(Gemini AI)</span></div>`;
+            let headerHtml = `<div><span class="font-bold text-sm text-slate-700">ID ${id}</span> <span class="text-[9px] text-gray-400">(${engine})</span></div>`;
             if(corrected) {
                 headerHtml = `<div><span class="font-bold text-sm text-amber-700"><i class="fa-solid fa-triangle-exclamation"></i> ID CORRIGIDO: ${id}</span> <div class="text-[9px] text-amber-600">Arquivo orig: "${fname}"</div></div>`;
                 div.style.border = "1px solid #fcd34d";
@@ -331,7 +373,7 @@
             const rows = [];
             rows.push(rowTitle(g.title,genDiff(g.title,i.title),res.titleStatus,res.titleSim));
             res.prices.forEach(p => rows.push(rowPrice(p.label,p.expected,p.found,p.status)));
-            div.innerHTML=`<div class="card-header">${headerHtml}<span class="badge ${bc}">${st}</span></div><table class="comp-table"><thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead><tbody>${rows.join('')}</tbody></table><div class="text-center p-2 border-t border-slate-100"><button onclick="document.getElementById('${did}').style.display='block'" class="text-[10px] text-indigo-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug AI</button></div><div id="${did}" class="debug-panel"><strong>AI Response:</strong> ${i.rawText}</div>`;
+            div.innerHTML=`<div class="card-header">${headerHtml}<span class="badge ${bc}">${st}</span></div><table class="comp-table"><thead><tr><th>Item</th><th>Esperado</th><th>Encontrado</th><th>Status</th></tr></thead><tbody>${rows.join('')}</tbody></table><div class="text-center p-2 border-t border-slate-100"><button onclick="document.getElementById('${did}').style.display='block'" class="text-[10px] text-orange-500 hover:underline"><i class="fa-solid fa-microscope"></i> Debug AI</button></div><div id="${did}" class="debug-panel"><strong>AI Response:</strong> ${i.rawText}</div>`;
             c.prepend(div);
         }
         function rowTitle(e,d,s,p){let i,c;if(s==="OK"){i='✔';c='status-ok'}else if(s==="WARN"){i='⚠';c='status-warn'}else{i='✖';c='status-err'}return `<tr><td class="font-bold text-slate-600 align-top pt-3">TÍTULO</td><td colspan="2"><span class="list-title-text">${e}</span></td><td rowspan="2" class="${c} align-middle border-l pl-2"><div class="flex flex-col items-center"><span>${i} ${s}</span><span class="text-[9px] text-gray-400">(${p}%)</span></div></td></tr><tr><td class="font-bold text-slate-600 align-top pb-3 text-[10px]">IMG</td><td colspan="2" class="pb-3"><div class="text-[12px] leading-snug">${d}</div></td></tr>`}
